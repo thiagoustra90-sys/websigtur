@@ -1,0 +1,16 @@
+# Soporte XAMPP/Apache para el frontend de SIGTUR.
+RewriteEngine On
+RewriteBase /
+
+# Endpoints de autenticación XAMPP en el mismo origen.
+RewriteRule ^api/auth/(login|register|me|logout|es-admin|recuperar|google)$ api/auth.php?action=$1 [END,QSA]
+
+# No reescribir archivos ni directorios que Apache ya puede servir.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# No exponer archivos ocultos ni permitir bucles de reescritura.
+RewriteRule ^\.ht - [F,L]
+
+# El frontend llama al backend usando la URL de frontend/js/api-config.js.

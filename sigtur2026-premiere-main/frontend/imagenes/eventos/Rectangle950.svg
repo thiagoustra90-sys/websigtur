@@ -1,0 +1,22 @@
+<svg viewBox="0 0 546.5 107" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="546.500000" height="107.000000" fill="none" customFrame="#000000">
+	<defs>
+		<g id="pixso_custom_effect_85">
+			<effect visibility="visible" effectType="backgroundBlur" saturation="0" stdDeviation="57.5" />
+		</g>
+		<filter id="filter_85" width="546.500000" height="107.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_85)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+		</filter>
+		<clipPath id="outline_mask_6" transform="matrix(1,0,0,1,-0,-0)">
+			<path d="M53.5 0L493 0C522.547 0 546.5 23.9528 546.5 53.5C546.5 83.0472 522.547 107 493 107L53.5 107C23.9528 107 0 83.0472 0 53.5C0 23.9528 23.9528 0 53.5 0Z" fill="rgb(255,255,255)" fill-rule="nonzero" />
+		</clipPath>
+	</defs>
+	<g data-pixso-skip-parse="true">
+		<foreignObject width="546.500000" height="107.000000" x="0.000000" y="0.000000">
+			<div xmlns="http://www.w3.org/1999/xhtml" style="clip-path:url(#outline_mask_6);height:100%;backdrop-filter:blur(28.750000px);width:100%;-webkit-backdrop-filter:blur(28.750000px);" />
+		</foreignObject>
+	</g>
+	<g opacity="0.200000003" filter="url(#filter_85)">
+		<path id="Rectangle 95" d="M53.5 0L493 0C522.547 0 546.5 23.9528 546.5 53.5C546.5 83.0472 522.547 107 493 107L53.5 107C23.9528 107 0 83.0472 0 53.5C0 23.9528 23.9528 0 53.5 0Z" fill="rgb(217,217,217)" fill-opacity="0.200000003" fill-rule="nonzero" />
+	</g>
+</svg>

@@ -1,0 +1,19 @@
+<svg viewBox="0 0 761.2 97.2002" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="761.200195" height="97.200195" fill="none" customFrame="#000000">
+	<defs>
+		<g id="pixso_custom_effect_83">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="17.6000004" />
+		</g>
+		<filter id="filter_83" width="761.200195" height="97.200195" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_83)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="5.86666679" result="effect_layerBlur_1" />
+		</filter>
+		<linearGradient id="paint_linear_32" x1="17.6000977" x2="743.600098" y1="-28.89991" y2="-28.89991" gradientUnits="userSpaceOnUse">
+			<stop stop-color="rgb(106,180,173)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(22,179,163)" offset="1" stop-opacity="1" />
+		</linearGradient>
+	</defs>
+	<g filter="url(#filter_83)">
+		<path id="Rectangle 35" d="M48.6001 17.6001L712.6 17.6001C729.721 17.6001 743.6 31.4793 743.6 48.6001C743.6 65.7209 729.721 79.6001 712.6 79.6001L48.6001 79.6001C31.4793 79.6001 17.6001 65.7209 17.6001 48.6001C17.6001 31.4793 31.4793 17.6001 48.6001 17.6001Z" fill="url(#paint_linear_32)" fill-rule="nonzero" />
+	</g>
+</svg>

@@ -1,0 +1,24 @@
+<svg viewBox="0 0 194 194" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="194.000000" height="194.000000" fill="none" customFrame="#000000">
+	<defs>
+		<g id="pixso_custom_effect_8">
+			<effect x="0.000000" y="4.000000" visibility="visible" fill="rgb(0,0,0)" fill-opacity="0.25" effectType="dropShadow" stdDeviation="4" radius="0" />
+		</g>
+		<filter id="filter_8" width="194.000000" height="194.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_8)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feColorMatrix result="hardAlpha" in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0 " />
+			<feOffset dx="0.000000" dy="4.000000" in="hardAlpha" />
+			<feGaussianBlur stdDeviation="1.33333337" />
+			<feComposite k2="-1" k3="1" in2="hardAlpha" operator="out" />
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0 " />
+			<feBlend result="effect_dropShadow_1" in2="BackgroundImageFix" mode="normal" />
+			<feBlend result="shape" in="SourceGraphic" in2="effect_dropShadow_1" mode="normal" />
+		</filter>
+		<clipPath id="clipPath_6">
+			<rect width="194.000000" height="194.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+	</defs>
+	<g filter="url(#filter_8)" customFrame="url(#clipPath_6)">
+		<rect id="material-symbols:map-outline" width="194.000000" height="194.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+		<path id="Vector" d="M121.25 169.75L72.75 152.775L35.1625 167.325C32.4681 168.403 29.9757 168.101 27.6854 166.42C25.3951 164.738 24.25 162.48 24.25 159.646L24.25 46.4792C24.25 44.7278 24.7566 43.1785 25.7697 41.8313C26.7828 40.484 28.1623 39.4736 29.9083 38.8L72.75 24.25L121.25 41.225L158.837 26.675C161.532 25.5972 164.024 25.9017 166.315 27.5884C168.605 29.2751 169.75 31.5304 169.75 34.3542L169.75 147.521C169.75 149.272 169.246 150.822 168.238 152.169C167.231 153.516 165.848 154.526 164.092 155.2L121.25 169.75ZM113.167 149.946L113.167 55.3708L80.8333 44.0542L80.8333 138.629L113.167 149.946ZM129.333 149.946L153.583 141.862L153.583 46.075L129.333 55.3708L129.333 149.946ZM40.4167 147.925L64.6667 138.629L64.6667 44.0542L40.4167 52.1375L40.4167 147.925Z" fill="rgb(255,255,255)" fill-rule="nonzero" />
+	</g>
+</svg>

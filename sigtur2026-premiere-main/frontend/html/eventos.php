@@ -1,0 +1,679 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!--
+    eventos.php — página completa de eventos, distinta del preview
+    que hay en la home. Extra fuentes de font.css + estilos generales
+    de styles.css, nada más raro en el head (a diferencia de index.php
+    que tiene un <style> pegado con overrides de navbar).
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventos - SIGTUR Salto</title>
+  <link rel="stylesheet" href="../css/font.css" />
+  <link rel="stylesheet" href="../css/styles.css?v=20260915-event-color-v1" />
+</head>
+<body class="page-eventos">
+
+<!-- 
+     NAVBAR (misma estructura que index.php, ojo que acá SÍ le
+     ponemos class="active" al link de Eventos a mano, no es JS)
+-->
+<header>
+  <nav class="navbar">
+
+    <!-- Logo -->
+    <a class="nav-logo" href="index.php" aria-label="Inicio">
+      <img src="../imagenes/logo-salto.svg" alt="Explora Salto" />
+    </a>
+
+    <!-- Search -->
+    <div class="nav-search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="¿Qué querés descubrir hoy en Salto?" />
+    </div>
+
+    <!-- Nav links -->
+    <div class="nav-links">
+      <a href="eventos.php" class="active">Eventos</a>
+      <a href="turismo.php">Turismo</a>
+      <a href="lugares.php">Lugares</a>
+    </div>
+
+  </nav>
+</header>
+
+
+<!-- 
+     HERO
+     Simple: título + una decoración de olas en SVG con gradiente
+     (los ids wg1/wg2 son locales a este svg, si copian este bloque
+     a otra página y ya existe un wg1 ahí, se pisan los gradientes
+     asique renombren los ids si van a duplicarlo)
+ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <h1 class="hero-title">EVENTOS</h1>
+
+    <!-- Teal wave decoration (matches Figma vectors 54_499, 54_500, 54_501) -->
+    <div class="hero-waves">
+      <svg viewBox="0 0 640 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:clamp(260px,45vw,640px); height:auto; margin-top:-4px;">
+        <path d="M8 38 C80 10, 180 52, 280 26 S440 0, 560 30 S610 50, 632 32"
+              stroke="url(#wg1)" stroke-width="14" stroke-linecap="round" fill="none"/>
+        <path d="M28 22 C100 4, 200 42, 320 18 S480 -2, 596 20 S620 38, 636 22"
+              stroke="url(#wg2)" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <path d="M80 12 C150 2, 230 28, 360 14"
+              stroke="url(#wg2)" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.3"/>
+        <defs>
+          <linearGradient id="wg1" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7aa86f"/>
+            <stop offset="1" stop-color="#42a41e"/>
+          </linearGradient>
+          <linearGradient id="wg2" x1="0" y1="0" x2="640" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7aa86f"/>
+            <stop offset="1" stop-color="#42a41e"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!--
+     DESTACADOS  –  5 cartas oscuras
+     Nota: son 3 cards forzadas. Cada
+     .event-card tiene su propio border-radius/margin inline en vez
+     de estar en el CSS, raro pero así vino.
+-->
+<section class="destacados-section">
+
+  <div class="destacados-header">
+    <h2>DESTACADOS</h2>
+    <a href="eventos.php#anteriores-tabs" class="ver-mas-link">Ver todos</a>
+  </div>
+
+  <div class="destacados-grid">
+    <!-- Card 3 – Vacaciones de Julio en Energimundo -->
+    <div class="event-card" style="border-radius:49px; margin-top:12px;">
+      <img class="event-card-img" src="../imagenes/eventos/energimundo.webp" alt="Vacaciones de Julio en Energimundo" />
+      <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">27 Jun</p>
+      <p class="event-card-title">Vacaciones de Julio en Energimundo 2026</p>
+      <p class="event-card-sub">Familiar | Salto Grande · Energimundo</p>
+    </div>
+
+    <!-- Card 4 – Rally de Salto -->
+    <div class="event-card" style="border-radius:49px; margin-top:12px;">
+      <img class="event-card-img" src="../imagenes/eventos/rally.webp" alt="4ª Fecha Rally de Salto" />
+      <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">26 Jun</p>
+      <p class="event-card-title">4ª Fecha Rally de Salto &ndash; Copa 95 Años de ANCAP 2026</p>
+      <p class="event-card-sub">Deportivo | Del 26 al 28 de junio · Entrada libre</p>
+    </div>
+
+    <!-- Card 5 – Muestra Academia de Danzas de Lucía Tenca -->
+    <div class="event-card" style="border-radius:49px; margin-top:12px;">
+      <img class="event-card-img" src="../imagenes/eventos/muestradanza.webp" alt="Muestra Academia de Danzas de Lucía Tenca" />
+      <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">25 Jun</p>
+      <p class="event-card-title">Muestra Academia de Danzas de Lucía Tenca</p>
+      <p class="event-card-sub">Cultural | Teatro Larrañaga · 20:30 hs</p>
+    </div>
+
+  </div>
+</section>
+
+
+<!--
+     PROXIMOS EVENTOS
+     Acá viven 2 sistemas de filtro que trabajan juntos:
+     1) el buscador (.search-pill input) filtra por texto en vivo
+        (ver el listener 'input' en main.js, sin botón de submit)
+     2) las category-tabs filtran por data-cat (click en un tab)
+     Los .ticket-row llevan un data-cat="..." que tiene que matchear
+     el data-cat del botón, si agregan una categoría nueva acuerdense
+     de agregar el botón Y el data-cat en los tickets, si no el
+     filtro los esconde a todos.
+-->
+<section class="próximos-section">
+
+  <div class="próximos-header">
+    <h2>Próximos eventos</h2>
+  </div>
+
+  <!-- filtro -->
+  <div class="search-filter-bar">
+    <div class="search-pill">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Ver mas próximos eventos" />
+    </div>
+  </div>
+
+  <!-- categoria tabs -->
+  <div class="category-tabs">
+    <button class="cat-tab active" data-cat="todos">Todos</button>
+    <button class="cat-tab" data-cat="musica">Música</button>
+    <button class="cat-tab" data-cat="deportes">Deportes</button>
+    <button class="cat-tab" data-cat="cultura">Cultura</button>
+    <button class="cat-tab" data-cat="gastronomia">Gastronomía</button>
+    <button class="cat-tab" data-cat="feria">Feria</button>
+    <button class="cat-tab" data-cat="religiosos">Religiosos</button>
+    <button class="cat-tab" data-cat="infantiles">Infantiles</button>
+  </div>
+
+  <!-- Evento Ticket Rows -->
+  <div class="event-tickets">
+
+    <!-- Ticket 1 – Maratón Internacional -->
+    <div class="ticket-row" data-cat="deportes">
+      <div class="ticket-date">
+        <span class="day">03</span>
+        <span class="month">NOV</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Maratón Internacional</span>
+        <span class="ticket-subtitle">Veni a correr con nosotros</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Costanera Norte
+        </div>
+      </div>
+      <span class="ticket-badge badge-green">Deportes</span>
+      <span class="ticket-time">20:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Ticket 2 – Festival Primavera -->
+    <div class="ticket-row" data-cat="musica">
+      <div class="ticket-date">
+        <span class="day">03</span>
+        <span class="month">NOV</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Festival Primavera</span>
+        <span class="ticket-subtitle">Veni a correr con nosotros</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Costanera Norte
+        </div>
+      </div>
+      <span class="ticket-badge badge-purple">Música</span>
+      <span class="ticket-time">20:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Ticket 3 – Expo Salto Productivo -->
+    <div class="ticket-row" data-cat="feria">
+      <div class="ticket-date">
+        <span class="day">03</span>
+        <span class="month">NOV</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Expo Salto Productivo</span>
+        <span class="ticket-subtitle">Veni a correr con nosotros</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Costanera Norte
+        </div>
+      </div>
+      <span class="ticket-badge badge-gold">Feria</span>
+      <span class="ticket-time">20:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Ver mas button -->
+  <a href="eventos.php#anteriores-tabs" class="ver-mas-btn">Ver más próximos eventos</a>
+
+</section>
+
+
+<!-- 
+     FEATURED CAROUSEL – Noche de Milonga / Feria del Libro / Paddle
+
+     ESTE es el carousel con loop infinito de verdad (goTo/next en
+     main.js, bloque "page-eventos"). Fijate que hay 6 .feat-slide
+     acá abajo pero solo 3 son reales: las slides 4, 5 y 6 tienen
+     aria-hidden="true" y son CLONES estáticos escritos a mano en el
+     HTML (versión vieja del fix). Desde el 11/07 el JS ADEMÁS clona
+     dinámicamente por su cuenta (setupClones()), o sea que ahora
+     mismo puede haber doble clonado si no se limpió esto. Si el
+     carousel se ve con más huecos de la cuenta o salta raro, lo
+     primero que hay que revisar es ESTO: sacar los slides 4/5/6
+     manuales de acá abajo y dejar que el JS se encargue solo, para
+     no duplicar el trabajo.
+-->
+<section class="carousel-section">
+
+  <div class="section-header">
+    <div></div>
+    <a href="eventos.php#anteriores-tabs" class="ver-mas-link">Ver todos</a>
+  </div>
+
+  <div class="feat-carousel">
+    <div class="feat-track">
+
+      <!-- Slide 1 – Noche de Milonga -->
+      <div class="feat-slide">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Noche de Milonga</p>
+            <p class="feat-sub">Cultura | Club Remeros | Vie. 27/6</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2 – Feria del Libro Salteño -->
+      <div class="feat-slide">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Feria del Libro Salteño</p>
+            <p class="feat-sub">Feria | Biblioteca Departamental | Sáb. 28/6</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3 – Torneo de Paddle Nocturno -->
+      <div class="feat-slide">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Torneo de Paddle Nocturno</p>
+            <p class="feat-sub">Deportivo | Complejo Solari | Dom. 29/6</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4 (clone para loop suave) -->
+      <div class="feat-slide" aria-hidden="true">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Noche de Milonga</p>
+            <p class="feat-sub">Cultura | Club Remeros | Vie. 27/6</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 5 (clone) -->
+      <div class="feat-slide" aria-hidden="true">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Feria del Libro Salteño</p>
+            <p class="feat-sub">Feria | Biblioteca Departamental | Sáb. 28/6</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 6 (clone) -->
+      <div class="feat-slide" aria-hidden="true">
+        <div class="feat-card" style="overflow:hidden;position:relative;">
+          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <div style="position:relative;z-index:1;">
+            <p class="feat-title">Torneo de Paddle Nocturno</p>
+            <p class="feat-sub">Deportivo | Complejo Solari | Dom. 29/6</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /feat-track -->
+  </div><!-- /feat-carousel -->
+
+  <!-- puntos de paginas carousel -->
+  <div class="carousel-dots"></div>
+
+</section>
+
+
+<!-- 
+     EVENTOS ANTERIORES
+     Mismo componente de category-tabs que "Próximos eventos" de
+     más arriba, pero OJO: id="anteriores-tabs" acá es el ancla que
+     usan un montón de links del sitio (footer, "Ver más", etc) para
+     mandar directo a esta sección. Si la mueven o le cambian el id
+     hay que actualizar TODOS esos href="eventos.php#anteriores-tabs".
+-->
+<section class="anteriores-section">
+
+  <div class="anteriores-header">
+    <h2>EVENTOS ANTERIORES</h2>
+    <a href="eventos.php" class="ver-mas-link">Todos los eventos</a>
+  </div>
+
+  <!-- Category tabs for anteriores -->
+  <div class="category-tabs" id="anteriores-tabs">
+    <button class="cat-tab active" data-cat="todos">Todos</button>
+    <button class="cat-tab" data-cat="musica">Música</button>
+    <button class="cat-tab" data-cat="deportes">Deportes</button>
+    <button class="cat-tab" data-cat="cultura">Cultura</button>
+    <button class="cat-tab" data-cat="gastronomia">Gastronomía</button>
+    <button class="cat-tab" data-cat="feria">Feria</button>
+    <button class="cat-tab" data-cat="religiosos">Religiosos</button>
+    <button class="cat-tab" data-cat="infantiles">Infantiles</button>
+  </div>
+
+  <div class="event-tickets" id="anteriores-list">
+
+    <div class="ticket-row" data-cat="musica">
+      <div class="ticket-date">
+        <span class="day">03</span>
+        <span class="month">NOV</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Festival Primavera</span>
+        <span class="ticket-subtitle">Bandas locales y cierre en vivo</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Costanera Norte
+        </div>
+      </div>
+      <span class="ticket-badge badge-purple">Música</span>
+      <span class="ticket-time">20:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="deportes">
+      <div class="ticket-date">
+        <span class="day">12</span>
+        <span class="month">OCT</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Maratón Costanera</span>
+        <span class="ticket-subtitle">Carrera participativa junto al río</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Costanera Sur
+        </div>
+      </div>
+      <span class="ticket-badge badge-green">Deportes</span>
+      <span class="ticket-time">09:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="cultura">
+      <div class="ticket-date">
+        <span class="day">21</span>
+        <span class="month">SEP</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Noche de Museos</span>
+        <span class="ticket-subtitle">Recorridos, charlas y muestras abiertas</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Centro Cultural
+        </div>
+      </div>
+      <span class="ticket-badge badge-blue">Cultura</span>
+      <span class="ticket-time">19:30 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="gastronomia">
+      <div class="ticket-date">
+        <span class="day">08</span>
+        <span class="month">AGO</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Sabores del Litoral</span>
+        <span class="ticket-subtitle">Degustaciones, parrilla y productos regionales</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Mercado 18 de Julio
+        </div>
+      </div>
+      <span class="ticket-badge badge-gold">Gastronomía</span>
+      <span class="ticket-time">18:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="feria">
+      <div class="ticket-date">
+        <span class="day">14</span>
+        <span class="month">JUL</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Feria de Artesanos</span>
+        <span class="ticket-subtitle">Diseño, tejidos y emprendimientos salteños</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Plaza Artigas
+        </div>
+      </div>
+      <span class="ticket-badge badge-gold">Feria</span>
+      <span class="ticket-time">15:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="religiosos">
+      <div class="ticket-date">
+        <span class="day">24</span>
+        <span class="month">JUN</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Fiesta de San Juan</span>
+        <span class="ticket-subtitle">Encuentro comunitario y celebración tradicional</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Barrio Ceibal
+        </div>
+      </div>
+      <span class="ticket-badge badge-teal">Religiosos</span>
+      <span class="ticket-time">17:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ticket-row" data-cat="infantiles">
+      <div class="ticket-date">
+        <span class="day">09</span>
+        <span class="month">MAY</span>
+      </div>
+      <div class="ticket-divider"></div>
+      <div class="ticket-info">
+        <span class="ticket-title">Tarde de Juegos</span>
+        <span class="ticket-subtitle">Actividades para niños, plaza y espectáculo familiar</span>
+        <div class="ticket-location">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          Parque Solari
+        </div>
+      </div>
+      <span class="ticket-badge badge-pink">Infantiles</span>
+      <span class="ticket-time">16:00 hs</span>
+      <button class="ticket-heart" aria-label="Guardar">
+        <svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z"
+                fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/>
+        </svg>
+      </button>
+    </div>
+
+  </div><!-- /event-tickets anteriores -->
+
+</section>
+
+
+<!-- 
+     FOOTER (copia exacta del de index.php, ver ese archivo para
+     la explicación completa de cada bloque. Recuerden: NO HAY
+     includes en HTML plano, así que esto es copy-paste manual en
+     las 4 páginas principales. Cambios acá => replicar a mano en
+     index / turismo / lugares también)
+-->
+<footer class="footer">
+  <div class="footer-top-row">
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4 class="footer-col-title">EVENTOS</h4>
+        <ul>
+          <li><a href="eventos.php">Eventos Destacados</a></li>
+          <li><a href="eventos.php">Todos los Eventos</a></li>
+          <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">TURISMO</h4>
+        <ul>
+          <li><a href="turismo.php#alojamientos">Hoteles</a></li>
+          <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
+          <li><a href="lugares.php">Lugares Turísticos</a></li>
+          <li><a href="turismo.php#historia">Historia Turística</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">LUGARES</h4>
+        <ul>
+          <li><a href="#plaza-artigas">Plaza Artigas</a></li>
+          <li><a href="#plaza-33">Plaza Treinta y Tres</a></li>
+          <li><a href="#parque-solari">Parque Solari</a></li>
+          <li><a href="#costanera-norte">Costanera Norte</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">SIGTUR</h4>
+        <ul>
+          <li><a href="#">Sobre TURI-SMART</a></li>
+          <li><a href="#">UTU Catalina Harrigue de Castaños</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <aside class="footer-suporte-card">
+      <p class="footer-suporte-eyebrow">Soporte</p>
+      <p class="footer-suporte-message">
+        <span class="footer-suporte-headline">¿Tienes alguna sugerencia?</span>
+        <span class="footer-suporte-body">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
+      </p>
+      <a class="footer-suporte-btn" href="soporte.php">Ir a soporte</a>
+    </aside>
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <div class="footer-socials">
+    <a class="social-icon icon-instagram" href="#" aria-label="Instagram">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5821 2.09315C14.652 2.09315 15.0707 2.09315 16.3266 2.09315C17.4429 2.09315 18.0011 2.37224 18.4197 2.51178C18.9779 2.79087 19.3965 2.93041 19.8151 3.34904C20.2338 3.76767 20.5129 4.1863 20.6524 4.74447C20.7919 5.1631 20.9315 5.72127 21.071 6.83762C21.071 8.09351 21.071 8.3726 21.071 11.5821C21.071 14.7916 21.071 15.0707 21.071 16.3266C21.071 17.4429 20.7919 18.0011 20.6524 18.4197C20.3733 18.9779 20.2338 19.3965 19.8151 19.8151C19.3965 20.2338 18.9779 20.5129 18.4197 20.6524C18.0011 20.7919 17.4429 20.9315 16.3266 21.071C15.0707 21.071 14.7916 21.071 11.5821 21.071C8.3726 21.071 8.09351 21.071 6.83762 21.071C5.72127 21.071 5.1631 20.7919 4.74447 20.6524C4.1863 20.3733 3.76767 20.2338 3.34904 19.8151C2.93041 19.3965 2.65132 18.9779 2.51178 18.4197C2.37224 18.0011 2.23269 17.4429 2.09315 16.3266C2.09315 15.0707 2.09315 14.7916 2.09315 11.5821C2.09315 8.3726 2.09315 8.09351 2.09315 6.83762C2.09315 5.72127 2.37224 5.1631 2.51178 4.74447C2.79087 4.1863 2.93041 3.76767 3.34904 3.34904C3.76767 2.93041 4.1863 2.65132 4.74447 2.51178C5.1631 2.37224 5.72127 2.23269 6.83762 2.09315C8.09351 2.09315 8.51214 2.09315 11.5821 2.09315ZM11.5821 0C8.3726 0 8.09351 0 6.83762 0C5.58173 0 4.74447 0.279087 4.04676 0.558174C3.34904 0.83726 2.65132 1.25589 1.95361 1.95361C1.25589 2.65132 0.976804 3.2095 0.558174 4.04676C0.279087 4.74447 0.139543 5.58173 0 6.83762C0 8.09351 0 8.51214 0 11.5821C0 14.7916 0 15.0707 0 16.3266C0 17.5824 0.279087 18.4197 0.558174 19.1174C0.83726 19.8151 1.25589 20.5129 1.95361 21.2106C2.65132 21.9083 3.2095 22.1874 4.04676 22.606C4.74447 22.8851 5.58173 23.0246 6.83762 23.1642C8.09351 23.1642 8.51214 23.1642 11.5821 23.1642C14.652 23.1642 15.0707 23.1642 16.3266 23.1642C17.5824 23.1642 18.4197 22.8851 19.1174 22.606C19.8151 22.3269 20.5129 21.9083 21.2106 21.2106C21.9083 20.5129 22.1874 19.9547 22.606 19.1174C22.8851 18.4197 23.0246 17.5824 23.1642 16.3266C23.1642 15.0707 23.1642 14.652 23.1642 11.5821C23.1642 8.51214 23.1642 8.09351 23.1642 6.83762C23.1642 5.58173 22.8851 4.74447 22.606 4.04676C22.3269 3.34904 21.9083 2.65132 21.2106 1.95361C20.5129 1.25589 19.9547 0.976804 19.1174 0.558174C18.4197 0.279087 17.5824 0.139543 16.3266 0C15.0707 0 14.7916 0 11.5821 0Z" fill="white"/>
+        <path d="M11.5821 5.58173C8.23305 5.58173 5.58173 8.23305 5.58173 11.5821C5.58173 14.9311 8.23305 17.5824 11.5821 17.5824C14.9311 17.5824 17.5824 14.9311 17.5824 11.5821C17.5824 8.23305 14.9311 5.58173 11.5821 5.58173ZM11.5821 15.4893C9.48894 15.4893 7.67488 13.8148 7.67488 11.5821C7.67488 9.48894 9.3494 7.67488 11.5821 7.67488C13.6752 7.67488 15.4893 9.3494 15.4893 11.5821C15.4893 13.6752 13.6752 15.4893 11.5821 15.4893Z" fill="white"/>
+        <path d="M17.722 6.83762C18.4927 6.83762 19.1174 6.21286 19.1174 5.44219C19.1174 4.67151 18.4927 4.04676 17.722 4.04676C16.9513 4.04676 16.3266 4.67151 16.3266 5.44219C16.3266 6.21286 16.9513 6.83762 17.722 6.83762Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-facebook" href="#" aria-label="Facebook">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M20.2687 0H2.89552C1.29864 0 0 1.29864 0 2.89552V20.2687C0 21.8655 1.29864 23.1642 2.89552 23.1642H11.5821V15.2015H8.68657V11.5821H11.5821V8.68657C11.5821 7.53466 12.0397 6.42993 12.8542 5.6154C13.6687 4.80088 14.7735 4.34328 15.9254 4.34328H18.8209V7.96269H17.3731C16.574 7.96269 15.9254 7.8874 15.9254 8.68657V11.5821H19.5448L18.097 15.2015H15.9254V23.1642H20.2687C21.8655 23.1642 23.1642 21.8655 23.1642 20.2687V2.89552C23.1642 1.29864 21.8655 0 20.2687 0Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-twitter" href="#" aria-label="Twitter">
+      <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M27.5075 2.69347C26.5595 3.3412 25.4465 3.68514 24.3089 3.68188C25.5251 2.94389 26.4357 1.77139 26.8678 0.387186C25.8596 1.26507 24.5892 1.75942 23.2694 1.78743C22.3992 0.869392 21.2634 0.266809 20.0326 0.070111C18.8017 -0.126587 17.5421 0.0932115 16.4427 0.69652C15.3434 1.29983 14.4637 2.2541 13.9356 3.41614C13.4075 4.57817 13.2595 5.88528 13.5138 7.14131C11.2743 7.01952 9.08473 6.41393 7.08719 5.36385C5.08966 4.31377 3.32886 2.84269 1.91913 1.04612C1.22929 2.33191 1.02731 3.83567 1.35232 5.26609C1.67732 6.6965 2.50618 7.95175 3.67832 8.78865C2.7937 8.80153 1.9181 8.60423 1.11949 8.21208C1.141 9.53888 1.59388 10.8199 2.4057 11.8503C3.21752 12.8806 4.34136 13.6007 5.59745 13.8954C4.76131 14.1203 3.88675 14.1485 3.03862 13.9778C3.40449 15.1532 4.1173 16.1817 5.07768 16.92C6.03806 17.6582 7.19813 18.0694 8.39617 18.0962C5.86592 19.6772 2.95938 20.5041 0 20.4848C2.4785 22.1515 5.35742 23.077 8.31628 23.1583C11.2752 23.2396 14.1979 22.4735 16.7591 20.9452C19.3203 19.4169 21.4195 17.1864 22.823 14.5021C24.2266 11.8178 24.8794 8.78489 24.7087 5.74106C25.7639 4.85221 26.7045 3.82804 27.5075 2.69347Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-youtube" href="#" aria-label="Youtube">
+      <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M31.0545 3.51599C30.6564 2.06823 29.661 1.03412 28.2676 0.620469C25.8788 3.57628e-07 15.7263 0 15.7263 0C15.7263 0 5.77296 3.57628e-07 3.18509 0.620469C1.79162 1.03412 0.796263 2.06823 0.398128 3.51599C-6.07967e-06 6.20469 0 11.5821 0 11.5821C0 11.5821 6.07967e-06 16.9595 0.597208 19.6482C0.995342 21.0959 1.99067 22.1301 3.38414 22.5437C5.77294 23.1642 15.9254 23.1642 15.9254 23.1642C15.9254 23.1642 25.8787 23.1642 28.4666 22.5437C29.86 22.1301 30.8554 21.0959 31.2536 19.6482C31.8508 16.9595 31.8507 11.5821 31.8507 11.5821C31.8507 11.5821 31.8508 6.20469 31.0545 3.51599ZM12.7403 16.5458V6.61834L21.1011 11.5821L12.7403 16.5458Z" fill="white"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="footer-divider2"></div>
+
+  <div class="footer-bottom">
+    <span class="footer-copy">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
+    <div class="footer-legal">
+      <a href="#">Términos y Condiciones</a>
+      <a href="#">Políticas de Privacidad</a>
+      <a href="#">Bases Legales</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/api-config.js"></script>
+<script src="../js/main.js?v=20260915-events-v6"></script>
+
+</body>
+</html>
+

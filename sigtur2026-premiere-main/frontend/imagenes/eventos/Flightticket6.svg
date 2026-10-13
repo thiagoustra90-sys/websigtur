@@ -1,0 +1,36 @@
+<svg viewBox="0 0 1821 209" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1821.000000" height="209.000000" fill="none" customFrame="#000000">
+	<defs>
+		<g id="pixso_custom_effect_68">
+			<effect x="0.000000" y="4.000000" visibility="visible" fill="rgb(0,0,0)" fill-opacity="0.25" effectType="dropShadow" stdDeviation="4" radius="0" />
+		</g>
+		<filter id="filter_68" width="1821.000000" height="209.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_68)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feColorMatrix result="hardAlpha" in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0 " />
+			<feOffset dx="0.000000" dy="4.000000" in="hardAlpha" />
+			<feGaussianBlur stdDeviation="1.33333337" />
+			<feComposite k2="-1" k3="1" in2="hardAlpha" operator="out" />
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0 " />
+			<feBlend result="effect_dropShadow_1" in2="BackgroundImageFix" mode="normal" />
+			<feBlend result="shape" in="SourceGraphic" in2="effect_dropShadow_1" mode="normal" />
+		</filter>
+		<g id="pixso_custom_effect_69">
+			<effect x="0.000000" y="10.000000" visibility="visible" fill="rgb(0,0,0)" fill-opacity="0.129999995" effectType="dropShadow" stdDeviation="13" radius="0" />
+		</g>
+		<filter id="filter_69" width="1821.000000" height="209.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_69)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feColorMatrix result="hardAlpha" in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5 0 " />
+			<feOffset dx="0.000000" dy="10.000000" in="hardAlpha" />
+			<feGaussianBlur stdDeviation="4.33333349" />
+			<feComposite k2="-1" k3="1" in2="hardAlpha" operator="out" />
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.13 0 " />
+			<feBlend result="effect_dropShadow_1" in2="BackgroundImageFix" mode="normal" />
+			<feBlend result="shape" in="SourceGraphic" in2="effect_dropShadow_1" mode="normal" />
+		</filter>
+	</defs>
+	<g id="Flight ticket" filter="url(#filter_68)">
+		<g filter="url(#filter_69)">
+			<path id="Subtract" d="M1798 3C1803.52 3 1808 7.47716 1808 13L1808 137L1738.85 137C1734.16 137 1730.35 140.806 1730.35 145.5C1730.35 150.194 1734.16 154 1738.85 154L1808 154L1808 176C1808 181.523 1803.52 186 1798 186L23 186C17.4772 186 13 181.523 13 176L13 154L68.4442 154C73.1386 154 76.9442 150.194 76.9442 145.5C76.9442 140.806 73.1386 137 68.4442 137L13 137L13 13C13 7.47716 17.4772 3 23 3L1798 3Z" fill="rgb(255,255,255)" fill-rule="evenodd" />
+			<path id="Subtract" d="M1798 3C1803.52 3 1808 7.47716 1808 13L1808 137L1738.85 137C1734.16 137 1730.35 140.806 1730.35 145.5C1730.35 150.194 1734.16 154 1738.85 154L1808 154L1808 176C1808 181.523 1803.52 186 1798 186L23 186C17.4772 186 13 181.523 13 176L13 154L68.4442 154C73.1386 154 76.9442 150.194 76.9442 145.5C76.9442 140.806 73.1386 137 68.4442 137L13 137L13 13C13 7.47716 17.4772 3 23 3L1798 3ZM1798 4L23 4Q21.1361 4 19.5451 4.659L19.545 4.65901Q17.9541 5.31803 16.636 6.63604Q15.318 7.95408 14.659 9.54508L14.659 9.54516Q14 11.1361 14 13L14 136L68.4442 136C71.0675 136 73.3067 136.927 75.1617 138.782C77.0167 140.637 77.9442 142.877 77.9442 145.5C77.9442 148.123 77.0167 150.363 75.1617 152.218Q73.7707 153.609 72.0915 154.304L72.0912 154.304Q70.4118 155 68.4442 155L14 155L14 176C14 178.485 14.8787 180.607 16.636 182.364C18.3934 184.121 20.5147 185 23 185L1798 185C1800.49 185 1802.61 184.121 1804.36 182.364C1806.12 180.607 1807 178.485 1807 176L1807 155L1738.85 155C1736.23 155 1733.99 154.073 1732.14 152.218C1730.28 150.363 1729.35 148.123 1729.35 145.5C1729.35 142.877 1730.28 140.637 1732.14 138.782C1733.99 136.927 1736.23 136 1738.85 136L1807 136L1807 13C1807 10.5148 1806.12 8.39345 1804.36 6.63604C1802.61 4.87868 1800.49 4 1798 4Z" fill="rgb(108,117,125)" fill-opacity="0.200000003" fill-rule="evenodd" />
+		</g>
+	</g>
+</svg>

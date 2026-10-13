@@ -1,0 +1,25 @@
+<svg viewBox="0 0 79 79" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="79.000000" height="79.000000" fill="none">
+	<defs>
+		<g id="pixso_custom_effect_6">
+			<effect x="0.000000" y="4.000000" visibility="visible" fill="rgb(0,0,0)" fill-opacity="0.25" effectType="dropShadow" stdDeviation="4" radius="0" />
+		</g>
+		<filter id="filter_6" width="79.000000" height="79.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_6)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feColorMatrix result="hardAlpha" in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0 " />
+			<feOffset dx="0.000000" dy="4.000000" in="hardAlpha" />
+			<feGaussianBlur stdDeviation="1.33333337" />
+			<feComposite k2="-1" k3="1" in2="hardAlpha" operator="out" />
+			<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0 " />
+			<feBlend result="effect_dropShadow_1" in2="BackgroundImageFix" mode="normal" />
+			<feBlend result="shape" in="SourceGraphic" in2="effect_dropShadow_1" mode="normal" />
+		</filter>
+		<clipPath id="clipPath_5">
+			<rect width="79.000000" height="79.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+	</defs>
+	<g clip-path="url(#clipPath_5)" filter="url(#filter_6)" customFrame="url(#clipPath_5)">
+		<rect id="heart" width="79.000000" height="79.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+		<path id="Vector" d="M23.0416 9.875C13.9533 9.875 6.58325 17.1693 6.58325 26.1687C6.58325 33.4335 9.46346 50.6752 37.8146 68.1046C38.3224 68.4136 38.9055 68.577 39.4999 68.577C40.0944 68.577 40.6774 68.4136 41.1853 68.1046C69.5364 50.6752 72.4166 33.4335 72.4166 26.1687C72.4166 17.1693 65.0465 9.875 55.9583 9.875C46.87 9.875 39.4999 19.75 39.4999 19.75C39.4999 19.75 32.1299 9.875 23.0416 9.875Z" fill="rgb(34,34,34)" fill-opacity="0.300000012" fill-rule="nonzero" />
+		<path id="Vector" d="M6.58325 26.1687C6.58325 33.4335 9.46346 50.6752 37.8146 68.1046C38.3224 68.4136 38.9055 68.577 39.4999 68.577C40.0944 68.577 40.6774 68.4136 41.1853 68.1046C69.5364 50.6752 72.4166 33.4335 72.4166 26.1687C72.4166 17.1693 65.0465 9.875 55.9583 9.875C46.87 9.875 39.4999 19.75 39.4999 19.75C39.4999 19.75 32.1299 9.875 23.0416 9.875C13.9533 9.875 6.58325 17.1693 6.58325 26.1687Z" fill-rule="nonzero" stroke="rgb(255,255,255)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.000000" />
+	</g>
+</svg>

@@ -1,0 +1,511 @@
+﻿<!DOCTYPE html>
+<!-- 
+  turismo.php - página de turismo, con secciones de alojamientos, restaurantes y un poco de historia.
+-->
+<html lang="es">
+<head>
+  <!-- basico: charset utf-8 pq tenemos tildes y ñ por todos lados (Salto, Daymán, etc) -->
+  <meta charset="UTF-8" />
+
+  <!-- esto es OBLIGATORIO para que se vea bien en celu. sin esto, mobile te renderiza
+       la pagina como si fuera desktop y despues hay que hacer zoom con los dedos. nadie
+       quiere eso en 2026 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- 
+    el título dice "Turismo ” SIGTUR Salto" -- esas comillas raras (”) en vez de un guión 
+    normal (-) seguramente es un problema de encoding cuando se copió de otro lado (word? figma?).
+    quedó fulero pero funciona, arreglar cuando haya tiempo (o sea, nunca)
+    TODO: cambiar por "Turismo - SIGTUR Salto" o "Turismo · SIGTUR Salto"
+  -->
+  <title>Turismo ” SIGTUR Salto</title>
+
+  <!-- 
+    Fuentes: acá NO se usa Google Fonts como en el index (con el preconnect y todo eso),
+    se usa un font.css local que debe tener los @font-face con las tipografías que están
+    en la carpeta "fuentes que me apetecen" (sí, ese es el nombre real de la carpeta, no me
+    pregunten por qué, googlear "yolo naming conventions")
+  -->
+  <link rel="stylesheet" href="../css/font.css" />
+
+  <!-- la hoja de estilos principal. TODO el sitio comparte esta, no hay un turismo.css aparte.
+       las clases especificas de esta página (alojamientos-section, restaurantes-section, etc)
+       están todas mezcladas ahi adentro con las de index y lugares. buscar con Ctrl+F es tu amigo -->
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+
+<!-- 
+  la clase "page-turismo" en el body es la que probablemente usa styles.css para 
+  aplicar estilos especificos SOLO de esta página (tipo diferenciar el hero de turismo 
+  del hero de eventos). Convención: page-<nombrepagina>. Fijate en las otras html, 
+  seguro tienen la misma onda (page-eventos, page-lugares, etc)
+-->
+<body class="page-turismo">
+
+<!-- ============================================================
+     NAVBAR
+     ------------------------------------------------------------
+     la barra de arriba, se repite CASI igual en todas las páginas
+     (index, eventos, lugares, turismo, soporte...) - no hay un 
+     sistema de "componentes" tipo React acá, esto es HTML puro y duro,
+     así que si hay que cambiar algo del navbar HAY QUE CAMBIARLO
+     A MANO EN CADA ARCHIVO. sí, es un embole, pero bueno, es lo que hay
+     sin un backend / templates.
+============================================================ -->
+<header>
+  <nav class="navbar">
+    <!-- logo + link a inicio. Ojo que dice index.php pero estamos en /html/ entonces
+         apunta bien a la carpeta hermana -->
+    <a class="nav-logo" href="index.php">
+      <img src="../imagenes/turismo/logo-salto.svg" alt="Explora Salto" />
+    </a>
+
+    <!-- 
+      buscador de la navbar. el ícono de lupa es un SVG inline (no un <img>), 
+      dibujado a mano con paths. Esto es una lupita con un circulo (la cabeza) 
+      y una lineita (el mango). Fijate que el placeholder tiene comillas tipográficas
+      dentro del string, medio raro pero bue, es solo un placeholder visual, no hace 
+      nada todavia (no tiene JS enganchado que yo vea)
+    -->
+    <div class="nav-search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
+    </div>
+
+    <!-- 
+      links de navegación principales. Notar la clase "active" en el link de Turismo:
+      esto es HARDCODEADO, o sea, en cada página el link correspondiente tiene "active"
+      puesto a mano. No hay JS que detecte "en qué página estoy" y lo marque solo.
+      Si agregan una página nueva, no se olviden de marcar el active correcto ahi.
+    -->
+    <div class="nav-links">
+      <a href="eventos.php">Eventos</a>
+      <a href="turismo.php" class="active">Turismo</a>
+      <a href="lugares.php">Lugares</a>
+    </div>
+  </nav>
+</header>
+
+
+<!-- ============================================================
+     HERO
+     ------------------------------------------------------------
+     la sección grande de arriba con el título gigante y el texto
+     de bienvenida. Cada página tiene su hero con su propio texto,
+     pero comparten la clase "hero" asi que el estilo (fondo, tamaños,
+     etc) sale del css general y solo cambia el contenido.
+============================================================ -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="hero-title">TURISMO</h1>
+    <p class="hero-text">
+      Salto te espera con termas, costas y una calidez que se siente en cada
+      rincón. Encontrá el alojamiento ideal, los sabores típicos de la zona
+      y todo lo que necesitás para vivir la ciudad a tu manera.
+    </p>
+  </div>
+</section>
+
+<section class="tourism-curiosity" aria-live="polite">
+  <div><span>Dato curioso de Salto</span><p id="tourism-curiosity-text">Cargando una curiosidad local...</p></div>
+  <span class="tourism-curiosity-mark" aria-hidden="true">✦</span>
+</section>
+
+
+<!-- ============================================================
+     ALOJAMIENTOS RECOMENDADOS
+     ------------------------------------------------------------
+     Sección tipo "airbnb" con cards de hoteles/alojamientos.
+     Ojo con el id="alojamientos" -- se usa después en el footer 
+     para el link "Hoteles" (turismo.php#alojamientos) asi que si 
+     lo cambian de nombre, romper ese link tambien hay que arreglarlo.
+============================================================ -->
+<section class="alojamientos-section" id="alojamientos">
+  <div class="alojamientos-inner">
+
+    <div class="alojamientos-header">
+      <div class="section-heading" style="margin-bottom:0;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/>
+        </svg>
+        <h2>Alojamientos<br>Recomendados</h2>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <a href="mapa.php" class="section-ver-mas">VER MAPA</a>
+        <a href="turismo.php#alojamientos" class="section-ver-mas">VER MAS</a>
+      </div>
+    </div>
+
+    <!-- 
+      grid de cards. Están 3 hardcodeadas a mano, no hay ningun loop ni JS
+      que las genere dinámicamente (esto no tiene backend, es todo estático).
+      Si mañana quieren un 4to alojamiento, hay que copiar y pegar todo el 
+      bloque .prop-card de nuevo y cambiar los datos. re a pico y pala.
+    -->
+    <div class="cards-grid">
+
+      <!-- CARD 1: Dayman -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <img class="prop-img" src="../imagenes/lugares/363100652.jpg" alt="Dayman, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <!-- el botoncito de corazon para "guardar/favorito". Por ahora es solo
+               visual, no tiene onclick ni nada -- fijate en main.js si hay algun 
+               listener que le agrega el "like" con JS (buscar .prop-heart) -->
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Hotel Daymán</p>
+          <p class="prop-address">Avda. Paysandú y Rambla de Circunvalación S/N, Termas del Daymán</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$289 <span>por persona</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <!-- estrellita SVG + numero de rating, todo hardcodeado en 4.91 
+                   en las 3 cards. probablemente eran datos de prueba (mock) 
+                   que nunca se terminaron de variar. -->
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=Hotel%20Daym%C3%A1n">Ver en mapa SIGTUR</a>
+        </div>
+      </div>
+
+      <!-- CARD 2: Hotel Los Cedros -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <!-- esta imagen viene de la carpeta de index (../imagenes/index/images.jpg),
+               no de turismo. seguramente reciclaron una imagen generica de "hotel" 
+               que ya estaba subida en otro lado en vez de subir una nueva. funciona 
+               igual, pero desprolijo desde lo organizativo -->
+          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Hotel Los Cedros, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Hotel Los Cedros</p>
+          <p class="prop-address">Uruguay 657, 50000 Salto, Departamento de Salto</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$279 <span>por noche</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=Hotel%20Los%20Cedros">Ver en mapa SIGTUR</a>
+        </div>
+      </div>
+
+      <!-- CARD 3: Gran Hotel (OJO: el nombre de archivo de la imagen dice
+           "don pedro.jpg" con espacio en el nombre, y el texto visible dice
+           "Jose Pedro" -- no coinciden los nombres. no rompe nada porque el
+           navegador banca los espacios en la ruta, pero es un quilombo para 
+           mantener. evitar espacios en nombres de archivo, mejor usar guiones:
+           don-pedro.jpg -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <img class="prop-img" src="../imagenes/index/don%20pedro.jpg" alt="Gran Hotel, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Gran Hotel</p>
+          <p class="prop-address">Brasil 891, 50000 Salto, Departamento de Salto</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$289 <span>noche</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=Gran%20Hotel">Ver en mapa SIGTUR</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     HISTORIA TURISTICA
+     ------------------------------------------------------------
+     seccion simple: titulo + una rayita ondulada decorativa (svg 
+     con un path curvo) + un parrafo. nada de otro mundo, es la 
+     típica seccion de "contexto/relleno" para dar onda editorial
+     a la pagina.
+============================================================ -->
+<section class="historia-section" id="historia">
+  <div class="historia-inner">
+    <h2>Historia Turística</h2>
+
+    <!-- esta ondita es puramente decorativa (un <path> con una curva bezier).
+         no significa nada, es un elemento de diseño nomas, como un separador 
+         "con onda" en vez de una linea recta aburrida -->
+    <svg class="historia-wave" viewBox="0 0 220 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 16 C40 4, 80 22, 110 12 S170 0, 218 14" stroke="#3ecfbb" stroke-width="4" stroke-linecap="round" fill="none"/>
+    </svg>
+
+    <p>
+      Salto creció a la vera del río Uruguay y de sus aguas termales,
+      transformándose con el tiempo en uno de los destinos turísticos más
+      visitados del interior del país. Hoy combina tradición, naturaleza y
+      gastronomía en una propuesta que invita a quedarse más de un día.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     RESTAURANTES Y SABORES
+     ------------------------------------------------------------
+     otra grilla de cards, misma logica que alojamientos pero con 
+     otro layout (restaurant-card en vez de prop-card). Tampoco 
+     tiene loop, son 3 <article> a mano.
+============================================================ -->
+<section class="restaurantes-section" id="restaurantes">
+  <div class="restaurantes-inner">
+
+    <div class="section-heading">
+      <!-- icono de "olla/plato" para la sección de comida -->
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h14a3 3 0 0 1 0 6h-1"/><path d="M3 8v8a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8"/><path d="M7 2v3"/><path d="M11 2v3"/>
+      </svg>
+      <h2>Restaurantes y<br>Sabores</h2>
+    </div>
+
+    <div class="restaurant-grid">
+
+      <!-- se usa <article> en vez de <div> acá, que es mas correcto semánticamente
+           porque cada card es un "contenido independiente" (un restaurant). 
+           buen uso de HTML semántico, a diferencia de las prop-card de arriba
+           que son <div>. inconsistencia menor pero no es grave -->
+      <article class="restaurant-card">
+        <div class="restaurant-img-placeholder">
+          <img class="restaurant-img" src="../imagenes/turismo/unnamed.jpg" alt="Parrilla en Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <!-- el nombre de archivo "unnamed.jpg" es sospechoso, huele a que alguien 
+               descargó la imagen de internet y nunca la renombró. funciona pero
+               en algún momento habria que ponerle un nombre descriptivo -->
+          <span class="restaurant-badge">Parrilla</span>
+        </div>
+        <div class="restaurant-info">
+          <p class="restaurant-name">El Fogón de Mandinga</p>
+          <p class="restaurant-desc">Parrilla con asientos al aire libre, chimenea y menú para niños.</p>
+          <p class="restaurant-address">Jacarandá, Termas del Daymán · 093 784 334</p>
+          <div class="restaurant-meta">
+            <span>Desde $450</span>
+            <span>4.8 ★</span>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=El%20Fog%C3%B3n%20de%20Mandinga">Visitar en mapa SIGTUR</a>
+        </div>
+      </article>
+
+      <article class="restaurant-card">
+        <div class="restaurant-img-placeholder">
+          <img class="restaurant-img" src="../imagenes/turismo/carrito-de-comidas.jpg" alt="Comida regional" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <span class="restaurant-badge">Regional</span>
+        </div>
+        <div class="restaurant-info">
+          <p class="restaurant-name">El Mago del Sabor</p>
+          <p class="restaurant-desc">Opciones regionales con asientos al aire libre, ideal después de las termas.</p>
+          <p class="restaurant-address">C. 14, Termas del Daymán · 099 463 336</p>
+          <div class="restaurant-meta">
+            <span>Desde $380</span>
+            <span>4.7 ★</span>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=El%20Mago%20del%20Sabor">Visitar en mapa SIGTUR</a>
+        </div>
+      </article>
+
+      <article class="restaurant-card">
+        <div class="restaurant-img-placeholder">
+          <img class="restaurant-img" src="../imagenes/turismo/Salto-Coffee-Rollinsville-3.jpg" alt="Cafe y mate" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <span class="restaurant-badge">Café</span>
+        </div>
+        <div class="restaurant-info">
+          <p class="restaurant-name">Basalto Coffee Club</p>
+          <p class="restaurant-desc">Cafetería de especialidad y opciones para llevar.</p>
+          <p class="restaurant-address">Gral. Fructuoso Rivera 690, Salto · 092 234 916</p>
+          <div class="restaurant-meta">
+            <span>Desde $260</span>
+            <span>4.6 ★</span>
+          </div>
+          <a class="place-map-link" href="mapa.php?q=Basalto%20Coffee%20Club">Visitar en mapa SIGTUR</a>
+        </div>
+      </article>
+    </div>
+
+    <aside class="tourism-owner-callout">
+      <strong>¿Conocés un dato que debemos corregir?</strong>
+      <span>Si sos propietario/a de uno de estos comercios o querés sugerir un lugar, escribinos y lo revisamos.</span>
+      <a href="soporte.php#support-form">Enviar sugerencia</a>
+    </aside>
+
+  </div>
+</section>
+
+
+<!-- ============================================================
+     FOOTER
+     ------------------------------------------------------------
+     el pie de página, se repite en TODAS las páginas del sitio 
+     (copy-paste city, de nuevo, no hay templates/includes). tiene:
+     1) columnas de links por categoria
+     2) una card de "soporte" a la derecha
+     3) iconos de redes sociales (puro SVG, sin libreria de iconos)
+     4) linea de copyright + legales abajo de todo
+============================================================ -->
+<footer class="footer">
+  <div class="footer-top-row">
+    <div class="footer-cols">
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">EVENTOS</h4>
+        <ul>
+          <li><a href="eventos.php">Eventos Destacados</a></li>
+          <li><a href="eventos.php">Todos los Eventos</a></li>
+          <!-- ojo: los dos links de arriba van EXACTAMENTE al mismo lugar 
+               (eventos.php), no hay anchors distintos ni filtros. son 
+               practicamente el mismo link con texto diferente. revisar
+               si esto era intencional o quedó a medio hacer -->
+          <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">TURISMO</h4>
+        <ul>
+          <!-- estos si apuntan bien a los ids de esta misma pagina -->
+          <li><a href="turismo.php#alojamientos">Hoteles</a></li>
+          <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
+          <li><a href="lugares.php">Lugares Turísticos</a></li>
+          <li><a href="turismo.php#historia">Historia Turistica</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">LUGARES</h4>
+        <ul>
+          <!-- estos anchors (#plaza-artigas, #plaza-33, etc) tienen que existir
+               como id en lugares.php, sino el link no lleva a ningun lado 
+               especifico, solo abre la pagina de arriba -->
+          <li><a href="lugares.php#plaza-artigas">Plaza Artigas</a></li>
+          <li><a href="lugares.php#plaza-33">Plaza Treinta y Tres</a></li>
+          <li><a href="lugares.php#parque-solari">Parque Solari</a></li>
+          <li><a href="lugares.php#costanera-norte">Costanera Norte</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">SIGTUR</h4>
+        <ul>
+          <!-- reemplazo de placeholders institucionales por enlaces reales de la UTU -->
+          <li><a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Sobre VPI</a></li>
+          <li><a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">UTU Catalina Harrigue de Castaños</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 
+      card de soporte a la derecha del footer. Es una <aside> porque es 
+      contenido "relacionado pero separado" del resto del footer (correcto 
+      uso semántico de nuevo, bien ahi). manda directo a soporte.php
+    -->
+    <aside class="footer-suporte-card">
+      <p class="footer-suporte-eyebrow">Suporte</p>
+      <!-- "Suporte" en vez de "Soporte" -- un error que me da mucha pereza corregir-->
+      <p class="footer-suporte-message">
+        <span class="footer-suporte-headline">¿Tienes alguna sugerencia?</span>
+        <span class="footer-suporte-body">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
+      </p>
+      <a class="footer-suporte-btn" href="soporte.php">Ir a soporte</a>
+    </aside>
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <!-- 
+    Redes sociales. Los 4 iconos (instagram, facebook, twitter/x, youtube) 
+    están hechos a mano en SVG con paths complicados -- estos se exportaron directo de Figma (se nota por los nombres de los paths 
+    y los numeros con muchos decimales tipo "11.5821"). no son iconos de una 
+    libreria , son dibujos vectoriales pegados tal cual.
+    Todos los href="#" -- osea, ningun link de red social funciona todavia,
+    hay que poner las URLs reales cuando las tengan.
+  -->
+  <div class="footer-socials">
+    <a class="social-icon icon-instagram" href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5821 2.09315C14.652 2.09315 15.0707 2.09315 16.3266 2.09315C17.4429 2.09315 18.0011 2.37224 18.4197 2.51178C18.9779 2.79087 19.3965 2.93041 19.8151 3.34904C20.2338 3.76767 20.5129 4.1863 20.6524 4.74447C20.7919 5.1631 20.9315 5.72127 21.071 6.83762C21.071 8.09351 21.071 8.3726 21.071 11.5821C21.071 14.7916 21.071 15.0707 21.071 16.3266C21.071 17.4429 20.7919 18.0011 20.6524 18.4197C20.3733 18.9779 20.2338 19.3965 19.8151 19.8151C19.3965 20.2338 18.9779 20.5129 18.4197 20.6524C18.0011 20.7919 17.4429 20.9315 16.3266 21.071C15.0707 21.071 14.7916 21.071 11.5821 21.071C8.3726 21.071 8.09351 21.071 6.83762 21.071C5.72127 21.071 5.1631 20.7919 4.74447 20.6524C4.1863 20.3733 3.76767 20.2338 3.34904 19.8151C2.93041 19.3965 2.65132 18.9779 2.51178 18.4197C2.37224 18.0011 2.23269 17.4429 2.09315 16.3266C2.09315 15.0707 2.09315 14.7916 2.09315 11.5821C2.09315 8.3726 2.09315 8.09351 2.09315 6.83762C2.09315 5.72127 2.37224 5.1631 2.51178 4.74447C2.79087 4.1863 2.93041 3.76767 3.34904 3.34904C3.76767 2.93041 4.1863 2.65132 4.74447 2.51178C5.1631 2.37224 5.72127 2.23269 6.83762 2.09315C8.09351 2.09315 8.51214 2.09315 11.5821 2.09315ZM11.5821 0C8.3726 0 8.09351 0 6.83762 0C5.58173 0 4.74447 0.279087 4.04676 0.558174C3.34904 0.83726 2.65132 1.25589 1.95361 1.95361C1.25589 2.65132 0.976804 3.2095 0.558174 4.04676C0.279087 4.74447 0.139543 5.58173 0 6.83762C0 8.09351 0 8.51214 0 11.5821C0 14.7916 0 15.0707 0 16.3266C0 17.5824 0.279087 18.4197 0.558174 19.1174C0.83726 19.8151 1.25589 20.5129 1.95361 21.2106C2.65132 21.9083 3.2095 22.1874 4.04676 22.606C4.74447 22.8851 5.58173 23.0246 6.83762 23.1642C8.09351 23.1642 8.51214 23.1642 11.5821 23.1642C14.652 23.1642 15.0707 23.1642 16.3266 23.1642C17.5824 23.1642 18.4197 22.8851 19.1174 22.606C19.8151 22.3269 20.5129 21.9083 21.2106 21.2106C21.9083 20.5129 22.1874 19.9547 22.606 19.1174C22.8851 18.4197 23.0246 17.5824 23.1642 16.3266C23.1642 15.0707 23.1642 14.652 23.1642 11.5821C23.1642 8.51214 23.1642 8.09351 23.1642 6.83762C23.1642 5.58173 22.8851 4.74447 22.606 4.04676C22.3269 3.34904 21.9083 2.65132 21.2106 1.95361C20.5129 1.25589 19.9547 0.976804 19.1174 0.558174C18.4197 0.279087 17.5824 0.139543 16.3266 0C15.0707 0 14.7916 0 11.5821 0Z" fill="white"/>
+        <path d="M11.5821 5.58173C8.23305 5.58173 5.58173 8.23305 5.58173 11.5821C5.58173 14.9311 8.23305 17.5824 11.5821 17.5824C14.9311 17.5824 17.5824 14.9311 17.5824 11.5821C17.5824 8.23305 14.9311 5.58173 11.5821 5.58173ZM11.5821 15.4893C9.48894 15.4893 7.67488 13.8148 7.67488 11.5821C7.67488 9.48894 9.3494 7.67488 11.5821 7.67488C13.6752 7.67488 15.4893 9.3494 15.4893 11.5821C15.4893 13.6752 13.6752 15.4893 11.5821 15.4893Z" fill="white"/>
+        <path d="M17.722 6.83762C18.4927 6.83762 19.1174 6.21286 19.1174 5.44219C19.1174 4.67151 18.4927 4.04676 17.722 4.04676C16.9513 4.04676 16.3266 4.67151 16.3266 5.44219C16.3266 6.21286 16.9513 6.83762 17.722 6.83762Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-facebook" href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M20.2687 0H2.89552C1.29864 0 0 1.29864 0 2.89552V20.2687C0 21.8655 1.29864 23.1642 2.89552 23.1642H11.5821V15.2015H8.68657V11.5821H11.5821V8.68657C11.5821 7.53466 12.0397 6.42993 12.8542 5.6154C13.6687 4.80088 14.7735 4.34328 15.9254 4.34328H18.8209V7.96269H17.3731C16.574 7.96269 15.9254 7.8874 15.9254 8.68657V11.5821H19.5448L18.097 15.2015H15.9254V23.1642H20.2687C21.8655 23.1642 23.1642 21.8655 23.1642 20.2687V2.89552C23.1642 1.29864 21.8655 0 20.2687 0Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-twitter" href="https://x.com/" target="_blank" rel="noopener" aria-label="Twitter">
+      <!-- este es el pajarito viejo de twitter dibujado en vector, no la X nueva.
+           habría que actualizarlo con el logo nuevo de X en algún momento -->
+      <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M27.5075 2.69347C26.5595 3.3412 25.4465 3.68514 24.3089 3.68188C25.5251 2.94389 26.4357 1.77139 26.8678 0.387186C25.8596 1.26507 24.5892 1.75942 23.2694 1.78743C22.3992 0.869392 21.2634 0.266809 20.0326 0.070111C18.8017 -0.126587 17.5421 0.0932115 16.4427 0.69652C15.3434 1.29983 14.4637 2.2541 13.9356 3.41614C13.4075 4.57817 13.2595 5.88528 13.5138 7.14131C11.2743 7.01952 9.08473 6.41393 7.08719 5.36385C5.08966 4.31377 3.32886 2.84269 1.91913 1.04612C1.22929 2.33191 1.02731 3.83567 1.35232 5.26609C1.67732 6.6965 2.50618 7.95175 3.67832 8.78865C2.7937 8.80153 1.9181 8.60423 1.11949 8.21208C1.141 9.53888 1.59388 10.8199 2.4057 11.8503C3.21752 12.8806 4.34136 13.6007 5.59745 13.8954C4.76131 14.1203 3.88675 14.1485 3.03862 13.9778C3.40449 15.1532 4.1173 16.1817 5.07768 16.92C6.03806 17.6582 7.19813 18.0694 8.39617 18.0962C5.86592 19.6772 2.95938 20.5041 0 20.4848C2.4785 22.1515 5.35742 23.077 8.31628 23.1583C11.2752 23.2396 14.1979 22.4735 16.7591 20.9452C19.3203 19.4169 21.4195 17.1864 22.823 14.5021C24.2266 11.8178 24.8794 8.78489 24.7087 5.74106C25.7639 4.85221 26.7045 3.82804 27.5075 2.69347Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-youtube" href="https://www.youtube.com/" target="_blank" rel="noopener" aria-label="Youtube">
+      <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M31.0545 3.51599C30.6564 2.06823 29.661 1.03412 28.2676 0.620469C25.8788 3.57628e-07 15.7263 0 15.7263 0C15.7263 0 5.77296 3.57628e-07 3.18509 0.620469C1.79162 1.03412 0.796263 2.06823 0.398128 3.51599C-6.07967e-06 6.20469 0 11.5821 0 11.5821C0 11.5821 6.07967e-06 16.9595 0.597208 19.6482C0.995342 21.0959 1.99067 22.1301 3.38414 22.5437C5.77294 23.1642 15.9254 23.1642 15.9254 23.1642C15.9254 23.1642 25.8787 23.1642 28.4666 22.5437C29.86 22.1301 30.8554 21.0959 31.2536 19.6482C31.8508 16.9595 31.8507 11.5821 31.8507 11.5821C31.8507 11.5821 31.8508 6.20469 31.0545 3.51599ZM12.7403 16.5458V6.61834L21.1011 11.5821L12.7403 16.5458Z" fill="white"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="footer-divider2"></div>
+
+  <div class="footer-bottom">
+    <span class="footer-copy">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
+    <div class="footer-legal">
+      <!-- legales con destino estable en sitio real -->
+      <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Términos y Condiciones</a>
+      <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Políticas de Privacidad</a>
+      <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Bases Legales</a>
+    </div>
+  </div>
+</footer>
+
+<!-- 
+  el script principal, se carga al final del body (buena práctica, asi el 
+  HTML ya está todo pintado en pantalla antes de que corra JS, y no bloquea 
+  el renderizado). Ver main.js para toda la lógica de: menú responsive, 
+  favoritos (corazones), tabs, formularios, etc. No vimos nada de eso 
+  definido inline en esta página asi que seguro está todo centralizado ahi.
+-->
+<script src="../js/api-config.js"></script>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!--
+    Head de la home. Nada muy loco acá, es la config base que
+    comparten (o deberían compartir, ojo con eso) todas las páginas.
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- para que no se vea gigante en el celu -->
+  <title>Explora Salto - SIGTUR</title>
+
+  <!-- Fonts: usamos Google Fonts para Playfair/Cormorant/Nunito y un cdnfonts random para la firma -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /> <!-- preconnect x2 es lo que recomienda google, no lo saquen -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+  <!-- ojo: esta fuente (Brittany Signature) viene de cdnfonts, no de google. es la que usamos para el "¿Quedamos?" del hero -->
+  <link href="https://fonts.cdnfonts.com/css/brittany-signature" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
+
+  <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
+  <link rel="stylesheet" href="../css/styles.css" />
+
+  <style>
+    /*
+      nav override COMPARTIDO PARA FIX DE MENU***
+      esto debería vivir en styles.css pero lo dejamos acá pegado porque
+      en su momento hubo lío con la navbar quedando detrás del hero y
+      esto fue la forma más rápida de solucionarlo sin romper otras
+      páginas. si lo mueven a styles.css, prueben TODAS las páginas antes
+      de subir.
+    */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200; /* tiene que ganarle a todo lo demás */
+      display: flex;
+      align-items: center;
+      padding: 20px 64px;
+      gap: 20px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .navbar.scrolled {
+      /* esta clase la agrega el JS cuando scrolleás más de 60px */
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    }
+    .nav-logo { width: 132px; height: 58px; flex-shrink: 0; }
+    .nav-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .nav-search {
+      flex: 1;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ---- FIX MOBILE: navbar siempre encima del hero ---- */
+    /* El hero no debe crear un stacking context que tape el navbar fixed */
+    .hero {
+      /* sin transform, filter ni will-change para no crear stacking context */
+      isolation: auto;
+    }
+    /* el hero-bg tampoco tapa el navbar ahora */
+    .hero-bg {
+      z-index: 0;
+    }
+    .hero-content {
+      z-index: 1;
+    }
+  </style>
+</head>
+<body class="page-home">
+  <!-- la clase page-home la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->
+
+<!-- 
+     NAVBAR — fuera del hero para que siempre quede arriba
+     (ver el fix de z-index / stacking context de arriba)
+-->
+<nav class="navbar" id="navbar">
+  <!-- Logo, lleva a inicio -->
+  <a class="nav-logo" href="index.php" aria-label="Inicio">
+    <img src="../imagenes/logo-salto.svg" alt="Explora Salto" />
+  </a>
+
+  <!-- Search: por ahora es solo visual, no filtra nada acá en la home (sí en turismo.php) -->
+  <div class="nav-search">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text" placeholder="¿Qué querés descubrir hoy en Salto?" />
+  </div>
+
+  <!-- Nav links de las 3 secciones principales -->
+  <nav class="nav-links">
+    <a href="eventos.php">Eventos</a>
+    <a href="turismo.php">Turismo</a>
+    <a href="lugares.php">Lugares</a>
+  </nav>
+</nav>
+<!-- ojo: el menú circular del logo (click para desplegar Login/Admin/Soporte/tema) NO está acá,
+     lo inyecta buildLogoMenu() en main.js apenas carga la página. si buscan el HTML del menú
+     y no lo encuentran en ninguna página, es por eso, está armado 100% por JS -->
+
+
+<!-- 
+     HERO — la parte grande de arriba con el título y el clima
+-->
+<header class="hero">
+
+  <div class="hero-bg"></div> <!-- el fondo (imagen/gradiente) va por CSS, ver .hero-bg en styles.css -->
+
+  <div class="hero-content">
+    <h1 class="hero-title">EXPLORA<br>SALTO</h1>
+
+    <!-- ola de mar bajo el título, dibujada a mano con un path de svg -->
+    <svg class="hero-wave" viewBox="0 0 520 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 28 C60 8, 130 38, 200 18 S340 -2, 420 22 S490 38, 518 20"
+            stroke="#3ecfbb" stroke-width="6" stroke-linecap="round" fill="none"/>
+    </svg>
+
+    <div class="hero-buttons">
+      <a href="eventos.php" class="btn-glass">Explorar Eventos</a>
+      <a href="turismo.php#alojamientos" class="btn-glass">Reservar</a>
+      <a href="mapa.php" class="btn-glass">Ver mapa</a>
+    </div>
+
+    <!--
+      Widget de clima. Arranca con placeholders ("--") y lo llena
+      setupHomeWeather() en main.js pegándole a la API gratuita de
+      open-meteo (sin key, ideal para un prototipo como este).
+      Si falla el fetch, se queda en placeholders y ya, no rompe nada.
+    -->
+    <aside class="weather-widget" aria-label="Clima actual en Salto">
+      <div class="weather-orb" data-weather-icon aria-hidden="true">--</div>
+      <div class="weather-main">
+        <span class="weather-kicker">Salto, Uruguay</span>
+        <strong data-weather-temp>--&deg;</strong>
+        <span data-weather-desc>Actualizando clima</span>
+      </div>
+      <div class="weather-meta">
+        <span>Sensacion <b data-weather-feels>--&deg;</b></span>
+        <span>Viento <b data-weather-wind>-- km/h</b></span>
+      </div>
+    </aside>
+
+    <p class="hero-tagline">Nación Amada</p>
+  </div>
+
+</header>
+
+
+<!-- 
+    Barra de Funciones.
+    (tres cajitas: Eventos / Turismo / Lugares, cada una linkea
+    conceptualmente a su sección pero no son <a>, son solo texto)
+ -->
+<section class="features">
+  <div class="features-grid">
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <img src="../imagenes/index/calendaradd0.svg" alt="Eventos" />
+      </div>
+      <h3 class="feature-title">Eventos</h3>
+      <p class="feature-desc">
+        Descubrí todo lo que pasa en Salto: festivales, ferias, actividades
+        culturales y espectáculos para toda la familia.
+      </p>
+    </div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <img src="../imagenes/index/Union.png" alt="Turismo" />
+      </div>
+      <h3 class="feature-title">Turismo</h3>
+      <p class="feature-desc">
+        Hoteles, restaurantes y los mejores lugares turísticos de Salto para
+        que tu visita sea inolvidable.
+      </p>
+    </div>
+
+    <div class="feature-item">
+      <div class="feature-icon">
+        <img src="../imagenes/index/Vector(1).svg" alt="Lugares" />
+      </div>
+      <h3 class="feature-title">Lugares</h3>
+      <p class="feature-desc">
+        Explorá plazas, parques, la Costanera y todos los rincones únicos
+        que hacen especial a nuestra ciudad.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- 
+     EVENTOS (preview en la home, no confundir con eventos.php
+     que es la página completa con todos los tickets/filtros)
+-->
+<section class="eventos-section" id="eventos">
+  <div class="eventos-inner">
+
+    <!-- izquierda: titulo + texto -->
+    <div class="eventos-left">
+      <div class="eventos-header">
+        <span><!-- spacer, está vacío a propósito para empujar "VER MÁS" a la derecha con justify-content --></span>
+        <a href="eventos.php" class="section-ver-mas">VER MÁS</a>
+      </div>
+      <h2 class="eventos-title">EVENTOS</h2>
+
+      <!-- otra ola marina, misma idea que la del hero pero con otro path -->
+      <svg class="eventos-wave" viewBox="0 0 460 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 35 C55 10, 120 48, 200 25 S330 2, 410 30 S448 48, 458 28"
+              stroke="#3ecfbb" stroke-width="7" stroke-linecap="round" fill="none"/>
+      </svg>
+
+      <p class="eventos-text">
+        Descubrí los eventos más destacados de Salto. Desde ferias artesanales
+        y espectáculos musicales hasta celebraciones culturales que llenan la
+        ciudad de vida.
+      </p>
+      <a href="eventos.php" class="btn-leer-mas">Leer más</a>
+    </div>
+
+    <!--
+      derecha: carousel de imágenes. OJO, este carousel es DISTINTO
+      al de eventos.php (.feat-track/.feat-slide con loop infinito
+      por clones): este de acá es más simple, usa .carousel-track y
+      simplemente hace translateX + modulo, sin clones. Ver goTo()
+      dentro del bloque "if (body.classList.contains('page-home'))"
+      en main.js.
+    -->
+    <div class="carousel">
+      <div class="carousel-track">
+        <div class="carousel-slide">
+          <img src="../imagenes/turismo/whatsapp-image-2026-04-23-at-12.51.08-pm.jpeg.webp" alt="Evento 1" />
+        </div>
+        <div class="carousel-slide">
+          <img src="../imagenes/turismo/solari.jpg" alt="Evento 2" />
+        </div>
+        <div class="carousel-slide">
+          <img src="../imagenes/eventos/maxv.jpg" alt="Evento 3" />
+        </div>
+        <div class="carousel-slide">
+          <img src="../imagenes/eventos/porco.jpg" alt="Evento 4" />
+        </div>
+      </div>
+
+      <!-- estos botones sí existen acá (a diferencia del de eventos.php que solo tiene dots) -->
+      <button class="carousel-btn prev" aria-label="Anterior">&#8249;</button>
+      <button class="carousel-btn next" aria-label="Siguiente">&#8250;</button>
+
+      <div class="carousel-dots"></div> <!-- los puntitos los genera el JS dinámicamente, uno por slide -->
+    </div>
+
+  </div>
+</section>
+
+
+<!-- 
+     ALOJAMIENTO — "En donde nos quedamos?"
+     cards de propiedades tipo Airbnb (foto + precio + rating)
+-->
+<section class="alojamiento-section" id="alojamiento">
+  <div class="alojamiento-inner">
+
+    <div class="alojamiento-header">
+      <div class="alojamiento-title-wrap">
+        <h2 class="alojamiento-title">¿EN DÓNDE<br>NOS QUEDAMOS?</h2>
+        <span class="alojamiento-script">¿Quedamos?</span> <!-- esta es la que usa la fuente Brittany Signature -->
+      </div>
+      <a href="turismo.php" class="section-ver-mas" style="margin-top:8px;">VER MÁS</a>
+    </div>
+
+    <!-- Property Cards: por ahora son 3 hardcodeadas, no viene de ningún JSON ni backend -->
+    <div class="cards-grid">
+
+      <!-- Card 1 -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <img class="prop-img" src="../imagenes/index/951-.jpg" alt="Dayman, Salto" />
+          <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .prop-heart al final del DOMContentLoaded) -->
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Dayman, Salto</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$289 <span>por persona</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Mesias Hotel, Salto" />
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Mesias Hotel, Salto</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$279 <span>por noche</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="prop-card">
+        <div class="prop-media">
+          <img class="prop-img" src="../imagenes/index/don pedro.jpg" alt="Jose Pedro, Salto" />
+          <button class="prop-heart" aria-label="Guardar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="prop-info">
+          <p class="prop-name">Jose Pedro, Salto</p>
+          <div class="prop-meta">
+            <div>
+              <div class="prop-price">$289 <span>noche</span></div>
+              <div class="prop-dates">Apr 17-22</div>
+            </div>
+            <div class="prop-right">
+              <div class="prop-rating">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                4.91
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- 
+     GASTRONOMÍA LOCAL
+     ojo con el id: dice id="lugares" pero esta sección es de
+     comida, no de lugares turísticos. quedó así de alguna
+     iteración vieja, no lo cambiamos para no romper anchors
+     que ya estén linkeados desde otro lado (revisar antes de tocar).
+ -->
+<section class="gastro-section" id="lugares">
+  <div class="gastro-inner">
+
+    <div class="gastro-header">
+      <div>
+        <h2 class="gastro-title">GASTRONOMÍA<br>LOCAL</h2>
+        <div class="gastro-underline"></div>
+      </div>
+      <a href="turismo.php" class="section-ver-mas" style="margin-top:8px;">VER MÁS</a>
+    </div>
+
+    <div class="food-grid">
+      <div class="food-card">
+        <div class="food-card-bg">
+          <img class="food-card-img" src="../imagenes/index/asado.jpg" alt="Parrillada de asado criollo" />
+        </div>
+        <div class="food-card-label">
+          <span class="food-card-btn">Asado criollo</span>
+          <p class="food-card-desc">Parrilla, fuego lento y cortes clásicos de la mesa uruguaya.</p>
+        </div>
+      </div>
+      <div class="food-card">
+        <div class="food-card-bg">
+          <img class="food-card-img" src="../imagenes/index/empanadas_uruguayas_11992_1200.jpg" alt="Empanadas uruguayas" />
+        </div>
+        <div class="food-card-label">
+          <span class="food-card-btn">Empanadas</span>
+          <p class="food-card-desc">Sabores caseros para comer al paso o compartir en familia.</p>
+        </div>
+      </div>
+      <div class="food-card">
+        <div class="food-card-bg">
+          <img class="food-card-img" src="../imagenes/index/Mate-blog.jpg" alt="Mate uruguayo" />
+        </div>
+        <div class="food-card-label">
+          <span class="food-card-btn">Cultura del mate</span>
+          <p class="food-card-desc">Una tradición cotidiana que acompaña plazas, rambla y encuentros.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- 
+     FOOTER
+     Este footer se repite IDÉNTICO en index / eventos / turismo /
+     lugares (copy-paste manual, no hay includes en HTML plano).
+     Si cambian algo acá, hay que replicarlo a mano en las otras 3
+     páginas o se desincroniza. Ya nos pasó una vez, ojo.
+
+     Estructura: columnas de links (con acordeón en mobile, ver
+     setupFooterAccordions() en main.js) + tarjeta de "Suporte"
+     (agregada en el sync con Figma del 11/07) + fila de redes
+     (iconos exactos sacados de Figma, sin texto) + barra legal.
+ -->
+<footer class="footer">
+  <div class="footer-top-row">
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4 class="footer-col-title">EVENTOS</h4>
+        <ul>
+          <li><a href="eventos.php">Eventos Destacados</a></li>
+          <li><a href="eventos.php">Todos los Eventos</a></li>
+          <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">TURISMO</h4>
+        <ul>
+          <li><a href="turismo.php#alojamientos">Hoteles</a></li>
+          <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
+          <li><a href="lugares.php">Lugares Turísticos</a></li>
+          <li><a href="turismo.php#historia">Historia Turística</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">LUGARES</h4>
+        <ul>
+          <li><a href="#plaza-artigas">Plaza Artigas</a></li>
+          <li><a href="#plaza-33">Plaza Treinta y Tres</a></li>
+          <li><a href="#parque-solari">Parque Solari</a></li>
+          <li><a href="#costanera-norte">Costanera Norte</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-col-title">SIGTUR</h4>
+        <ul>
+          <li><a href="#">Sobre VPI</a></li>
+          <li><a href="#">UTU Catalina Harrigue de Castaños</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!--
+      Tarjeta de "Suporte" — la agregamos para calzar con el diseño
+      de Figma. El botón "Ir a soporte" ya lleva a soporte.php real
+      (no es un link muerto). Los colores cambian solo con el toggle
+      de tema del sitio: ver body.theme-dark .footer-suporte-* en
+      styles.css (naranja en claro, teal en oscuro).
+    -->
+    <aside class="footer-suporte-card">
+      <p class="footer-suporte-eyebrow">Soporte</p>
+      <p class="footer-suporte-message">
+        <span class="footer-suporte-headline">¿Tienes alguna sugerencia?</span>
+        <span class="footer-suporte-body">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
+      </p>
+      <a class="footer-suporte-btn" href="soporte.php">Ir a soporte</a>
+    </aside>
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <!--
+    Redes sociales: iconos puros sacados directo del Figma (no son
+    los iconos genéricos de internet, son paths exportados tal cual).
+    A propósito NO tienen texto al lado, solo el ícono + aria-label
+    para accesibilidad. El tamaño de cada uno está pixel-perfect
+    con lo que mandó diseño (23.16px, 27.51x23.16px, etc, ver
+    .social-icon en styles.css).
+  -->
+  <div class="footer-socials">
+    <a class="social-icon icon-instagram" href="#" aria-label="Instagram">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5821 2.09315C14.652 2.09315 15.0707 2.09315 16.3266 2.09315C17.4429 2.09315 18.0011 2.37224 18.4197 2.51178C18.9779 2.79087 19.3965 2.93041 19.8151 3.34904C20.2338 3.76767 20.5129 4.1863 20.6524 4.74447C20.7919 5.1631 20.9315 5.72127 21.071 6.83762C21.071 8.09351 21.071 8.3726 21.071 11.5821C21.071 14.7916 21.071 15.0707 21.071 16.3266C21.071 17.4429 20.7919 18.0011 20.6524 18.4197C20.3733 18.9779 20.2338 19.3965 19.8151 19.8151C19.3965 20.2338 18.9779 20.5129 18.4197 20.6524C18.0011 20.7919 17.4429 20.9315 16.3266 21.071C15.0707 21.071 14.7916 21.071 11.5821 21.071C8.3726 21.071 8.09351 21.071 6.83762 21.071C5.72127 21.071 5.1631 20.7919 4.74447 20.6524C4.1863 20.3733 3.76767 20.2338 3.34904 19.8151C2.93041 19.3965 2.65132 18.9779 2.51178 18.4197C2.37224 18.0011 2.23269 17.4429 2.09315 16.3266C2.09315 15.0707 2.09315 14.7916 2.09315 11.5821C2.09315 8.3726 2.09315 8.09351 2.09315 6.83762C2.09315 5.72127 2.37224 5.1631 2.51178 4.74447C2.79087 4.1863 2.93041 3.76767 3.34904 3.34904C3.76767 2.93041 4.1863 2.65132 4.74447 2.51178C5.1631 2.37224 5.72127 2.23269 6.83762 2.09315C8.09351 2.09315 8.51214 2.09315 11.5821 2.09315ZM11.5821 0C8.3726 0 8.09351 0 6.83762 0C5.58173 0 4.74447 0.279087 4.04676 0.558174C3.34904 0.83726 2.65132 1.25589 1.95361 1.95361C1.25589 2.65132 0.976804 3.2095 0.558174 4.04676C0.279087 4.74447 0.139543 5.58173 0 6.83762C0 8.09351 0 8.51214 0 11.5821C0 14.7916 0 15.0707 0 16.3266C0 17.5824 0.279087 18.4197 0.558174 19.1174C0.83726 19.8151 1.25589 20.5129 1.95361 21.2106C2.65132 21.9083 3.2095 22.1874 4.04676 22.606C4.74447 22.8851 5.58173 23.0246 6.83762 23.1642C8.09351 23.1642 8.51214 23.1642 11.5821 23.1642C14.652 23.1642 15.0707 23.1642 16.3266 23.1642C17.5824 23.1642 18.4197 22.8851 19.1174 22.606C19.8151 22.3269 20.5129 21.9083 21.2106 21.2106C21.9083 20.5129 22.1874 19.9547 22.606 19.1174C22.8851 18.4197 23.0246 17.5824 23.1642 16.3266C23.1642 15.0707 23.1642 14.652 23.1642 11.5821C23.1642 8.51214 23.1642 8.09351 23.1642 6.83762C23.1642 5.58173 22.8851 4.74447 22.606 4.04676C22.3269 3.34904 21.9083 2.65132 21.2106 1.95361C20.5129 1.25589 19.9547 0.976804 19.1174 0.558174C18.4197 0.279087 17.5824 0.139543 16.3266 0C15.0707 0 14.7916 0 11.5821 0Z" fill="white"/>
+        <path d="M11.5821 5.58173C8.23305 5.58173 5.58173 8.23305 5.58173 11.5821C5.58173 14.9311 8.23305 17.5824 11.5821 17.5824C14.9311 17.5824 17.5824 14.9311 17.5824 11.5821C17.5824 8.23305 14.9311 5.58173 11.5821 5.58173ZM11.5821 15.4893C9.48894 15.4893 7.67488 13.8148 7.67488 11.5821C7.67488 9.48894 9.3494 7.67488 11.5821 7.67488C13.6752 7.67488 15.4893 9.3494 15.4893 11.5821C15.4893 13.6752 13.6752 15.4893 11.5821 15.4893Z" fill="white"/>
+        <path d="M17.722 6.83762C18.4927 6.83762 19.1174 6.21286 19.1174 5.44219C19.1174 4.67151 18.4927 4.04676 17.722 4.04676C16.9513 4.04676 16.3266 4.67151 16.3266 5.44219C16.3266 6.21286 16.9513 6.83762 17.722 6.83762Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-facebook" href="#" aria-label="Facebook">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M20.2687 0H2.89552C1.29864 0 0 1.29864 0 2.89552V20.2687C0 21.8655 1.29864 23.1642 2.89552 23.1642H11.5821V15.2015H8.68657V11.5821H11.5821V8.68657C11.5821 7.53466 12.0397 6.42993 12.8542 5.6154C13.6687 4.80088 14.7735 4.34328 15.9254 4.34328H18.8209V7.96269H17.3731C16.574 7.96269 15.9254 7.8874 15.9254 8.68657V11.5821H19.5448L18.097 15.2015H15.9254V23.1642H20.2687C21.8655 23.1642 23.1642 21.8655 23.1642 20.2687V2.89552C23.1642 1.29864 21.8655 0 20.2687 0Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-twitter" href="#" aria-label="Twitter">
+      <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M27.5075 2.69347C26.5595 3.3412 25.4465 3.68514 24.3089 3.68188C25.5251 2.94389 26.4357 1.77139 26.8678 0.387186C25.8596 1.26507 24.5892 1.75942 23.2694 1.78743C22.3992 0.869392 21.2634 0.266809 20.0326 0.070111C18.8017 -0.126587 17.5421 0.0932115 16.4427 0.69652C15.3434 1.29983 14.4637 2.2541 13.9356 3.41614C13.4075 4.57817 13.2595 5.88528 13.5138 7.14131C11.2743 7.01952 9.08473 6.41393 7.08719 5.36385C5.08966 4.31377 3.32886 2.84269 1.91913 1.04612C1.22929 2.33191 1.02731 3.83567 1.35232 5.26609C1.67732 6.6965 2.50618 7.95175 3.67832 8.78865C2.7937 8.80153 1.9181 8.60423 1.11949 8.21208C1.141 9.53888 1.59388 10.8199 2.4057 11.8503C3.21752 12.8806 4.34136 13.6007 5.59745 13.8954C4.76131 14.1203 3.88675 14.1485 3.03862 13.9778C3.40449 15.1532 4.1173 16.1817 5.07768 16.92C6.03806 17.6582 7.19813 18.0694 8.39617 18.0962C5.86592 19.6772 2.95938 20.5041 0 20.4848C2.4785 22.1515 5.35742 23.077 8.31628 23.1583C11.2752 23.2396 14.1979 22.4735 16.7591 20.9452C19.3203 19.4169 21.4195 17.1864 22.823 14.5021C24.2266 11.8178 24.8794 8.78489 24.7087 5.74106C25.7639 4.85221 26.7045 3.82804 27.5075 2.69347Z" fill="white"/>
+      </svg>
+    </a>
+    <a class="social-icon icon-youtube" href="#" aria-label="Youtube">
+      <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M31.0545 3.51599C30.6564 2.06823 29.661 1.03412 28.2676 0.620469C25.8788 3.57628e-07 15.7263 0 15.7263 0C15.7263 0 5.77296 3.57628e-07 3.18509 0.620469C1.79162 1.03412 0.796263 2.06823 0.398128 3.51599C-6.07967e-06 6.20469 0 11.5821 0 11.5821C0 11.5821 6.07967e-06 16.9595 0.597208 19.6482C0.995342 21.0959 1.99067 22.1301 3.38414 22.5437C5.77294 23.1642 15.9254 23.1642 15.9254 23.1642C15.9254 23.1642 25.8787 23.1642 28.4666 22.5437C29.86 22.1301 30.8554 21.0959 31.2536 19.6482C31.8508 16.9595 31.8507 11.5821 31.8507 11.5821C31.8507 11.5821 31.8508 6.20469 31.0545 3.51599ZM12.7403 16.5458V6.61834L21.1011 11.5821L12.7403 16.5458Z" fill="white"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="footer-divider2"></div>
+
+  <div class="footer-bottom">
+    <span class="footer-copy">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
+    <div class="footer-legal">
+      <!-- estos 3 links son placeholders, todavía no hay páginas de términos/privacidad/bases -->
+      <a href="#">Términos y Condiciones</a>
+      <a href="#">Políticas de Privacidad</a>
+      <a href="#">Bases Legales</a>
+    </div>
+  </div>
+</footer>
+
+<!-- todo el comportamiento interactivo del sitio vive en un solo archivo, main.js -->
+<script src="../js/api-config.js"></script>
+<script src="../js/main.js"></script>
+</body>
+</html>
+
