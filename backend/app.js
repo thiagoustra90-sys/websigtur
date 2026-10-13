@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -12,29 +14,32 @@ import adminRutas from "./rutas/rutas admin.js";
 
 const app = express();
 
-const configuredFrontendOrigins = (process.env.FRONTEND_ORIGIN || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-const developmentOrigins = process.env.NODE_ENV === "production"
-  ? []
-  : ["http://localhost", "http://127.0.0.1", /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
-const allowedOrigins = [...configuredFrontendOrigins, ...developmentOrigins];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+const frontendDir = path.resolve(__dirname, "../frontend");
+
+// Servir archivos estáticos del frontend
+app.use(express.static(frontendDir));
+
+// Página principal de SIGTUR
+app.get("/", (req, res) => {
+  res.sendFile(path.join(frontendDir, "html", "index.html"));
+});
+// El front vive en XAMPP (http://localhost/sigtur2026-premiere/...) y el
+// backend en http://localhost:3000: son orígenes distintos, así que sin
+// CORS el navegador bloquea todos los fetch() del mapa y del login.
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
-      const allowed = allowedOrigins.some((entry) =>
-        entry instanceof RegExp ? entry.test(origin) : entry === origin
-      );
-      callback(null, allowed);
-    },
+    origin: [
+      "http://localhost",
+      "http://localhost:80",
+      "http://127.0.0.1",
+      /^http:\/\/localhost:\d+$/,
+    ],
   })
 );
 app.use(express.json({ limit: "2mb" }));
-
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // Rutas de la app
 app.use("/api/auth", authRutas);
@@ -56,7 +61,8 @@ app.get("/", async (req, res) => {
 
 app.use((req, res) => res.status(404).json({ error: "Ruta no encontrada." }));
 
-const port = process.env.PORT || 3000;
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Servidor iniciado en el puerto ${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor SIGTUR iniciado en el puerto ${PORT}`);
 });
