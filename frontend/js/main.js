@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // main.js — ÚNICO archivo de JavaScript de todo el sitio (SIGTUR Salto)
 
 // Nota del equipo: acá vive TODA la interactividad de las 7 páginas del
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSupportPage();
   setupFooterAccordions();
 
-  // --- HOME (index.php) ---
+  // --- HOME (index.html) ---
   if (body.classList.contains('page-home')) {
     setupTourismPlanning();
     setupFoodInfo();
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- EVENTOS (eventos.php) ---
+  // --- EVENTOS (eventos.html) ---
   if (body.classList.contains('page-eventos')) {
     const featTrack = document.querySelector('.feat-track');
     const featSlides = Array.from(document.querySelectorAll('.feat-slide'));
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  // --- TURISMO (turismo.php) ---
+  // --- TURISMO (turismo.html) ---
   // gonza: esto es un buscador mínimo que detecta palabras clave y
   // scrollea a la sección correspondiente. Nada de IA, solo includes() 😄
   if (body.classList.contains('page-turismo')) {
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTourismCuriosity();
   }
 
-  // --- LUGARES (lugares.php) ---
+  // --- LUGARES (lugares.html) ---
   if (body.classList.contains('page-lugares')) {
     document.querySelectorAll('.lugar-action-link.guardar').forEach(btn => {
       btn.addEventListener('click', (event) => { event.preventDefault(); btn.classList.toggle('liked'); });
@@ -401,17 +401,17 @@ function buildLogoMenu(initialTheme) {
   // porque así funciona en todas las páginas sin repetir el markup
   const session = sigturGetSession();
   const accountLink = session?.usuario
-    ? `<a href="perfil.php" role="menuitem">Mi perfil (${session.usuario.nombre})</a>`
-    : `<a href="login.php" role="menuitem">Login / Registro</a>`;
+    ? `<a href="perfil.html" role="menuitem">Mi perfil (${session.usuario.nombre})</a>`
+    : `<a href="login.html" role="menuitem">Login / Registro</a>`;
 
   const menu = document.createElement('div');
   menu.className = 'logo-menu';
   menu.setAttribute('role', 'menu');
   menu.innerHTML = `
-    <a href="index.php" role="menuitem">Inicio</a>
+    <a href="index.html" role="menuitem">Inicio</a>
     ${accountLink}
-    <a href="admin.php" role="menuitem">Configuracion admin</a>
-    <a href="soporte.php" role="menuitem">Soporte</a>
+    <a href="admin.html" role="menuitem">Configuracion admin</a>
+    <a href="soporte.html" role="menuitem">Soporte</a>
     <button class="theme-switch" type="button" role="menuitem" aria-pressed="${initialTheme === 'dark'}">
       <span class="theme-orbit" aria-hidden="true">
         <span class="theme-sun"></span>
@@ -589,7 +589,7 @@ async function processOAuthCallback(setStatus) {
     const result = await sigturApiFetch('/api/auth/me');
     sigturSaveSession({ ...session, usuario: result.usuario });
     setStatus(`Bienvenido, ${result.usuario?.nombre || 'usuario'}.`, 'ok');
-    window.location.href = 'index.php';
+    window.location.href = 'index.html';
   } catch {
     sigturClearSession();
     setStatus('La sesión de Google no pudo validarse. Intenta nuevamente.', 'error');
@@ -599,7 +599,7 @@ async function processOAuthCallback(setStatus) {
 async function logout() {
   try { await sigturApiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* la sesión local también debe limpiarse */ }
   sigturClearSession();
-  window.location.href = 'login.php';
+  window.location.href = 'login.html';
 }
 
 async function sigturRefreshSession() {
@@ -765,7 +765,7 @@ function setupAuthPage() {
       sigturSaveSession(resultado);
       setStatus(`Cuenta creada. Sesión iniciada como ${resultado.usuario.nombre}.`, 'ok');
       registerForm.reset();
-      window.location.href = 'index.php';
+      window.location.href = 'index.html';
     } catch (error) {
       setStatus(sanitizeAuthMessage(error.message, 'No se pudo crear la cuenta. Intentá nuevamente.'), 'error');
     } finally {
@@ -807,7 +807,7 @@ function setupAuthPage() {
       sigturSaveSession(resultado);
       setStatus(`Bienvenido de nuevo, ${resultado.usuario.nombre}.`, 'ok');
       loginForm.reset();
-      window.location.href = 'index.php';
+      window.location.href = 'index.html';
     } catch (error) {
       setStatus(sanitizeAuthMessage(error.message, 'No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.'), 'error');
     } finally {
@@ -882,7 +882,7 @@ async function setupProfilePage() {
 
   const session = sigturGetSession();
   if (!session?.token) {
-    window.location.href = 'login.php';
+    window.location.href = 'login.html';
     return;
   }
 
@@ -912,7 +912,7 @@ async function setupProfilePage() {
     setupMessaging();
   } catch {
     sigturClearSession();
-    window.location.href = 'login.php';
+    window.location.href = 'login.html';
     return;
   }
 
@@ -1289,7 +1289,7 @@ function renderProfileGrid(savedPlaces = []) {
     const pin = item.pin || {};
     const kind = item.entidad_tipo === 'event' ? 'Evento' : item.entidad_tipo === 'company' ? 'Gastronomía o servicio' : 'Lugar guardado';
     const title = pin.nombre || `${kind} · ${item.entidad_id}`;
-    const href = item.entidad_tipo === 'event' ? 'eventos.php' : `mapa.php?focus=${encodeURIComponent(item.entidad_id)}`;
+    const href = item.entidad_tipo === 'event' ? 'eventos.html' : `mapa.html?focus=${encodeURIComponent(item.entidad_id)}`;
     const action = item.entidad_tipo === 'event' ? 'Ver eventos' : 'Ver en el mapa';
     const tags = Array.isArray(pin.categorias) && pin.categorias.length ? `<p class="profile-card-tags">${pin.categorias.map(tag => `<span>${escapeText(tag)}</span>`).join('')}</p>` : '';
     const image = pin.imagen ? `<img src="${escapeText(pin.imagen)}" alt="" loading="lazy">` : '';
@@ -1309,8 +1309,8 @@ function renderProfileReservations(userId) {
   const entries = [...events, ...places].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   list.innerHTML = entries.length
     ? entries.map(reservation => reservation.type === 'event'
-      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escapeText(reservation.title || 'Evento')}</strong><p>${reservation.quantity || 1} ${Number(reservation.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escapeText(reservation.schedule || 'Horario a coordinar')} · ${new Date(reservation.createdAt).toLocaleDateString('es-UY')}</p></div><a href="eventos.php#${encodeURIComponent(reservation.id)}">Ver evento</a></article>`
-      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escapeText(reservation.name || 'Experiencia turística')}</strong><p>${escapeText(reservation.date || 'Fecha a coordinar')} · ${reservation.people || 1} ${Number(reservation.people) === 1 ? 'persona' : 'personas'} · ${escapeText(reservation.schedule || 'Horario flexible')}</p></div><a href="turismo.php">Ver turismo</a></article>`).join('')
+      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escapeText(reservation.title || 'Evento')}</strong><p>${reservation.quantity || 1} ${Number(reservation.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escapeText(reservation.schedule || 'Horario a coordinar')} · ${new Date(reservation.createdAt).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reservation.id)}">Ver evento</a></article>`
+      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escapeText(reservation.name || 'Experiencia turística')}</strong><p>${escapeText(reservation.date || 'Fecha a coordinar')} · ${reservation.people || 1} ${Number(reservation.people) === 1 ? 'persona' : 'personas'} · ${escapeText(reservation.schedule || 'Horario flexible')}</p></div><a href="turismo.html">Ver turismo</a></article>`).join('')
     : '<p class="profile-empty">Todavía no tenés reservas ni visitas planificadas.</p>';
 }
 
@@ -1319,7 +1319,7 @@ function setupEventAdminShortcut() {
   const host = document.querySelector('.destacados-header');
   if (!host || host.querySelector('[data-admin-create-event]')) return;
   const link = document.createElement('a');
-  link.href = 'admin.php#admin-event-form';
+  link.href = 'admin.html#admin-event-form';
   link.className = 'admin-create-event';
   link.dataset.adminCreateEvent = 'true';
   link.textContent = '+ Crear evento';
@@ -1385,7 +1385,7 @@ async function setupEventInteractions() {
   detailDialog.className = 'event-detail-dialog';
   document.body.appendChild(detailDialog);
   const openEventDetail = event => {
-    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}"><button class="event-detail-close" type="button" aria-label="Cerrar detalle">×</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR · Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>Cuándo</small><strong>${escapeHtml(event.date)} · ${escapeHtml(event.time)}</strong></div><div><small>Dónde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guardá el evento, reservá tu lugar y compartí tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.php?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
+    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}"><button class="event-detail-close" type="button" aria-label="Cerrar detalle">×</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR · Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>Cuándo</small><strong>${escapeHtml(event.date)} · ${escapeHtml(event.time)}</strong></div><div><small>Dónde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guardá el evento, reservá tu lugar y compartí tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
     detailDialog.showModal();
     detailDialog.querySelector('.event-detail-close').addEventListener('click', () => detailDialog.close());
     detailDialog.querySelector('[data-detail-reserve]').addEventListener('click', () => { detailDialog.close(); const ticket = [...rows].find(row => getEventData(row).id === event.id); ticket?.querySelector('[data-event-reservation]')?.click(); });
@@ -1443,7 +1443,7 @@ async function setupEventInteractions() {
       status.textContent = error.message || 'No se pudieron cargar los comentarios. Ejecutá migration_interacciones.sql en Supabase.';
     }
   };
-  const showLogin = () => { window.location.href = 'login.php'; };
+  const showLogin = () => { window.location.href = 'login.html'; };
   const interactionKey = event => `entidad_tipo=event&entidad_id=${encodeURIComponent(event.id)}`;
   const syncSavedButton = async (button, event) => {
     try {
@@ -1613,7 +1613,7 @@ async function setupEventInteractions() {
 }
 
 // ============================================================================
-// setupAdminPage() — toda la lógica de admin.php
+// setupAdminPage() — toda la lógica de admin.html
 // Maneja 3 cosas: los 4 switches de ajustes (guardados en
 // "sigtur-admin-settings"), el formulario de aviso del sitio (guardado en
 // "sigtur-admin-announcement"), y el botón de exportar que copia todo al
@@ -1621,7 +1621,7 @@ async function setupEventInteractions() {
 // abajo) es un mini historial en pantalla, se recorta solo a 4 entradas
 // (ver el while de abajo) para no crecer infinito.
 // Como vimos en el HTML, esta página no tiene ningún control de acceso:
-// esta función corre para CUALQUIERA que abra admin.php, logueado o no.
+// esta función corre para CUALQUIERA que abra admin.html, logueado o no.
 // ============================================================================
 async function setupAdminPage() {
   const form = document.getElementById('admin-settings-form');
@@ -1629,7 +1629,7 @@ async function setupAdminPage() {
 
   const session = sigturGetSession();
   if (!session?.token) {
-    window.location.href = 'login.php';
+    window.location.href = 'login.html';
     return;
   }
 
@@ -1639,7 +1639,7 @@ async function setupAdminPage() {
   } catch (error) {
     console.error('No se pudo validar el acceso de administrador:', error);
     sigturClearSession();
-    window.location.href = 'login.php';
+    window.location.href = 'login.html';
     return;
   }
   form.closest('.utility-grid')?.removeAttribute('hidden');
@@ -1844,13 +1844,13 @@ async function setupAdminPage() {
 }
 
 // ============================================================================
-// setupSupportPage() — toda la lógica de soporte.php
+// setupSupportPage() — toda la lógica de soporte.html
 // Guarda los tickets en localStorage bajo la key "sigtur-support-tickets"
 // y los vuelve a pintar en pantalla cada vez que se crea uno nuevo (ver
 // render() acá abajo). Al no haber backend, estos tickets NO le llegan a
 // nadie de verdad (no hay ningún email ni notificación), quedan viviendo
 // únicamente en el navegador de quien completó el formulario -- el propio
-// FAQ de soporte.php ya avisa esto ("guardado en este navegador").
+// FAQ de soporte.html ya avisa esto ("guardado en este navegador").
 // ============================================================================
 function setupSupportPage() {
   const form = document.getElementById('support-form');
