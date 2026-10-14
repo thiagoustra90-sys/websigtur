@@ -1096,11 +1096,28 @@ async function setupMessaging() {
     }
   };
 
-  const refreshActiveThread = async () => {
-    if (!activeId || document.hidden || refreshing) return;
-    refreshing = true;
-    try { await loadThread(activeId); } finally { refreshing = false; }
-  };
+
+const refreshActiveThread = async () => {
+  if (!activeId || document.hidden || refreshing) return;
+
+  refreshing = true;
+  try {
+    await loadThread(activeId);
+  } finally {
+    refreshing = false;
+  }
+};
+
+const refreshMessaging = async () => {
+  if (document.hidden) return;
+
+  // Actualiza la lista para detectar conversaciones nuevas.
+  await loadConversations();
+
+  // Si hay una conversación abierta, actualiza sus mensajes.
+  await refreshActiveThread();
+};
+
 
   try {
     status.textContent = 'Cargando usuarios...';
@@ -1139,20 +1156,20 @@ async function setupMessaging() {
       handleMessagingSync(event);
     }
   });
-  window.addEventListener('focus', () => {
-    if (activeId) {
-      refreshActiveThread();
-    }
-  });
+ 
 
-  const refreshTimer = window.setInterval(refreshActiveThread, 4000);
-  document.addEventListener('visibilitychange', refreshActiveThread);
-  window.addEventListener('beforeunload', () => {
-    window.clearInterval(refreshTimer);
-    document.removeEventListener('visibilitychange', refreshActiveThread);
-    window.removeEventListener('focus', refreshActiveThread);
-    messagingBroadcast?.close();
-  }, { once: true });
+window.addEventListener('focus', refreshMessaging);
+
+const refreshTimer = window.setInterval(refreshMessaging, 4000);
+
+document.addEventListener('visibilitychange', refreshMessaging);
+
+window.addEventListener('beforeunload', () => {
+  window.clearInterval(refreshTimer);
+  document.removeEventListener('visibilitychange', refreshMessaging);
+  window.removeEventListener('focus', refreshMessaging);
+  messagingBroadcast?.close();
+}, { once: true });
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
