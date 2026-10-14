@@ -3,24 +3,17 @@ import { fileURLToPath } from "node:url";
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import supabase from "./config/supabase.js";
 
 import authRutas from "./rutas/auth rutas.js";
 import mapaRutas from "./rutas/rutas mapa.js";
 import companiasRutas from "./rutas/rutas companias.js";
-import eventosRutas from "./rutas/rutas eventos.js"
-import interaccionesRutas, { likesRouter, guardadosRouter, mensajesRouter } from "./rutas/rutas interacciones.js";
+import eventosRutas from "./rutas/rutas eventos.js";
+import interaccionesRutas, {
+  likesRouter,
+  guardadosRouter,
+  mensajesRouter,
+} from "./rutas/rutas interacciones.js";
 import adminRutas from "./rutas/rutas admin.js";
-
-// No servir archivos PHP como archivos estáticos.
-app.use((req, res, next) => {
-  if (/\.php$/i.test(req.path)) {
-    return res.status(404).json({
-      error: "Esta página PHP debe adaptarse para funcionar en Render."
-    });
-  }
-  next();
-});
 
 const app = express();
 
@@ -29,59 +22,58 @@ const __dirname = path.dirname(__filename);
 
 const frontendDir = path.resolve(__dirname, "../frontend");
 const htmlDir = path.join(frontendDir, "html");
-// El front vive en XAMPP (http://localhost/sigtur2026-premiere/...) y el
-// backend en http://localhost:3000: son orígenes distintos, así que sin
-// CORS el navegador bloquea todos los fetch() del mapa y del login.
-app.use(
-  cors({
-    origin: [
-      "http://localhost",
-      "http://localhost:80",
-      "http://127.0.0.1",
-      /^http:\/\/localhost:\d+$/,
-    ],
-  })
-);
+
+const allowedOrigins = [
+  "http://localhost",
+  "http://localhost:80",
+  "http://127.0.0.1",
+  /^http:\/\/localhost:\d+$/,
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "2mb" }));
 
-// Rutas de la app
+// Evitar que se intenten abrir páginas PHP antiguas.
+app.use((req, res, next) => {
+  if (/\.php$/i.test(req.path)) {
+    return res.status(404).json({
+      error: "Esta página PHP debe adaptarse para funcionar en Render.",
+    });
+  }
+
+  next();
+});
+
+// Rutas de la API.
 app.use("/api/auth", authRutas);
-app.use("/mapa", mapaRutas); // compatibilidad con frontend/html/mapa.php (fetch a /mapa)
+
+app.use("/mapa", mapaRutas);
 app.use("/api/mapa", mapaRutas);
+
 app.use("/api/companias", companiasRutas);
 app.use("/api/eventos", eventosRutas);
+
 app.use("/api/comentarios", interaccionesRutas);
 app.use("/api/likes", likesRouter);
 app.use("/api/guardados", guardadosRouter);
 app.use("/api/mensajes", mensajesRouter);
+
 app.use("/api/admin", adminRutas);
 
-app.get("/", async (req, res) => {
-  const { data, error } = await supabase.from("busines").select("*");
-  if (error) return res.status(500).json(error);
-  res.json(data);
-});
+// Archivos estáticos: CSS, JavaScript e imágenes.
+app.use(express.static(frontendDir));
 
-app.use((req, res) => res.status(404).json({ error: "Ruta no encontrada." }));
+// Páginas HTML: index.html, eventos.html, login.html, etc.
+app.use(express.static(htmlDir));
+
+// Esta respuesta debe estar al final.
+app.use((req, res) => {
+  res.status(404).json({ error: "Ruta no encontrada." });
+});
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor SIGTUR iniciado en el puerto ${PORT}`);
-});
-
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(htmlDir, "index.html"));
-});
-
-// Archivos estáticos de frontend: CSS, JS e imágenes
-app.use(express.static(frontendDir));
-
-// Páginas HTML accesibles desde la raíz del sitio
-app.use(express.static(htmlDir));
-
-// Este manejador debe quedar al final
-app.use((req, res) => {
-  res.status(404).json({ error: "Ruta no encontrada." });
 });
