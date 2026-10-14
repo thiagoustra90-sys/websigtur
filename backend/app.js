@@ -8,9 +8,19 @@ import supabase from "./config/supabase.js";
 import authRutas from "./rutas/auth rutas.js";
 import mapaRutas from "./rutas/rutas mapa.js";
 import companiasRutas from "./rutas/rutas companias.js";
-import eventosRutas from "./rutas/rutas eventos.js";
+import eventosRutas from "./rutas/rutas eventos.js"
 import interaccionesRutas, { likesRouter, guardadosRouter, mensajesRouter } from "./rutas/rutas interacciones.js";
 import adminRutas from "./rutas/rutas admin.js";
+
+// No servir archivos PHP como archivos estáticos.
+app.use((req, res, next) => {
+  if (/\.php$/i.test(req.path)) {
+    return res.status(404).json({
+      error: "Esta página PHP debe adaptarse para funcionar en Render."
+    });
+  }
+  next();
+});
 
 const app = express();
 
@@ -18,14 +28,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const frontendDir = path.resolve(__dirname, "../frontend");
-
-// Servir archivos estáticos del frontend
-app.use(express.static(frontendDir));
-
-// Página principal de SIGTUR
-app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendDir, "html", "index.html"));
-});
+const htmlDir = path.join(frontendDir, "html");
 // El front vive en XAMPP (http://localhost/sigtur2026-premiere/...) y el
 // backend en http://localhost:3000: son orígenes distintos, así que sin
 // CORS el navegador bloquea todos los fetch() del mapa y del login.
@@ -65,4 +68,20 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor SIGTUR iniciado en el puerto ${PORT}`);
+});
+
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(htmlDir, "index.html"));
+});
+
+// Archivos estáticos de frontend: CSS, JS e imágenes
+app.use(express.static(frontendDir));
+
+// Páginas HTML accesibles desde la raíz del sitio
+app.use(express.static(htmlDir));
+
+// Este manejador debe quedar al final
+app.use((req, res) => {
+  res.status(404).json({ error: "Ruta no encontrada." });
 });
