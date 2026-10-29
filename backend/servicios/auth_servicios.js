@@ -42,14 +42,14 @@ export async function registrarUsuario({ nombre, apellido, correo, password }) {
   return iniciarSesion({ correo, password });
 }
 
-async function asegurarPerfil(user) {
+export async function asegurarPerfil(user) {
   const metadata = user.user_metadata || {};
   const nombre = String(metadata.nombre || metadata.full_name || user.email?.split('@')[0] || 'Usuario').trim();
   const apellido = String(metadata.apellido || '').trim() || null;
   const correo = String(user.email || '').trim().toLowerCase();
   const { data: perfil, error } = await supabase
     .from('usuarios')
-    .upsert({ id: user.id, nombre, apellido, correo, rol: 'usuario' }, { onConflict: 'id' })
+    .upsert({ id: user.id, nombre, apellido, correo }, { onConflict: 'id' })
     .select('id, nombre, apellido, correo, rol, avatar_url, biografia, ubicacion, sitio_web, created_at')
     .single();
   return error ? null : perfil;

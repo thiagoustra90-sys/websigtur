@@ -19,6 +19,7 @@ export async function requiereSesion(req, res, next) {
     return res.status(401).json({ error: "Sesión inválida o vencida." });
   }
 
+  req.authUser = authUser;
   const perfil = await obtenerPerfil(authUser.id);
   req.user = perfil || { id: authUser.id, correo: authUser.email, rol: "usuario" };
   next();

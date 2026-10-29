@@ -39,6 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!body.classList.contains('auth-remake')) buildLogoMenu(savedTheme);
 
   setupAuthPage();
+  const oauthStatus = document.getElementById('auth-status');
+  processOAuthCallback((message, type = 'ok') => {
+    if (!oauthStatus) return;
+    oauthStatus.textContent = message;
+    oauthStatus.dataset.type = type;
+    oauthStatus.hidden = !message;
+  });
   setupAdminPage();
   setupProfilePage();
   setupSupportPage();
@@ -571,8 +578,14 @@ async function processOAuthCallback(setStatus) {
   const params = queryParams.has('access_token') || queryParams.has('refresh_token') ? queryParams : hashParams;
   const oauthError = queryParams.get('oauth_error') || hashParams.get('oauth_error');
   const accessToken = params.get('access_token');
-  if (oauthError) {
+  if (oauthError && !accessToken) {
     window.history.replaceState({}, document.title, window.location.pathname);
+    if (!document.getElementById('auth-status') && window.location.pathname === '/') {
+      const loginUrl = new URL('/login.html', window.location.origin);
+      loginUrl.searchParams.set('oauth_error', oauthError);
+      window.location.replace(loginUrl.toString());
+      return;
+    }
     setStatus(oauthError, 'error');
     return;
   }
@@ -723,8 +736,6 @@ function setupAuthPage() {
       input.focus();
     });
   });
-
-  processOAuthCallback(setStatus);
 
   // si ya hay sesión guardada, lo avisamos en vez de mostrar los forms como si nada
   const existingSession = sigturGetSession();

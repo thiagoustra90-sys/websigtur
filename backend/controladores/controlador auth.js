@@ -3,7 +3,7 @@
 // Recibe el request/response de Express, valida lo básico del body y llama
 // a servicios/auth_servicios.js para hablar con Supabase.
 // ============================================================================
-import { registrarUsuario, iniciarSesion, renovarSesion, cerrarSesion, obtenerPerfil, actualizarPerfil, solicitarRecuperacion, iniciarGoogle, completarGoogle } from "../servicios/auth_servicios.js";
+import { registrarUsuario, iniciarSesion, renovarSesion, cerrarSesion, obtenerPerfil, asegurarPerfil, actualizarPerfil, solicitarRecuperacion, iniciarGoogle, completarGoogle } from "../servicios/auth_servicios.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -59,7 +59,7 @@ export async function logout(req, res) {
 }
 
 export async function me(req, res) {
-  const perfil = await obtenerPerfil(req.user.id);
+  const perfil = await obtenerPerfil(req.user.id) || await asegurarPerfil(req.authUser);
   res.json({ usuario: perfil || req.user });
 }
 
