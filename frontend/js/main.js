@@ -573,7 +573,7 @@ async function processOAuthCallback(setStatus) {
   const accessToken = params.get('access_token');
   if (oauthError) {
     window.history.replaceState({}, document.title, window.location.pathname);
-    setStatus(decodeURIComponent(oauthError), 'error');
+    setStatus(oauthError, 'error');
     return;
   }
   if (!accessToken) return;

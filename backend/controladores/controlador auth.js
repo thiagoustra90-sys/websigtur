@@ -99,7 +99,8 @@ export async function googleCallback(req, res) {
   }
   const code = String(req.query.code || '');
   if (!code) {
-    frontend.searchParams.set('oauth_error', 'missing_code');
+    const providerError = String(req.query.error_description || req.query.error || '').trim().slice(0, 240);
+    frontend.searchParams.set('oauth_error', providerError || 'missing_code');
     return res.redirect(frontend.toString());
   }
   const resultado = await completarGoogle(code);
