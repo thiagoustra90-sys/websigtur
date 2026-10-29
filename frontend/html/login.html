@@ -109,7 +109,7 @@
       iconos SVG hechos a mano. quizás valga la pena reemplazarla por 
       un SVG de "X" para que sea consistente con el resto del diseño
     -->
-    <a class="auth-close" href="index.html" aria-label="Cerrar y volver al inicio">x</a>
+    <a class="auth-close" href="index.html" aria-label="Cerrar y volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
 
     <!-- avatar generico (un icono de personita) arriba del formulario -->
     <div class="auth-avatar" aria-hidden="true">
@@ -122,8 +122,8 @@
       <!-- "Inicia sesion" sin tilde en "sesión" -- typo, debería ser 
            "sesión". Nada grave, pero anotalo si van a hacer una 
            pasada de corrección ortográfica del sitio entero -->
-      <h1 id="auth-title">Inicia sesion para<br>ver mas</h1>
-      <p>Unete a esta comunidad</p>
+      <h1 id="auth-title">Inicia sesión para<br>ver más</h1>
+      <p>Únete a nuestra comunidad viajera</p>
     </div>
 
     <!-- 
@@ -134,9 +134,9 @@
       hecho con atributos data-*, no usa el <input type=radio> hack 
       ni nada de CSS puro, depende 100% de JS para funcionar
     -->
-    <div class="auth-tabs" role="tablist" aria-label="Cuenta">
-      <button class="auth-tab active" type="button" data-auth-tab="login">Ingresar</button>
-      <button class="auth-tab" type="button" data-auth-tab="register">Registrarse</button>
+    <div class="auth-tabs" role="tablist" aria-label="Opciones de cuenta">
+      <button class="auth-tab active" type="button" role="tab" aria-selected="true" aria-controls="login-form" id="login-tab" data-auth-tab="login">Ingresar</button>
+      <button class="auth-tab" type="button" role="tab" aria-selected="false" aria-controls="register-form" id="register-tab" data-auth-tab="register">Registrarse</button>
     </div>
 
     <!-- 
@@ -150,7 +150,7 @@
       pueda autocompletar bien y los gestores de contraseñas lo 
       reconozcan como un form de login de verdad.
     -->
-    <form class="auth-form active" id="login-form" data-auth-panel="login" action="#" novalidate>
+    <form class="auth-form active" id="login-form" data-auth-panel="login" role="tabpanel" aria-labelledby="login-tab" action="#" novalidate>
       <div class="auth-field">
         <label for="login-user">Correo / Usuario</label>
         <input id="login-user" name="user" type="text" autocomplete="username" placeholder="Correo / Usuario" required />
@@ -163,7 +163,7 @@
         </div>
       </div>
       <button class="auth-link-button" type="button" data-auth-message="recuperar">Olvidaste la contraseña?</button>
-      <button class="auth-submit" type="submit">Ingresar Sesion</button>
+      <button class="auth-submit" type="submit">Iniciar sesión</button>
     </form>
 
     <!-- 
@@ -176,7 +176,7 @@
       Si esto algún día se conecta a un backend posta, HAY que subir 
       ese mínimo.
     -->
-    <form class="auth-form" id="register-form" data-auth-panel="register" action="#" novalidate>
+    <form class="auth-form" id="register-form" data-auth-panel="register" role="tabpanel" aria-labelledby="register-tab" action="#" novalidate>
       <div class="auth-field">
         <label for="register-name">Nombre</label>
         <input id="register-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre" required />
@@ -209,22 +209,15 @@
     <!-- 
       Login social (Google / Apple). data-auth-provider indica cuál es 
       cuál para que el JS sepa qué mensaje mostrar. NO hay integración 
-      real con OAuth de Google ni de Apple (no hay ningún script de 
+      real con OAuth de Google (no hay ningún script de 
       Google Sign-In ni nada parecido cargado en el <head>), son solo 
       botones con logo que simulan la acción -- otro gesto de "prototipo 
       honesto", no prometen algo que no está implementado
     -->
     <div class="auth-socials">
       <button class="auth-social" type="button" data-auth-provider="Google">
-        <img class="google-icon" src="../imagenes/google-logo.png" alt="Google logo">
-        Continua con Google
-      </button>
-      <button class="auth-social" type="button" data-auth-provider="Apple">
-        <img class="apple-icon" src="../imagenes/applelogo.png" alt="Apple logo">   
-        <!-- ^ hay unos espacios de más después de este img antes del 
-             cierre de tag, no afecta nada visualmente (HTML colapsa 
-             espacios), solo prolijidad de código -->
-        Continua con Apple
+        <img class="google-icon" src="../imagenes/google-logo.png" alt="">
+        Continuar con Google
       </button>
     </div>
 
@@ -236,11 +229,11 @@
       apenas aparece, sin que el usuario tenga que ir a buscarlo con el 
       cursor. Buen detalle de nuevo.
     -->
-    <p class="auth-status" id="auth-status" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p class="auth-status" id="auth-status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 
     <p class="auth-terms">
-      Si continuas, aceptas los <a href="#">Terminos del servicio</a> de VPI y
-      confirmas que has leido nuestra <a href="#">Politica de privacidad</a>.
+      Si continúas, aceptas los <a href="#">Términos del servicio</a> de VPI y
+      confirmas que has leído nuestra <a href="#">Política de privacidad</a>.
       <!-- estos dos links de legales van a "#" -- todavia no hay 
            paginas de terminos/privacidad reales, mismo cuento que en 
            el footer del resto del sitio -->

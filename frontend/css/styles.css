@@ -7649,3 +7649,115 @@ body.theme-dark .tourism-curiosity p { color: #d6ebe7; }
 .admin-create-event { display: inline-flex; align-items: center; justify-content: center; margin-left: auto; border: 1px solid #087f72; border-radius: 999px; background: #087f72; color: #fff; font-size: .76rem; font-weight: 800; padding: 8px 12px; text-decoration: none; }.admin-create-event:hover { background: #065f56; }
 body.theme-dark .tourism-owner-callout { border-color: #315d65; background: linear-gradient(110deg, #102c38, #182b35); color: #c4d8dc; }body.theme-dark .tourism-owner-callout strong, body.theme-dark .tourism-owner-callout a { color: #8de0d4; }body.theme-dark .admin-create-event { border-color: #18a99a; background: #18a99a; color: #04191d; }
 @media (max-width: 560px) { .tourism-owner-callout a { width: 100%; margin-left: 0; }.admin-create-event { margin: 8px 0 0; } }
+
+/* ============================================================
+   AUTH QOL — refinamiento visual responsive de la pantalla de cuenta
+   ============================================================ */
+body.auth-remake .auth-stage { background: #071a26; }
+body.auth-remake .auth-card {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  border-radius: 26px;
+  padding: 32px 36px 26px;
+  background: rgba(8, 20, 29, 0.88);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
+}
+body.auth-remake .auth-close { top: 24px; right: 24px; width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07); color: #dce7ed; }
+body.auth-remake .auth-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+body.auth-remake .auth-avatar { width: 54px; height: 54px; border-radius: 18px; background: linear-gradient(145deg, #21c7b4, #137d78); color: #fff; box-shadow: 0 12px 28px rgba(22,179,163,.24); }
+body.auth-remake .auth-copy h1 { font-size: clamp(30px, 4vw, 38px); line-height: 1.02; }
+body.auth-remake .auth-copy p { margin: 9px 0 20px; }
+body.auth-remake .auth-tabs { width: 100%; margin-bottom: 18px; }
+body.auth-remake .auth-field { margin-bottom: 12px; }
+body.auth-remake .auth-field label { font-size: 13px; line-height: 1.3; }
+body.auth-remake .auth-field input { height: 46px; border-radius: 12px; font-size: 15px; }
+
+/* AUTH PASSWORD FIELD FIX */
+body.auth-remake .auth-password-wrap { width: 100%; }
+body.auth-remake .auth-password-wrap input {
+  box-sizing: border-box;
+  height: 46px;
+  padding-right: 82px;
+  border-radius: 12px;
+}
+body.auth-remake .auth-toggle-password {
+  top: 50%;
+  right: 8px;
+  height: 34px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+body.auth-remake .auth-toggle-password { right: 12px; min-height: 32px; color: #7dd9cd; }
+body.auth-remake .auth-link-button { float: right; padding: 0 0 14px; font-size: 13px; text-decoration: none; }
+body.auth-remake .auth-link-button:hover { color: #8ae1d6; text-decoration: underline; }
+body.auth-remake .auth-submit { width: 100%; min-height: 48px; border-radius: 12px; font-size: 15px; }
+body.auth-remake .auth-divider { width: 100%; margin: 14px auto; }
+body.auth-remake .auth-socials { width: 100%; grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+body.auth-remake .auth-social { min-height: 44px; border-radius: 12px; font-size: 13px; width: 100%; }
+body.auth-remake .google-icon,
+body.auth-remake .apple-icon { width: 18px; height: 18px; object-fit: contain; }
+body.auth-remake .auth-status { min-height: 0; margin: 0 0 12px; }
+body.auth-remake .auth-status:empty { display: none; }
+body.auth-remake .auth-terms { font-size: 11px; line-height: 1.55; color: #9aadb9; }
+body.auth-remake .auth-close:focus-visible,
+body.auth-remake .auth-tab:focus-visible,
+body.auth-remake .auth-toggle-password:focus-visible,
+body.auth-remake .auth-link-button:focus-visible,
+body.auth-remake .auth-submit:focus-visible,
+body.auth-remake .auth-social:focus-visible { outline: 3px solid rgba(126, 231, 215, .75); outline-offset: 3px; }
+@media (max-height: 760px) {
+  body.auth-remake .auth-stage { padding-block: 20px; }
+  body.auth-remake .auth-card { padding-top: 24px; max-height: calc(100dvh - 40px); }
+  body.auth-remake .auth-avatar { display: none; }
+  body.auth-remake .auth-copy p { margin-bottom: 14px; }
+  body.auth-remake .auth-tabs { margin-bottom: 12px; }
+}
+@media (max-width: 720px) {
+  body.auth-remake .auth-stage { place-items: start center; padding: 82px 14px 18px; }
+  body.auth-remake .auth-card { width: 100%; max-height: none; padding: 30px 20px 22px; }
+  body.auth-remake .auth-socials { grid-template-columns: 1fr; }
+  body.auth-remake .auth-copy { padding-inline: 28px; }
+  body.auth-remake .auth-copy h1 { font-size: 29px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.auth-remake .auth-grid-row { animation: none; }
+  body.auth-remake * { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* AUTH QOL */
+body.auth-remake .auth-stage { background: #071a26; }
+body.auth-remake .auth-card { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); border-radius: 26px; padding: 32px 36px 26px; background: rgba(8, 20, 29, .88); box-shadow: 0 28px 80px rgba(0,0,0,.46); }
+body.auth-remake .auth-close { top:24px; right:24px; width:38px; height:38px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07); color:#dce7ed; }
+body.auth-remake .auth-close svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
+body.auth-remake .auth-avatar { width:54px; height:54px; border-radius:18px; background:linear-gradient(145deg,#21c7b4,#137d78); color:#fff; box-shadow:0 12px 28px rgba(22,179,163,.24); }
+body.auth-remake .auth-copy h1 { font-size:clamp(30px,4vw,38px); line-height:1.02; }
+body.auth-remake .auth-copy p { margin:9px 0 20px; }
+body.auth-remake .auth-tabs { width:100%; margin-bottom:18px; }
+body.auth-remake .auth-field { margin-bottom:12px; }
+body.auth-remake .auth-field label { font-size:13px; line-height:1.3; }
+body.auth-remake .auth-field input { height:46px; border-radius:12px; font-size:15px; }
+body.auth-remake .auth-toggle-password { right:12px; min-height:32px; color:#7dd9cd; }
+body.auth-remake .auth-link-button { float:right; padding:0 0 14px; font-size:13px; text-decoration:none; }
+body.auth-remake .auth-link-button:hover { color:#8ae1d6; text-decoration:underline; }
+body.auth-remake .auth-submit { width:100%; min-height:48px; border-radius:12px; font-size:15px; }
+body.auth-remake .auth-divider { width:100%; margin:14px auto; }
+body.auth-remake .auth-socials { width:100%; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+body.auth-remake .auth-social { min-height:44px; border-radius:12px; font-size:13px; }
+body.auth-remake .google-icon, body.auth-remake .apple-icon { width:18px; height:18px; object-fit:contain; }
+body.auth-remake .auth-status { min-height:0; margin:0 0 12px; }
+body.auth-remake .auth-status:empty { display:none; }
+body.auth-remake .auth-terms { font-size:11px; line-height:1.55; color:#9aadb9; }
+body.auth-remake .auth-close:focus-visible, body.auth-remake .auth-tab:focus-visible, body.auth-remake .auth-toggle-password:focus-visible, body.auth-remake .auth-link-button:focus-visible, body.auth-remake .auth-submit:focus-visible, body.auth-remake .auth-social:focus-visible { outline:3px solid rgba(126,231,215,.75); outline-offset:3px; }
+@media (max-height:760px) { body.auth-remake .auth-stage { padding-block:20px; } body.auth-remake .auth-card { padding-top:24px; max-height:calc(100dvh - 40px); } body.auth-remake .auth-avatar { display:none; } body.auth-remake .auth-copy p { margin-bottom:14px; } body.auth-remake .auth-tabs { margin-bottom:12px; } }
+@media (max-width:720px) { body.auth-remake .auth-stage { place-items:start center; padding:82px 14px 18px; } body.auth-remake .auth-card { width:100%; max-height:none; padding:30px 20px 22px; } body.auth-remake .auth-socials { grid-template-columns:1fr; } body.auth-remake .auth-copy { padding-inline:28px; } body.auth-remake .auth-copy h1 { font-size:29px; } }
+@media (prefers-reduced-motion:reduce) { body.auth-remake .auth-grid-row { animation:none; } body.auth-remake * { scroll-behavior:auto!important; transition-duration:.01ms!important; } }
