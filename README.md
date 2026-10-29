@@ -57,7 +57,7 @@ En Render, configura **Root Directory** como `backend`, **Build Command** como `
 
 Si cambias el dominio de Render, actualízalo en esas variables y en `frontend/js/api-config.js`. `FRONTEND_ORIGIN` debe ser únicamente el origen del servicio (sin ruta); `FRONTEND_URL` y `PASSWORD_RESET_REDIRECT_URL` apuntan a `/login.html`; `OAUTH_REDIRECT_URL` apunta a `/api/auth/google/callback`.
 
-En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html` y `https://websigtur.onrender.com/api/auth/google/callback`. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
+En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html`, `https://websigtur.onrender.com/api/auth/google/callback` y `http://localhost/**` para desarrollo local. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
 
 El endpoint `GET /health` comprueba el proceso sin consultar la base de datos. El callback OAuth valida la sesión de Supabase y devuelve al usuario a `login.html`.
 
