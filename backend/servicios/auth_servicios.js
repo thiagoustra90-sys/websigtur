@@ -56,8 +56,7 @@ async function asegurarPerfil(user) {
 }
 
 export async function iniciarGoogle() {
-  const redirectTo = process.env.OAUTH_REDIRECT_URL;
-  if (!redirectTo) return { error: 'Google OAuth no está configurado.' };
+  const redirectTo = process.env.OAUTH_REDIRECT_URL || 'https://websigtur.onrender.com/api/auth/google/callback';
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } },

@@ -93,7 +93,7 @@ export async function google(req, res) {
 export async function googleCallback(req, res) {
   let frontend;
   try {
-    frontend = new URL(process.env.FRONTEND_URL);
+    frontend = new URL(process.env.FRONTEND_URL || 'https://websigtur.onrender.com/login.html');
   } catch {
     return res.status(503).json({ error: 'La URL pública del frontend no está configurada.' });
   }
