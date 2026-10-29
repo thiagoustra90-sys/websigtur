@@ -7278,6 +7278,41 @@ body.page-eventos .event-interaction-panel[hidden] { display: none !important; }
 body.theme-dark .admin-event-map { border-color: #365c6a; }
 body.theme-dark .admin-event-item { border-color: #365c6a; background: #132d35; }
 body.theme-dark .admin-event-summary strong { color: #e0efed; }
+
+.nav-search { position: relative; overflow: visible; }
+.nav-search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: min(320px, 55vh);
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid rgba(16, 42, 67, 0.14);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+.nav-search-suggestions[hidden] { display: none; }
+.nav-search-suggestion {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #263c43;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.nav-search-suggestion:hover,
+.nav-search-suggestion.is-active { background: #e8f5f2; color: #087f72; }
+body.theme-dark .nav-search-suggestions { border-color: rgba(255, 255, 255, 0.16); background: #102a43; }
+body.theme-dark .nav-search-suggestion { color: #f2f7f8; }
+body.theme-dark .nav-search-suggestion:hover,
+body.theme-dark .nav-search-suggestion.is-active { background: #1c4652; color: #8df2e6; }
 body.theme-dark .admin-event-summary span, body.theme-dark .admin-event-summary small, body.theme-dark .admin-event-image-preview, body.theme-dark .admin-event-empty { color: #aac3c7; }
 body.theme-dark .admin-event-thumb { background: #203d45; color: #8de0d4; }
 body.theme-dark .admin-event-delete { border-color: #a84c49; background: #3a2529; color: #ffb8ae; }

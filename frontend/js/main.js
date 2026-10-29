@@ -325,32 +325,147 @@ function normalizeSearchText(value) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
+function getSearchDestination(value) {
+  const normalized = normalizeSearchText(value);
+  return /evento|concierto|feria|agenda|musica|deporte/.test(normalized) ? 'eventos.html' :
+    /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalized) ? 'turismo.html' :
+    /mapa|ubicacion|llegar|ruta/.test(normalized) ? 'mapa.html' : 'lugares.html';
+}
+
+function navigateToSearch(value, destination = getSearchDestination(value)) {
+  const url = new URL(destination, window.location.href);
+  url.searchParams.set('q', value);
+  window.location.assign(url);
+}
+
 function setupNavbarSearch() {
   const searchInput = document.querySelector('.nav-search input');
   const query = new URLSearchParams(window.location.search).get('q')?.trim();
 
-  if (searchInput) {
-    searchInput.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter') return;
-      const value = searchInput.value.trim();
+  const searchBox = searchInput.closest('.nav-search');
+  if (!searchBox) return;
+
+  const listId = 'navbar-search-suggestions';
+  const suggestionList = document.createElement('div');
+  suggestionList.className = 'nav-search-suggestions';
+  suggestionList.id = listId;
+  suggestionList.setAttribute('role', 'listbox');
+  suggestionList.setAttribute('aria-label', 'Sugerencias de búsqueda');
+  suggestionList.hidden = true;
+  searchBox.appendChild(suggestionList);
+
+  searchInput.setAttribute('role', 'combobox');
+  searchInput.setAttribute('aria-autocomplete', 'list');
+  searchInput.setAttribute('aria-expanded', 'false');
+  searchInput.setAttribute('aria-controls', listId);
+
+  const suggestions = [
+    { label: 'Eventos', query: 'Eventos' },
+    { label: 'Ferias y actividades', query: 'Ferias' },
+    { label: 'Hoteles y alojamientos', query: 'Hoteles' },
+    { label: 'Restaurantes y sabores', query: 'Restaurantes' },
+    { label: 'Termas del Daymán', query: 'Termas del Daymán' },
+    { label: 'Lugares turísticos', query: 'Lugares' },
+    { label: 'Plaza Artigas', query: 'Plaza Artigas' },
+    { label: 'Costanera Norte', query: 'Costanera Norte' },
+    { label: 'Parque Solari', query: 'Parque Solari' },
+    { label: 'Mapa de Salto', query: 'Mapa' }
+  ];
+  document.querySelectorAll('.ticket-row, .lugar-card, .prop-card, .restaurant-card').forEach(item => {
+    const heading = item.querySelector('h2, h3, .restaurant-name, .prop-name');
+    const label = heading?.textContent.trim();
+    if (label && !suggestions.some(suggestion => normalizeSearchText(suggestion.label) === normalizeSearchText(label))) {
+      const destination = item.matches('.ticket-row') ? 'eventos.html' :
+        item.matches('.prop-card, .restaurant-card') ? 'turismo.html' : 'lugares.html';
+      suggestions.push({ label, query: label, destination });
+    }
+  });
+
+  let activeIndex = -1;
+  let visibleSuggestions = [];
+
+  function closeSuggestions() {
+    suggestionList.hidden = true;
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.removeAttribute('aria-activedescendant');
+    activeIndex = -1;
+  }
+
+  function renderSuggestions() {
+    const normalized = normalizeSearchText(searchInput.value);
+    suggestionList.replaceChildren();
+    activeIndex = -1;
+
+    if (!normalized) {
+      closeSuggestions();
+      return;
+    }
+
+    visibleSuggestions = suggestions
+      .filter(suggestion => normalizeSearchText(suggestion.label).includes(normalized))
+      .slice(0, 7);
+
+    if (!visibleSuggestions.length) {
+      closeSuggestions();
+      return;
+    }
+
+    visibleSuggestions.forEach((suggestion, index) => {
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'nav-search-suggestion';
+      option.id = `${listId}-${index}`;
+      option.setAttribute('role', 'option');
+      option.setAttribute('aria-selected', 'false');
+      option.textContent = suggestion.label;
+      option.addEventListener('pointerdown', event => event.preventDefault());
+      option.addEventListener('click', () => navigateToSearch(suggestion.query, suggestion.destination));
+      suggestionList.appendChild(option);
+    });
+
+    suggestionList.hidden = false;
+    searchInput.setAttribute('aria-expanded', 'true');
+  }
+
+  function setActiveSuggestion(index) {
+    if (!visibleSuggestions.length) return;
+    activeIndex = (index + visibleSuggestions.length) % visibleSuggestions.length;
+    suggestionList.querySelectorAll('.nav-search-suggestion').forEach((option, optionIndex) => {
+      const active = optionIndex === activeIndex;
+      option.classList.toggle('is-active', active);
+      option.setAttribute('aria-selected', String(active));
+    });
+    searchInput.setAttribute('aria-activedescendant', `${listId}-${activeIndex}`);
+  }
+
+  searchInput.addEventListener('input', renderSuggestions);
+  searchInput.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' && !suggestionList.hidden) {
+      event.preventDefault();
+      setActiveSuggestion(activeIndex + 1);
+    } else if (event.key === 'ArrowUp' && !suggestionList.hidden) {
+      event.preventDefault();
+      setActiveSuggestion(activeIndex < 0 ? visibleSuggestions.length - 1 : activeIndex - 1);
+    } else if (event.key === 'Escape') {
+      closeSuggestions();
+    } else if (event.key === 'Enter') {
+      const suggestion = activeIndex >= 0 ? visibleSuggestions[activeIndex] : null;
+      const value = suggestion?.query || searchInput.value.trim();
       if (!value) return;
       event.preventDefault();
-
-      const normalized = normalizeSearchText(value);
-      const destination = /evento|concierto|feria|agenda|musica|deporte/.test(normalized) ? 'eventos.html' :
-        /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalized) ? 'turismo.html' :
-        /mapa|ubicacion|llegar|ruta/.test(normalized) ? 'mapa.html' : 'lugares.html';
-      const url = new URL(destination, window.location.href);
-      url.searchParams.set('q', value);
-      window.location.assign(url);
-    });
-  }
+      navigateToSearch(value, suggestion?.destination);
+    }
+  });
+  searchInput.addEventListener('focus', renderSuggestions);
+  document.addEventListener('pointerdown', event => {
+    if (!searchBox.contains(event.target)) closeSuggestions();
+  });
 
   if (!query) return;
 
   const normalizedQuery = normalizeSearchText(query);
   const terms = normalizedQuery
-    .replace(/\b(eventos?|conciertos?|ferias?|agenda|musica|deportes?|turismo|turisticos?|alojamientos?|hoteles?|restaurantes?|comida|gastronomia|sabores?|termas?|termal|historia|lugares?|plazas?|parques?|costanera|mapa|ubicacion|llegar|ruta|que|donde|de|del|en|para|el|la|los|las)\b/g, ' ')
+    .replace(/\b(eventos?|conciertos?|ferias?|agenda|musica|deportes?|turismo|turisticos?|alojamientos?|hoteles?|restaurantes?|comida|gastronomia|sabores?|termas?|termal|historia|lugares?|plazas?|parques?|costanera|mapa|ubicacion|llegar|ruta)\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
