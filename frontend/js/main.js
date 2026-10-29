@@ -293,18 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- TURISMO (turismo.html) ---
-  // gonza: esto es un buscador mínimo que detecta palabras clave y
-  // scrollea a la sección correspondiente. Nada de IA, solo includes() 😄
   if (body.classList.contains('page-turismo')) {
-    const navSearch = document.querySelector('.nav-search input');
-    navSearch?.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter') return;
-      const query = navSearch.value.toLowerCase();
-      const selector = query.includes('aloj') || query.includes('hotel') ? '#alojamientos' :
-        query.includes('restau') || query.includes('comid') || query.includes('sabor') ? '#restaurantes' :
-        query.includes('histor') ? '#historia' : null;
-      if (selector) document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth' });
-    });
     setupTourismPlanning();
     setupTourismCuriosity();
   }
@@ -328,7 +317,71 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  setupNavbarSearch();
 });
+
+function normalizeSearchText(value) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function setupNavbarSearch() {
+  const searchInput = document.querySelector('.nav-search input');
+  const query = new URLSearchParams(window.location.search).get('q')?.trim();
+
+  if (searchInput) {
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      const value = searchInput.value.trim();
+      if (!value) return;
+      event.preventDefault();
+
+      const normalized = normalizeSearchText(value);
+      const destination = /evento|concierto|feria|agenda|musica|deporte/.test(normalized) ? 'eventos.html' :
+        /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalized) ? 'turismo.html' :
+        /mapa|ubicacion|llegar|ruta/.test(normalized) ? 'mapa.html' : 'lugares.html';
+      const url = new URL(destination, window.location.href);
+      url.searchParams.set('q', value);
+      window.location.assign(url);
+    });
+  }
+
+  if (!query) return;
+
+  const normalizedQuery = normalizeSearchText(query);
+  const terms = normalizedQuery
+    .replace(/\b(eventos?|conciertos?|ferias?|agenda|musica|deportes?|turismo|turisticos?|alojamientos?|hoteles?|restaurantes?|comida|gastronomia|sabores?|termas?|termal|historia|lugares?|plazas?|parques?|costanera|mapa|ubicacion|llegar|ruta|que|donde|de|del|en|para|el|la|los|las)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (searchInput) searchInput.value = query;
+
+  let items = [];
+  if (document.body.classList.contains('page-eventos')) {
+    const eventSearch = document.querySelector('.search-pill input');
+    if (eventSearch) {
+      eventSearch.value = terms;
+      eventSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    items = Array.from(document.querySelectorAll('.próximos-section .ticket-row'));
+  } else if (document.body.classList.contains('page-lugares')) {
+    items = Array.from(document.querySelectorAll('.lugar-card'));
+  } else if (document.body.classList.contains('page-turismo')) {
+    items = Array.from(document.querySelectorAll('.prop-card, .restaurant-card'));
+  }
+
+  if (terms && items.length) {
+    const normalizedTerms = normalizeSearchText(terms);
+    items.forEach(item => {
+      item.style.display = normalizeSearchText(item.textContent).includes(normalizedTerms) ? '' : 'none';
+    });
+  }
+
+  const section = /hotel|alojamiento/.test(normalizedQuery) ? '#alojamientos' :
+    /restaurante|comida|gastronomia|sabor/.test(normalizedQuery) ? '#restaurantes' :
+    /historia/.test(normalizedQuery) ? '#historia' : '';
+  if (section) document.querySelector(section)?.scrollIntoView({ behavior: 'smooth' });
+}
 
 // gonza: el footer en mobile se convierte en acordeón para no ocupar tanto espacio.
 // cada columna tiene un título clickeable que muestra/oculta la lista de links.
