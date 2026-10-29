@@ -42,6 +42,14 @@ export async function crearEvento(evento) {
   return data;
 }
 
+export async function listarEventosAdmin() {
+  const { data, error } = await supabase.from('events')
+    .select('id,title,categories,date_start,date_end,location,image_url,price')
+    .order('date_start', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
 export async function listarUsuarios() {
   const { data: authData, error: authError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
   if (authError) throw authError;

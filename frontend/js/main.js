@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- EVENTOS (eventos.html) ---
   if (body.classList.contains('page-eventos')) {
     const featTrack = document.querySelector('.feat-track');
-    const featSlides = Array.from(document.querySelectorAll('.feat-slide'));
+    const featSlides = Array.from(document.querySelectorAll('.feat-track > .feat-slide:not([aria-hidden="true"]):not(.is-clone)'));
     const dotsWrap = document.querySelector('.carousel-section .carousel-dots');
     const total = featSlides.length;
     let current = 0;
@@ -1791,9 +1791,58 @@ async function setupAdminPage() {
   });
 
   const eventForm = document.getElementById('admin-event-form');
+  const eventsList = document.getElementById('admin-events-list');
+  const eventImageInput = document.getElementById('admin-event-image');
+  const eventImagePreview = document.getElementById('admin-event-image-preview');
+  const eventImagePreviewImg = eventImagePreview?.querySelector('img');
   const eventMapElement = document.getElementById('admin-event-map');
   const eventLatitude = document.getElementById('admin-event-latitude');
   const eventLongitude = document.getElementById('admin-event-longitude');
+  const eventCategorySymbols = {
+    cultura: '🎭', musica: '♫', deportes: '⚽', feria: '▦',
+    gastronomia: '♨', religiosos: '✦', infantiles: '★'
+  };
+  const eventCategorySymbol = (categories) => {
+    const category = Array.isArray(categories) ? categories[0] : categories;
+    return eventCategorySymbols[String(category || '').toLowerCase()] || '◉';
+  };
+  const renderAdminEvents = (events) => {
+    if (!eventsList) return;
+    eventsList.innerHTML = events.map(event => {
+      const category = Array.isArray(event.categories) ? event.categories[0] : '';
+      const eventDate = event.date_start ? new Date(`${event.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
+      const image = event.image_url
+        ? `<img src="${escapeText(event.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`
+        : `<span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`;
+      return `<li class="admin-event-item"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin título')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} · ${eventDate}</span><small>${escapeText(event.location || 'Lugar sin especificar')}</small></div><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar ${escapeText(event.title || 'evento')}" title="Eliminar evento">Eliminar</button></li>`;
+    }).join('') || '<li class="admin-event-empty">Todavía no hay eventos publicados.</li>';
+    eventsList.querySelectorAll('.admin-event-thumb img').forEach(image => image.addEventListener('error', () => image.remove(), { once: true }));
+  };
+  const loadAdminEvents = async () => {
+    if (!eventsList) return;
+    eventsList.innerHTML = '<li class="admin-event-empty">Cargando eventos…</li>';
+    try {
+      const response = await sigturApiFetch('/api/admin/eventos');
+      renderAdminEvents(response.data || []);
+    } catch (error) {
+      eventsList.innerHTML = `<li class="admin-event-empty">${escapeText(error.message || 'No se pudieron cargar los eventos.')}</li>`;
+    }
+  };
+  const updateEventImagePreview = () => {
+    const imageUrl = String(eventImageInput?.value || '').trim();
+    if (!eventImagePreview || !eventImagePreviewImg) return;
+    if (!imageUrl) {
+      eventImagePreview.hidden = true;
+      eventImagePreviewImg.removeAttribute('src');
+      return;
+    }
+    eventImagePreviewImg.onload = () => { eventImagePreview.hidden = false; };
+    eventImagePreviewImg.onerror = () => { eventImagePreview.hidden = true; };
+    eventImagePreviewImg.src = imageUrl;
+  };
+  eventImageInput?.addEventListener('input', updateEventImagePreview);
+  eventImageInput?.addEventListener('change', updateEventImagePreview);
+  loadAdminEvents();
   if (eventMapElement && eventLatitude && eventLongitude && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
     const eventMap = L.map(eventMapElement).setView([-31.383, -57.964], 13);
@@ -1808,6 +1857,7 @@ async function setupAdminPage() {
     eventMap.on('click', clickEvent => setEventPoint(clickEvent.latlng.lat, clickEvent.latlng.lng));
     // Tambien permite pegar coordenadas manuales para ajustar el punto.
     [eventLatitude, eventLongitude].forEach(input => input.addEventListener('change', () => {
+      if (!eventLatitude.value.trim() || !eventLongitude.value.trim()) return;
       const latitude = Number(eventLatitude.value);
       const longitude = Number(eventLongitude.value);
       if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
@@ -1837,10 +1887,26 @@ async function setupAdminPage() {
     event.preventDefault();
     const data = new FormData(eventForm);
     try {
-          await sigturApiFetch('/api/admin/eventos', { method: 'POST', body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: String(data.get('categories') || '').split(',').map(value => value.trim()).filter(Boolean) }) });
+      await sigturApiFetch('/api/admin/eventos', { method: 'POST', body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
       eventForm.reset();
+      updateEventImagePreview();
       showResourceStatus('Evento creado correctamente.');
+      await loadAdminEvents();
     } catch (error) { showResourceStatus(error.message); }
+  });
+  eventsList?.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-delete-event]');
+    if (!button || !window.confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
+    button.disabled = true;
+    try {
+      await sigturApiFetch(`/api/admin/eventos/${encodeURIComponent(button.dataset.deleteEvent)}`, { method: 'DELETE' });
+      button.closest('.admin-event-item')?.remove();
+      if (!eventsList.querySelector('.admin-event-item')) renderAdminEvents([]);
+      showResourceStatus('Evento eliminado.');
+    } catch (error) {
+      button.disabled = false;
+      showResourceStatus(error.message || 'No se pudo eliminar el evento.');
+    }
   });
   usersList?.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-ban-user]');

@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { requiereSesion, requiereAdmin } from '../servicios/verificacion.js';
-import { crearEvento, listarUsuarios, banearUsuario, eliminarEvento, eliminarComentario, listarComentarios, fijarComentario } from '../controladores/controlador admin.js';
+import { crearEvento, listarEventos, listarUsuarios, banearUsuario, eliminarEvento, eliminarComentario, listarComentarios, fijarComentario } from '../controladores/controlador admin.js';
 
 const router = Router();
 router.use(requiereSesion, requiereAdmin);
+router.get('/eventos', listarEventos);
 router.post('/eventos', crearEvento);
 router.delete('/eventos/:id', eliminarEvento);
 router.delete('/comentarios/:id', eliminarComentario);

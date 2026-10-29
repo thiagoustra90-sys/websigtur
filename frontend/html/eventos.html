@@ -261,17 +261,9 @@
 <!-- 
      FEATURED CAROUSEL – Noche de Milonga / Feria del Libro / Paddle
 
-     ESTE es el carousel con loop infinito de verdad (goTo/next en
-     main.js, bloque "page-eventos"). Fijate que hay 6 .feat-slide
-     acá abajo pero solo 3 son reales: las slides 4, 5 y 6 tienen
-     aria-hidden="true" y son CLONES estáticos escritos a mano en el
-     HTML (versión vieja del fix). Desde el 11/07 el JS ADEMÁS clona
-     dinámicamente por su cuenta (setupClones()), o sea que ahora
-     mismo puede haber doble clonado si no se limpió esto. Si el
-     carousel se ve con más huecos de la cuenta o salta raro, lo
-     primero que hay que revisar es ESTO: sacar los slides 4/5/6
-     manuales de acá abajo y dejar que el JS se encargue solo, para
-     no duplicar el trabajo.
+    ESTE es el carousel con loop infinito (goTo/next en main.js,
+    bloque "page-eventos"). Acá se declaran únicamente los 3 eventos
+    reales; setupClones() agrega y recalcula los clones necesarios.
 -->
 <section class="carousel-section">
 
@@ -307,39 +299,6 @@
 
       <!-- Slide 3 – Torneo de Paddle Nocturno -->
       <div class="feat-slide">
-        <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
-          <div style="position:relative;z-index:1;">
-            <p class="feat-title">Torneo de Paddle Nocturno</p>
-            <p class="feat-sub">Deportivo | Complejo Solari | Dom. 29/6</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 4 (clone para loop suave) -->
-      <div class="feat-slide" aria-hidden="true">
-        <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
-          <div style="position:relative;z-index:1;">
-            <p class="feat-title">Noche de Milonga</p>
-            <p class="feat-sub">Cultura | Club Remeros | Vie. 27/6</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 5 (clone) -->
-      <div class="feat-slide" aria-hidden="true">
-        <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
-          <div style="position:relative;z-index:1;">
-            <p class="feat-title">Feria del Libro Salteño</p>
-            <p class="feat-sub">Feria | Biblioteca Departamental | Sáb. 28/6</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 6 (clone) -->
-      <div class="feat-slide" aria-hidden="true">
         <div class="feat-card" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
           <div style="position:relative;z-index:1;">
