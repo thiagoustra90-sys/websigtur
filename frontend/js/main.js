@@ -682,6 +682,7 @@ function setupAuthPage() {
     if (!status) return;
     status.textContent = message;
     status.dataset.type = type;
+    status.hidden = !message;
   };
 
   const setBusy = (form, busy, loadingMessage = '') => {
@@ -697,7 +698,12 @@ function setupAuthPage() {
   };
 
   const activateTab = (name) => {
-    tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.authTab === name));
+    tabs.forEach(tab => {
+      const active = tab.dataset.authTab === name;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+    });
     panels.forEach(panel => panel.classList.toggle('active', panel.dataset.authPanel === name));
     setStatus('');
   };
