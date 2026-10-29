@@ -59,6 +59,8 @@ Si cambias el dominio de Render, actualízalo en esas variables y en `frontend/j
 
 En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html`, `https://websigtur.onrender.com/api/auth/google/callback` y `http://localhost/**` para desarrollo local. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
 
+Para que los eventos guarden su horario por separado del precio, ejecuta una vez `database/eventos_horario.sql` en Supabase antes de publicar eventos con horario.
+
 El endpoint `GET /health` comprueba el proceso sin consultar la base de datos. El callback OAuth valida la sesión de Supabase y devuelve al usuario a `login.html`.
 
 ### Desarrollo local con XAMPP

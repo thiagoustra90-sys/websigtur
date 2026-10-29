@@ -1363,6 +1363,29 @@ function setupEventAdminShortcut() {
 async function setupEventInteractions() {
   const ticketList = document.querySelector('.page-eventos .event-tickets');
   if (!ticketList) return;
+  const eventIcon = (name) => {
+    const paths = {
+      location: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+      culture: '<path d="M4 5h16v12H4zM8 21h8M12 17v4M8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01"/>',
+      music: '<path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Zm12-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Z"/>',
+      sports: '<circle cx="12" cy="12" r="9"/><path d="m8 3 2 5-4 3 2 6h7l3-5-4-4 1-5M6 17l-3 1m13-1 5 2"/>',
+      fair: '<path d="M4 20V8l8-5 8 5v12M8 20v-6h8v6M8 9h.01M12 9h.01M16 9h.01"/>',
+      food: '<path d="M7 3v7m-3-7v4a3 3 0 0 0 6 0V3m-3 7v11m9-18v18m0-18c3 2 4 5 4 8h-4"/>',
+      faith: '<path d="M12 3v18M5 8h14M7 18h10"/>',
+      kids: '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/>',
+      time: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      price: '<path d="M20 13 13 20l-9-9V4h7l9 9Z"/><circle cx="8" cy="8" r="1"/>',
+      comment: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>',
+      save: '<path d="M6 4h12a2 2 0 0 1 2 2v15l-8-5-8 5V6a2 2 0 0 1 2-2Z"/>',
+      reserve: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>'
+    };
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] || paths.culture}</svg>`;
+  };
+  const categoryIcon = (value) => {
+    const key = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const icon = key.includes('mus') ? 'music' : key.includes('deport') ? 'sports' : key.includes('feria') ? 'fair' : key.includes('gastr') ? 'food' : key.includes('relig') ? 'faith' : key.includes('infant') ? 'kids' : 'culture';
+    return eventIcon(icon);
+  };
   try {
     const result = await sigturApiFetch('/api/eventos');
     const events = Array.isArray(result) ? result : result.data || [];
@@ -1376,7 +1399,9 @@ async function setupEventInteractions() {
       row.dataset.eventId = `event-${event.id}`;
       const eventColor = /^#[0-9a-f]{6}$/i.test(String(event.color || '')) ? event.color : '#16b3a3';
       row.style.setProperty('--event-color', eventColor);
-      row.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(date.getTime()) ? '--' : String(date.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(date.getTime()) ? '---' : monthNames[date.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><span class="ticket-title">${escapeText(event.title)}</span><span class="ticket-subtitle">${escapeText(event.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location"><span aria-hidden="true">⌖</span>${escapeText(event.location || 'Ubicación a confirmar')}</div></div><span class="ticket-badge badge-green">${escapeText(event.categories?.[0] || 'Cultura')}</span><span class="ticket-time">${event.price > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
+      const eventTime = event.event_time ? String(event.event_time).slice(0, 5) : 'Horario a confirmar';
+      const eventPrice = Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis';
+      row.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(date.getTime()) ? '--' : String(date.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(date.getTime()) ? '---' : monthNames[date.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><span class="ticket-title">${escapeText(event.title)}</span><span class="ticket-subtitle">${escapeText(event.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${eventIcon('location')}${escapeText(event.location || 'Ubicación a confirmar')}</div></div><span class="ticket-badge badge-green">${categoryIcon(event.categories?.[0])}<span>${escapeText(event.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${eventIcon('time')}<span>${escapeText(eventTime)}</span></span><span class="ticket-time ticket-price">${eventIcon('price')}<span>${eventPrice}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
       ticketList.prepend(row);
     });
   } catch (error) {
@@ -1385,6 +1410,21 @@ async function setupEventInteractions() {
     status.textContent = error.message || 'No se pudieron cargar los eventos publicados.';
     ticketList.insertAdjacentElement('beforebegin', status);
   }
+  document.querySelectorAll('.page-eventos .ticket-row:not(.ticket-row-remote)').forEach(row => {
+    const oldTime = row.querySelector('.ticket-time');
+    if (oldTime && !row.querySelector('.ticket-schedule')) {
+      oldTime.classList.add('ticket-schedule');
+      oldTime.innerHTML = `${eventIcon('time')}<span>${escapeText(oldTime.textContent.trim())}</span>`;
+      const price = document.createElement('span');
+      price.className = 'ticket-time ticket-price';
+      price.innerHTML = `${eventIcon('price')}<span>Consultar</span>`;
+      oldTime.insertAdjacentElement('afterend', price);
+    }
+    const badge = row.querySelector('.ticket-badge');
+    if (badge && !badge.querySelector('svg')) badge.insertAdjacentHTML('afterbegin', categoryIcon(badge.textContent));
+    const location = row.querySelector('.ticket-location');
+    if (location && !location.querySelector('svg')) location.insertAdjacentHTML('afterbegin', eventIcon('location'));
+  });
   const rows = document.querySelectorAll('.page-eventos .ticket-row');
   if (!rows.length) return;
 
@@ -1411,15 +1451,16 @@ async function setupEventInteractions() {
     const date = `${row.querySelector('.day')?.textContent.trim() || ''}-${row.querySelector('.month')?.textContent.trim() || ''}`;
     const location = row.querySelector('.ticket-location')?.textContent.trim() || '';
     const category = row.querySelector('.ticket-badge')?.textContent.trim() || 'Evento';
-    const time = row.querySelector('.ticket-time')?.textContent.trim() || 'Horario a confirmar';
+    const time = row.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
+    const price = row.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
     const description = row.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
-    return { title, id: row.dataset.eventId || `event-${slugify(`${title}-${date}-${location}`)}`, date, location, category, time, description };
+    return { title, id: row.dataset.eventId || `event-${slugify(`${title}-${date}-${location}`)}`, date, location, category, time, price, description };
   };
   const detailDialog = document.createElement('dialog');
   detailDialog.className = 'event-detail-dialog';
   document.body.appendChild(detailDialog);
   const openEventDetail = event => {
-    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}"><button class="event-detail-close" type="button" aria-label="Cerrar detalle">×</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR · Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>Cuándo</small><strong>${escapeHtml(event.date)} · ${escapeHtml(event.time)}</strong></div><div><small>Dónde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guardá el evento, reservá tu lugar y compartí tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
+    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}"><button class="event-detail-close" type="button" aria-label="Cerrar detalle">×</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR · Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${eventIcon('time')}Horario</small><strong>${escapeHtml(event.time)}</strong></div><div><small>${eventIcon('price')}Precio</small><strong>${escapeHtml(event.price)}</strong></div><div><small>${eventIcon('location')}Dónde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guardá el evento, reservá tu lugar y compartí tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
     detailDialog.showModal();
     detailDialog.querySelector('.event-detail-close').addEventListener('click', () => detailDialog.close());
     detailDialog.querySelector('[data-detail-reserve]').addEventListener('click', () => { detailDialog.close(); const ticket = [...rows].find(row => getEventData(row).id === event.id); ticket?.querySelector('[data-event-reservation]')?.click(); });
@@ -1517,7 +1558,7 @@ async function setupEventInteractions() {
     }
     const controls = document.createElement('div');
     controls.className = 'event-interaction-tools';
-    controls.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">Ver ficha</button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">▢ <span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">🔖 <span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">♧ <span>Reservar</span></button>`;
+    controls.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">Ver ficha</button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${eventIcon('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${eventIcon('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${eventIcon('reserve')}<span>Reservar</span></button>`;
     row.appendChild(controls);
 
     const panel = document.createElement('div');
@@ -1811,10 +1852,11 @@ async function setupAdminPage() {
     eventsList.innerHTML = events.map(event => {
       const category = Array.isArray(event.categories) ? event.categories[0] : '';
       const eventDate = event.date_start ? new Date(`${event.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
+      const eventTime = event.event_time ? ` · ${String(event.event_time).slice(0, 5)}` : '';
       const image = event.image_url
         ? `<img src="${escapeText(event.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`
         : `<span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`;
-      return `<li class="admin-event-item"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin título')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} · ${eventDate}</span><small>${escapeText(event.location || 'Lugar sin especificar')}</small></div><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar ${escapeText(event.title || 'evento')}" title="Eliminar evento">Eliminar</button></li>`;
+      return `<li class="admin-event-item"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin título')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} · ${eventDate}${eventTime}</span><small>${escapeText(event.location || 'Lugar sin especificar')} · ${Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</small></div><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar ${escapeText(event.title || 'evento')}" title="Eliminar evento">Eliminar</button></li>`;
     }).join('') || '<li class="admin-event-empty">Todavía no hay eventos publicados.</li>';
     eventsList.querySelectorAll('.admin-event-thumb img').forEach(image => image.addEventListener('error', () => image.remove(), { once: true }));
   };
@@ -1887,7 +1929,7 @@ async function setupAdminPage() {
     event.preventDefault();
     const data = new FormData(eventForm);
     try {
-      await sigturApiFetch('/api/admin/eventos', { method: 'POST', body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
+      await sigturApiFetch('/api/admin/eventos', { method: 'POST', body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), event_time: data.get('event_time'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
       eventForm.reset();
       updateEventImagePreview();
       showResourceStatus('Evento creado correctamente.');

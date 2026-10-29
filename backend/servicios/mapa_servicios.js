@@ -45,7 +45,7 @@ export async function obtenerPuntosDeMapa({ tipo } = {}) {
     consultas.push(
       supabase
         .from("events")
-        .select("id,title,categories,description,location,address,image_url,link,latitude,longitude,date_start,date_end,price")
+        .select("id,title,categories,description,location,address,image_url,link,latitude,longitude,date_start,date_end,event_time,price")
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .then(({ data, error }) =>
@@ -56,6 +56,7 @@ export async function obtenerPuntosDeMapa({ tipo } = {}) {
                   ...aPunto(r, "event", { nombre: "title", descripcion: "description" }),
                   fechaInicio: r.date_start,
                   fechaFin: r.date_end,
+                  horario: r.event_time,
                   precio: r.price,
                 }
           ).filter(Boolean)
