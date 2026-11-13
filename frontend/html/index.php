@@ -231,7 +231,7 @@
       <!-- Card 1 -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/index/951-.jpg" alt="Dayman, Salto" />
+          <img class="prop-img" src="../imagenes/index/951-.jpeg" alt="Dayman, Salto" />
           <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .prop-heart al final del DOMContentLoaded) -->
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -489,4 +489,3 @@
 <script src="../js/main.js"></script>
 </body>
 </html>
-
