@@ -243,14 +243,7 @@
           <p class="prop-name">Dayman, Salto</p>
           <div class="prop-meta">
             <div>
-              <div class="prop-price">$289 <span>por persona</span></div>
               <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
             </div>
           </div>
         </div>
@@ -270,14 +263,7 @@
           <p class="prop-name">Mesias Hotel, Salto</p>
           <div class="prop-meta">
             <div>
-              <div class="prop-price">$279 <span>por noche</span></div>
               <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
             </div>
           </div>
         </div>
@@ -297,14 +283,7 @@
           <p class="prop-name">Jose Pedro, Salto</p>
           <div class="prop-meta">
             <div>
-              <div class="prop-price">$289 <span>noche</span></div>
               <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
             </div>
           </div>
         </div>
