@@ -70,3 +70,11 @@ El registro y el inicio de sesión pueden seguir usando el proxy de `frontend/ht
 Apache puede ejecutar el login sin Node mediante `frontend/html/api/auth.php`. El `.htaccess` transforma `/api/auth/login`, `/api/auth/register`, `/api/auth/me`, `/api/auth/recuperar` y `/api/auth/google` en llamadas PHP del mismo origen.
 
 Completa también `SUPABASE_ANON_KEY` en `backend/.env`, ejecuta en Supabase `database/migration_mapa_auth.sql` y `database/migration_interacciones.sql`, y abre `setup_local.bat`. La segunda migración es necesaria para que aparezcan los usuarios y funcionen los mensajes privados.
+
+### Imágenes y GIFs en comentarios
+
+Para habilitar adjuntos en los comentarios de eventos y del mapa, ejecuta una vez `database/comentarios_media.sql` en Supabase SQL Editor. Esta migración agrega `media_paths` a `comentarios` y crea/actualiza el bucket público de lectura `comment-media` (JPG, PNG, WebP y GIF, hasta 5 MB por archivo). Las cargas requieren sesión y se procesan desde el backend con `SUPABASE_SERVICE_KEY`; esa clave nunca debe exponerse al frontend. Se permiten hasta 3 imágenes por comentario.
+
+### Mensajes de voz
+
+Para habilitar audios y archivos en mensajes directos, ejecuta `database/mensajes_audio.sql` en Supabase después de `database/interacciones.sql`. Crea los buckets privados `message-audio` y `message-files`; el backend emite enlaces temporales solo a los participantes de la conversación. Las notas de voz requieren permiso de micrófono y HTTPS o `localhost`, duran hasta 2 minutos y pesan hasta 10 MB. Se pueden adjuntar hasta 3 archivos por mensaje (JPG, PNG, WebP, GIF o PDF), de hasta 10 MB cada uno.

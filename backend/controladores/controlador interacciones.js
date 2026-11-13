@@ -7,7 +7,8 @@ function error(res, problem) {
 	});
 }
 export async function comentarios(req, res) { try { res.json({ data: await servicio.listarComentarios(req.query) }); } catch (problem) { error(res, problem); } }
-export async function crearComentario(req, res) { try { res.status(201).json(await servicio.crearComentario(req.user.id, req.body, req.body.contenido)); } catch (problem) { error(res, problem); } }
+export async function subirMediaComentario(req, res) { try { res.status(201).json(await servicio.subirMediaComentario(req.user.id, req.headers["content-type"], req.body)); } catch (problem) { error(res, problem); } }
+export async function crearComentario(req, res) { try { res.status(201).json(await servicio.crearComentario(req.user.id, req.body, req.body.contenido, req.body.media_paths || [])); } catch (problem) { error(res, problem); } }
 export async function editarComentario(req, res) { try { res.json(await servicio.editarComentario(req.user.id, req.params.id, req.body.contenido)); } catch (problem) { error(res, problem); } }
 export async function eliminarComentario(req, res) { try { await servicio.eliminarComentario(req.user.id, req.params.id); res.status(204).end(); } catch (problem) { error(res, problem); } }
 export async function reportarComentario(req, res) { try { res.status(201).json(await servicio.reportarComentario(req.user.id, req.params.id, req.body.motivo)); } catch (problem) { error(res, problem); } }

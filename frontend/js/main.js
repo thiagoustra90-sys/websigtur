@@ -985,6 +985,18 @@ async function setupMessaging() {
   const form = document.getElementById('dm-form');
   const message = document.getElementById('dm-message');
   const status = document.getElementById('dm-status');
+  const recordButton = document.getElementById('dm-record');
+  const recordingStatus = document.getElementById('dm-recording-status');
+  const audioPreview = document.getElementById('dm-audio-preview');
+  const audioPlayback = document.getElementById('dm-audio-playback');
+  const audioDiscardButton = document.getElementById('dm-audio-discard');
+  const audioSendButton = document.getElementById('dm-audio-send');
+  const attachmentButton = document.getElementById('dm-attach');
+  const attachmentInput = document.getElementById('dm-attachment-input');
+  const attachmentStatus = document.getElementById('dm-attachment-status');
+  const attachmentPreview = document.getElementById('dm-attachment-preview');
+  const activeContactLabel = document.getElementById('dm-active-contact');
+  const textSendButton = form?.querySelector('.dm-send-text');
   if (!contactSelect || !thread || !form) return;
 
   let contacts = [];
@@ -992,8 +1004,116 @@ async function setupMessaging() {
   let activeId = '';
   let refreshing = false;
   let messagingBroadcast = null;
+  let mediaRecorder = null;
+  let recordingStream = null;
+  let recordingChunks = [];
+  let recordingStartedAt = 0;
+  let recordingTimer = null;
+  let recordedAudio = null;
+  let recordedAudioDuration = 0;
+  let audioObjectUrl = '';
+  let sendingAudio = false;
+  let sendingMessage = false;
+  let pendingAttachments = [];
+  let attachmentPreviewUrls = [];
+  const maxAudioSeconds = 120;
+  const maxAudioBytes = 10 * 1024 * 1024;
+  const maxAttachments = 3;
+  const maxAttachmentBytes = 10 * 1024 * 1024;
+  const acceptedAttachmentTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
+
+  const formatAudioTime = seconds => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  const recorderMimeType = () => [
+    'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4',
+  ].find(type => window.MediaRecorder?.isTypeSupported?.(type)) || '';
+  const resetAudioPreview = () => {
+    if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+    audioObjectUrl = '';
+    recordedAudio = null;
+    recordedAudioDuration = 0;
+    audioPlayback?.pause();
+    if (audioPlayback) audioPlayback.removeAttribute('src');
+    if (audioPreview) audioPreview.hidden = true;
+    if (audioSendButton) audioSendButton.disabled = true;
+    if (recordButton) {
+      recordButton.disabled = false;
+      recordButton.classList.remove('is-recording');
+      recordButton.setAttribute('aria-pressed', 'false');
+      recordButton.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
+    }
+    if (recordingStatus) recordingStatus.textContent = 'El audio dura hasta 2 minutos.';
+  };
+
+  const fileSizeLabel = bytes => bytes < 1024
+    ? `${bytes} B`
+    : bytes < 1024 * 1024
+      ? `${Math.round(bytes / 1024)} KB`
+      : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const renderMessageAttachments = attachments => {
+    if (!Array.isArray(attachments) || !attachments.length) return '';
+    return `<div class="dm-message-attachments">${attachments.map(file => {
+      const url = escapeText(file.url || '#');
+      const name = escapeText(file.name || (file.mime === 'application/pdf' ? 'Documento PDF' : 'Imagen adjunta'));
+      return file.mime?.startsWith('image/')
+        ? `<a class="dm-file-image" href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${name}" loading="lazy"><span>${name}</span></a>`
+        : `<a class="dm-file-document" href="${url}" target="_blank" rel="noopener noreferrer"><span class="dm-file-icon" aria-hidden="true">PDF</span><span><strong>${name}</strong><small>${fileSizeLabel(Number(file.size) || 0)} · Abrir documento</small></span></a>`;
+    }).join('')}</div>`;
+  };
+  const renderPendingAttachments = () => {
+    (attachmentPreviewUrls || []).forEach(URL.revokeObjectURL);
+    attachmentPreviewUrls = [];
+    if (!attachmentPreview) return;
+    attachmentPreview.replaceChildren();
+    pendingAttachments.forEach((file, index) => {
+      const item = document.createElement('div');
+      item.className = 'dm-pending-file';
+      if (file.type.startsWith('image/')) {
+        const image = document.createElement('img');
+        image.src = URL.createObjectURL(file);
+        image.alt = `Vista previa: ${file.name}`;
+        attachmentPreviewUrls.push(image.src);
+        item.appendChild(image);
+      } else {
+        const icon = document.createElement('span');
+        icon.className = 'dm-file-icon';
+        icon.textContent = 'PDF';
+        item.appendChild(icon);
+      }
+      const name = document.createElement('span');
+      name.className = 'dm-pending-file-name';
+      name.textContent = `${file.name} · ${fileSizeLabel(file.size)}`;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'dm-remove-file';
+      remove.setAttribute('aria-label', `Quitar ${file.name}`);
+      remove.textContent = '×';
+      remove.addEventListener('click', () => {
+        pendingAttachments.splice(index, 1);
+        renderPendingAttachments();
+      });
+      item.append(name, remove);
+      attachmentPreview.appendChild(item);
+    });
+    if (attachmentStatus) {
+      attachmentStatus.textContent = pendingAttachments.length
+        ? `${pendingAttachments.length} de ${maxAttachments} archivos listos para enviar.`
+        : 'JPG, PNG, WebP, GIF o PDF · hasta 3 archivos de 10 MB';
+    }
+  };
+  const clearPendingAttachments = () => {
+    pendingAttachments = [];
+    if (attachmentInput) attachmentInput.value = '';
+    renderPendingAttachments();
+  };
 
   const currentUserId = () => sigturGetSession()?.usuario?.id;
+  const setComposerEnabled = enabled => {
+    if (message) message.disabled = !enabled || sendingMessage || sendingAudio;
+    if (recordButton && mediaRecorder?.state !== 'recording' && !sendingAudio && !sendingMessage) recordButton.disabled = !enabled;
+    if (textSendButton) textSendButton.disabled = !enabled || sendingMessage || sendingAudio;
+    if (attachmentButton) attachmentButton.disabled = !enabled || sendingMessage || sendingAudio;
+    if (attachmentInput) attachmentInput.disabled = !enabled || sendingMessage || sendingAudio;
+  };
   const notifyMessagingSync = (userId = null) => {
     const payload = { type: 'messaging-sync', userId, ts: Date.now() };
     if ('BroadcastChannel' in window) {
@@ -1046,7 +1166,11 @@ async function setupMessaging() {
     contactList.innerHTML = visible.map((item) => {
       const user = item.usuario || {};
       const fecha = item.updated_at ? new Date(item.updated_at).toLocaleString('es-UY', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-      const ultimo = item.last_message?.contenido ? escapeText(item.last_message.contenido) : 'No hay mensajes todavía.';
+      const ultimo = item.last_message?.tipo === 'audio'
+        ? '🎙 Mensaje de voz'
+        : item.last_message?.tipo === 'archivo'
+          ? '📎 Archivo adjunto'
+        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : 'No hay mensajes todavía.';
       const unread = Number(item.unread_count || 0);
       const active = item.usuario_id === activeId ? 'is-active' : '';
       return `
@@ -1077,7 +1201,19 @@ async function setupMessaging() {
 
   const loadThread = async (userId) => {
     if (!userId) return;
+    if (activeId && activeId !== userId && mediaRecorder?.state === 'recording') {
+      status.textContent = 'Detené o terminá la grabación antes de cambiar de conversación.';
+      return;
+    }
+    if (activeId !== userId) {
+      resetAudioPreview();
+      clearPendingAttachments();
+    }
     activeId = userId;
+    const activeContact = contacts.find(user => user.id === userId)
+      || conversations.find(entry => entry.usuario_id === userId)?.usuario;
+    if (activeContactLabel) activeContactLabel.textContent = activeContact ? nameOf(activeContact) : 'Conversación';
+    setComposerEnabled(true);
     renderConversations();
     try {
       const result = await sigturApiFetch(`/api/mensajes?usuario_id=${encodeURIComponent(userId)}`);
@@ -1085,11 +1221,14 @@ async function setupMessaging() {
       thread.innerHTML = (items || []).map((item) => {
         const isOutgoing = item.remitente_id === currentUserId();
         const stateText = isOutgoing ? (item.leido ? '✓✓ Leído' : '✓ Enviado') : '';
+        const content = item.tipo === 'audio' && item.audio_url
+          ? `<div class="dm-audio-message"><span><span aria-hidden="true">🎙</span> Mensaje de voz · ${formatAudioTime(Number(item.duration_seconds) || 0)}</span><audio controls preload="none" src="${escapeText(item.audio_url)}" aria-label="Reproducir mensaje de voz"></audio></div>`
+          : `${item.tipo !== 'archivo' && item.contenido ? `<p class="dm-message-text">${escapeText(item.contenido)}</p>` : ''}${renderMessageAttachments(item.attachments)}`;
         return `
-          <p class="dm-bubble ${isOutgoing ? 'outgoing' : 'incoming'}">
-            ${escapeText(item.contenido)}
+          <article class="dm-bubble ${isOutgoing ? 'outgoing' : 'incoming'} ${item.tipo === 'audio' ? 'dm-bubble-audio' : ''}" data-message-id="${escapeText(item.id)}">
+            ${content}
             <time>${new Date(item.created_at).toLocaleString('es-UY')} ${stateText ? `· ${escapeText(stateText)}` : ''}</time>
-          </p>
+          </article>
         `;
       }).join('') || '<p class="dm-empty">No hay mensajes todavía.</p>';
       thread.scrollTop = thread.scrollHeight;
@@ -1104,7 +1243,8 @@ async function setupMessaging() {
 
 
 const refreshActiveThread = async () => {
-  if (!activeId || document.hidden || refreshing) return;
+  const isPlayingAudio = [...thread.querySelectorAll('audio')].some(player => !player.paused);
+  if (!activeId || document.hidden || refreshing || sendingAudio || mediaRecorder?.state === 'recording' || isPlayingAudio) return;
 
   refreshing = true;
   try {
@@ -1153,6 +1293,22 @@ const refreshMessaging = async () => {
 
   contactSearch?.addEventListener('input', renderConversations);
 
+  attachmentButton?.addEventListener('click', () => attachmentInput?.click());
+  attachmentInput?.addEventListener('change', () => {
+    const chosen = [...(attachmentInput.files || [])];
+    const remaining = maxAttachments - pendingAttachments.length;
+    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
+    const accepted = valid.slice(0, Math.max(remaining, 0));
+    pendingAttachments.push(...accepted);
+    attachmentInput.value = '';
+    renderPendingAttachments();
+    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
+      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
+    } else if (accepted.length < chosen.length) {
+      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+    }
+  });
+
   if ('BroadcastChannel' in window) {
     messagingBroadcast = new BroadcastChannel('sigtur-mensajes');
     messagingBroadcast.addEventListener('message', handleMessagingSync);
@@ -1170,29 +1326,194 @@ const refreshTimer = window.setInterval(refreshMessaging, 4000);
 
 document.addEventListener('visibilitychange', refreshMessaging);
 
+  recordButton?.addEventListener('click', async () => {
+    if (mediaRecorder?.state === 'recording') {
+      mediaRecorder.stop();
+      return;
+    }
+    if (!activeId) {
+      status.textContent = 'Elegí una conversación antes de grabar un audio.';
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      status.textContent = 'Este navegador no permite grabar audio. Podés enviar mensajes de texto.';
+      return;
+    }
+
+    resetAudioPreview();
+    if (recordButton) {
+      recordButton.disabled = true;
+      recordButton.textContent = 'Solicitando micrófono…';
+    }
+    try {
+      recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = recorderMimeType();
+      mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined);
+      recordingChunks = [];
+      recordingStartedAt = Date.now();
+      mediaRecorder.addEventListener('dataavailable', event => {
+        if (event.data?.size) recordingChunks.push(event.data);
+      });
+      mediaRecorder.addEventListener('stop', () => {
+        window.clearInterval(recordingTimer);
+        recordingTimer = null;
+        recordingStream?.getTracks().forEach(track => track.stop());
+        recordingStream = null;
+        const duration = Math.max(1, Math.min(maxAudioSeconds, Math.ceil((Date.now() - recordingStartedAt) / 1000)));
+        const blob = new Blob(recordingChunks, { type: mediaRecorder?.mimeType || mimeType || 'audio/webm' });
+        mediaRecorder = null;
+        recordingChunks = [];
+        recordButton?.classList.remove('is-recording');
+        recordButton?.setAttribute('aria-pressed', 'false');
+        if (recordButton) {
+          recordButton.disabled = false;
+          recordButton.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
+        }
+        if (!blob.size || blob.size > maxAudioBytes) {
+          status.textContent = blob.size ? 'La grabación supera el límite de 10 MB. Intentá hacerla más corta.' : 'No se capturó audio. Volvé a intentarlo.';
+          resetAudioPreview();
+          return;
+        }
+        recordedAudio = blob;
+        recordedAudioDuration = duration;
+        audioObjectUrl = URL.createObjectURL(blob);
+        if (audioPlayback) audioPlayback.src = audioObjectUrl;
+        if (audioPreview) audioPreview.hidden = false;
+        if (audioSendButton) audioSendButton.disabled = false;
+        if (recordingStatus) recordingStatus.textContent = `Grabación lista · ${formatAudioTime(duration)}. Podés escucharla antes de enviarla.`;
+      }, { once: true });
+
+      mediaRecorder.start(250);
+      recordButton.disabled = false;
+      recordButton.classList.add('is-recording');
+      recordButton.setAttribute('aria-pressed', 'true');
+      recordButton.innerHTML = '<span aria-hidden="true">■</span> Detener grabación';
+      if (recordingStatus) recordingStatus.textContent = 'Grabando · 0:00';
+      recordingTimer = window.setInterval(() => {
+        const elapsed = Math.floor((Date.now() - recordingStartedAt) / 1000);
+        if (recordingStatus) recordingStatus.textContent = `Grabando · ${formatAudioTime(elapsed)}`;
+        if (elapsed >= maxAudioSeconds && mediaRecorder?.state === 'recording') mediaRecorder.stop();
+      }, 1000);
+    } catch (error) {
+      recordingStream?.getTracks().forEach(track => track.stop());
+      recordingStream = null;
+      mediaRecorder = null;
+      status.textContent = error.name === 'NotAllowedError'
+        ? 'Permití el acceso al micrófono para grabar audio.'
+        : error.message || 'No se pudo iniciar la grabación.';
+      resetAudioPreview();
+    }
+  });
+
+  audioDiscardButton?.addEventListener('click', () => {
+    resetAudioPreview();
+    status.textContent = 'Grabación descartada.';
+  });
+
+  audioSendButton?.addEventListener('click', async () => {
+    if (!activeId || !recordedAudio || sendingAudio) return;
+    const recipientId = activeId;
+    const audio = recordedAudio;
+    const duration = recordedAudioDuration;
+    try {
+      if (!sigturGetSession()?.token) throw new Error('Iniciá sesión para enviar un mensaje de voz.');
+      sendingAudio = true;
+      audioSendButton.disabled = true;
+      status.textContent = 'Subiendo audio…';
+      const mimeType = audio.type.split(';')[0] || 'audio/webm';
+      const uploaded = await sigturApiFetch('/api/mensajes/audio', {
+        method: 'POST',
+        headers: { 'Content-Type': mimeType },
+        body: audio,
+      });
+      await sigturApiFetch('/api/mensajes', {
+        method: 'POST',
+        body: JSON.stringify({
+          destinatario_id: recipientId,
+          tipo: 'audio',
+          audio_path: uploaded.path,
+          duration_seconds: duration,
+        }),
+      });
+      resetAudioPreview();
+      status.textContent = 'Mensaje de voz enviado.';
+      notifyMessagingSync(recipientId);
+      await loadThread(recipientId);
+      await loadConversations();
+    } catch (error) {
+      status.textContent = error.message || 'No se pudo enviar el audio.';
+      if (audioSendButton) audioSendButton.disabled = false;
+    } finally {
+      sendingAudio = false;
+    }
+  });
+
 window.addEventListener('beforeunload', () => {
   window.clearInterval(refreshTimer);
+  window.clearInterval(recordingTimer);
+  recordingStream?.getTracks().forEach(track => track.stop());
+  if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
   document.removeEventListener('visibilitychange', refreshMessaging);
   window.removeEventListener('focus', refreshMessaging);
   messagingBroadcast?.close();
 }, { once: true });
+
+  const uploadPendingAttachments = async () => {
+    const uploadedFiles = [];
+    for (let index = 0; index < pendingAttachments.length; index += 1) {
+      const file = pendingAttachments[index];
+      if (!acceptedAttachmentTypes.has(file.type) || !file.size || file.size > maxAttachmentBytes) {
+        throw new Error('Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.');
+      }
+      if (attachmentStatus) attachmentStatus.textContent = `Subiendo archivo ${index + 1} de ${pendingAttachments.length}…`;
+      const uploaded = await sigturApiFetch('/api/mensajes/adjuntos', {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      uploadedFiles.push({
+        path: uploaded.path,
+        name: file.name,
+        mime: uploaded.mime || file.type,
+        size: uploaded.size || file.size,
+      });
+    }
+    return uploadedFiles;
+  };
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
     try {
       if (!activeId) throw new Error('Elegí un usuario para iniciar la conversación.');
       const contenido = message.value.trim();
-      if (!contenido) throw new Error('Escribí un mensaje antes de enviarlo.');
+      if (!contenido && !pendingAttachments.length) throw new Error('Escribí un mensaje o adjuntá un archivo.');
+      if (!sigturGetSession()?.token) throw new Error('Iniciá sesión para enviar mensajes.');
+      const recipientId = activeId;
+      sendingMessage = true;
+      setComposerEnabled(true);
+      status.textContent = pendingAttachments.length ? 'Subiendo adjuntos…' : 'Enviando mensaje…';
+      const attachments = await uploadPendingAttachments();
       await sigturApiFetch('/api/mensajes', {
         method: 'POST',
-        body: JSON.stringify({ destinatario_id: activeId, contenido })
+        body: JSON.stringify({
+          destinatario_id: recipientId,
+          contenido,
+          tipo: contenido ? 'texto' : 'archivo',
+          attachments,
+        })
       });
       message.value = '';
-      notifyMessagingSync(activeId);
-      await loadThread(activeId);
+      clearPendingAttachments();
+      status.textContent = 'Mensaje enviado.';
+      notifyMessagingSync(recipientId);
+      await loadThread(recipientId);
       await loadConversations();
     } catch (error) {
       status.textContent = error.message || 'No se pudo enviar el mensaje.';
+    } finally {
+      sendingMessage = false;
+      if (pendingAttachments.length) renderPendingAttachments();
+      setComposerEnabled(Boolean(activeId));
     }
   });
 }
@@ -1447,7 +1768,9 @@ async function setupEventInteractions() {
     });
     const renderComment = comment => {
       const replies = sort(byParent.get(comment.id) || []);
-      return `<article class="event-comment ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${escapeHtml(comment.id)}" data-comment-user="${escapeHtml(comment.usuario_id)}"><div class="comment-author">${authorAvatar(comment)}<span><strong>${escapeHtml(authorName(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div><p>${escapeHtml(comment.contenido)}</p><div class="event-comment-actions"><button type="button" data-comment-like>♡ Me gusta</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${sigturGetSession()?.usuario?.rol === 'admin' ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escapeHtml(authorName(comment))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${replies.length ? `<div class="event-comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
+      const media = window.sigturCommentMediaMarkup?.(comment.media_urls) || '';
+      const content = comment.contenido ? `<p>${escapeHtml(comment.contenido)}</p>` : '';
+      return `<article class="event-comment ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${escapeHtml(comment.id)}" data-comment-user="${escapeHtml(comment.usuario_id)}"><div class="comment-author">${authorAvatar(comment)}<span><strong>${escapeHtml(authorName(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="event-comment-actions"><button type="button" data-comment-like>♡ Me gusta</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${sigturGetSession()?.usuario?.rol === 'admin' ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escapeHtml(authorName(comment))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${replies.length ? `<div class="event-comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
     };
     const roots = sort(byParent.get('root') || []);
     list.innerHTML = roots.length
@@ -1512,7 +1835,7 @@ async function setupEventInteractions() {
     const panel = document.createElement('div');
     panel.className = 'event-interaction-panel';
     panel.hidden = true;
-    panel.innerHTML = `<div class="event-panel-head"><strong>${escapeHtml(event.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario..." required></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
+    panel.innerHTML = `<div class="event-panel-head"><strong>${escapeHtml(event.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
     row.insertAdjacentElement('afterend', panel);
     loadComments(panel, event.id);
     syncSavedButton(controls.querySelector('[data-event-save]'), event);
@@ -1627,8 +1950,11 @@ async function setupEventInteractions() {
       try {
         if (!sigturGetSession()?.token) { showLogin(); return; }
         const contenido = new FormData(form).get('contenido');
-        await sigturApiFetch('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, contenido }) });
+        const media_paths = await window.sigturPrepareCommentMedia(form);
+        if (!String(contenido || '').trim() && !media_paths.length) throw new Error('Escribí un comentario o adjuntá una imagen.');
+        await sigturApiFetch('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, contenido, media_paths }) });
         form.reset();
+        window.sigturClearCommentMedia(form);
         await loadComments(panel, event.id);
       } catch (error) { status.textContent = error.message || 'No se pudo publicar el comentario.'; }
     });

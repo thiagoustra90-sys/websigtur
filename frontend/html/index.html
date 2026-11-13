@@ -20,52 +20,6 @@
   <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
   <link rel="stylesheet" href="../css/styles.css" />
 
-  <style>
-    /*
-      nav override COMPARTIDO PARA FIX DE MENU***
-      esto debería vivir en styles.css pero lo dejamos acá pegado porque
-      en su momento hubo lío con la navbar quedando detrás del hero y
-      esto fue la forma más rápida de solucionarlo sin romper otras
-      páginas. si lo mueven a styles.css, prueben TODAS las páginas antes
-      de subir.
-    */
-    .navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 200; /* tiene que ganarle a todo lo demás */
-      display: flex;
-      align-items: center;
-      padding: 20px 64px;
-      gap: 20px;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-    .navbar.scrolled {
-      /* esta clase la agrega el JS cuando scrolleás más de 60px */
-      background: rgba(255,255,255,0.92);
-      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-    }
-    .nav-logo { width: 132px; height: 58px; flex-shrink: 0; }
-    .nav-logo img { width: 100%; height: 100%; object-fit: contain; }
-    .nav-search {
-      flex: 1;
-      max-width: 540px;
-      margin: 0 auto;
-    }
-
-    /* ---- FIX MOBILE: navbar siempre encima del hero ---- */
-    /* El hero no debe crear un stacking context que tape el navbar fixed */
-    .hero {
-      /* sin transform, filter ni will-change para no crear stacking context */
-      isolation: auto;
-    }
-    /* el hero-bg tampoco tapa el navbar ahora */
-    .hero-bg {
-      z-index: 0;
-    }
-    .hero-content {
-      z-index: 1;
-    }
-  </style>
 </head>
 <body class="page-home">
   <!-- la clase page-home la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->

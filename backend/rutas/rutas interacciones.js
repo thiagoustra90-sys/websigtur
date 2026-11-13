@@ -1,11 +1,13 @@
 import { Router } from "express";
+import express from "express";
 import { requiereSesion, sesionOpcional } from "../servicios/verificacion.js";
-import { comentarios, crearComentario, editarComentario, eliminarComentario, reportarComentario, estado, like, guardado, listarGuardados } from "../controladores/controlador interacciones.js";
-import { listarComentariosForo, responderComentario, likeComentario, estadoLikeComentario, enviarMensaje, listarMensajes, listarUsuariosParaMensajes, marcarMensajesLeidos, listarConversaciones } from "../controladores/controlador foro.js";
+import { comentarios, crearComentario, subirMediaComentario, editarComentario, eliminarComentario, reportarComentario, estado, like, guardado, listarGuardados } from "../controladores/controlador interacciones.js";
+import { listarComentariosForo, responderComentario, likeComentario, estadoLikeComentario, enviarMensaje, subirAudioMensaje, subirAdjuntoMensaje, listarMensajes, listarUsuariosParaMensajes, marcarMensajesLeidos, listarConversaciones } from "../controladores/controlador foro.js";
 
 const router = Router();
 router.get("/", comentarios);
 router.get("/foro", listarComentariosForo);
+router.post("/medios", requiereSesion, express.raw({ type: ["image/jpeg", "image/png", "image/gif", "image/webp"], limit: "5mb", inflate: false }), subirMediaComentario);
 router.post("/", requiereSesion, crearComentario);
 router.patch("/:id", requiereSesion, editarComentario);
 router.delete("/:id", requiereSesion, eliminarComentario);
@@ -20,6 +22,8 @@ mensajesRouter.get("/", requiereSesion, listarMensajes);
 mensajesRouter.get("/usuarios", requiereSesion, listarUsuariosParaMensajes);
 mensajesRouter.get("/conversaciones", requiereSesion, listarConversaciones);
 mensajesRouter.patch("/leer", requiereSesion, marcarMensajesLeidos);
+mensajesRouter.post("/audio", requiereSesion, express.raw({ type: ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav"], limit: "10mb", inflate: false }), subirAudioMensaje);
+mensajesRouter.post("/adjuntos", requiereSesion, express.raw({ type: ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"], limit: "10mb", inflate: false }), subirAdjuntoMensaje);
 mensajesRouter.post("/", requiereSesion, enviarMensaje);
 
 export const likesRouter = Router();

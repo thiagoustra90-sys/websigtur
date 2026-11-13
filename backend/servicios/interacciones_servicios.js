@@ -1,6 +1,46 @@
 import supabase from "../config/supabase.js";
+import { randomUUID } from "node:crypto";
 
 const TIPOS = new Set(["company", "event", "place"]);
+const MEDIA_BUCKET = "comment-media";
+const MEDIA_TYPES = new Map([
+  ["image/jpeg", { extension: "jpg", matches: buffer => buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff }],
+  ["image/png", { extension: "png", matches: buffer => buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) }],
+  ["image/gif", { extension: "gif", matches: buffer => ["GIF87a", "GIF89a"].includes(buffer.subarray(0, 6).toString("ascii")) }],
+  ["image/webp", { extension: "webp", matches: buffer => buffer.subarray(0, 4).toString("ascii") === "RIFF" && buffer.subarray(8, 12).toString("ascii") === "WEBP" }],
+]);
+
+function badRequest(message) {
+  return Object.assign(new Error(message), { status: 400 });
+}
+
+function validarMediaPaths(usuarioId, mediaPaths = []) {
+  if (!Array.isArray(mediaPaths) || mediaPaths.length > 3) throw badRequest("Adjuntá hasta 3 imágenes por comentario.");
+  const ownerId = String(usuarioId || "");
+  if (!/^[0-9a-f-]{36}$/i.test(ownerId)) throw badRequest("La sesión no es válida para adjuntar imágenes.");
+  const validPath = new RegExp(`^${ownerId}/[0-9a-f-]{36}\\.(jpg|png|gif|webp)$`, "i");
+  if (mediaPaths.some(item => typeof item !== "string" || !validPath.test(item))) {
+    throw badRequest("Uno de los archivos adjuntos no es válido.");
+  }
+  return mediaPaths;
+}
+
+export async function subirMediaComentario(usuarioId, contentType, file) {
+  if (!Buffer.isBuffer(file) || !file.length) throw badRequest("Seleccioná una imagen válida.");
+  if (file.length > 5 * 1024 * 1024) throw badRequest("Cada archivo puede pesar como máximo 5 MB.");
+  const mediaType = MEDIA_TYPES.get(String(contentType || "").toLowerCase());
+  if (!mediaType || !mediaType.matches(file)) throw badRequest("Solo se permiten imágenes PNG, JPG, WebP o GIF válidas.");
+
+  const path = `${usuarioId}/${randomUUID()}.${mediaType.extension}`;
+  const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
+    contentType: contentType.toLowerCase(),
+    cacheControl: "31536000",
+    upsert: false,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+  return { path, url: data.publicUrl };
+}
 
 export function validarEntidad({ entidad_tipo, entidad_id }) {
   if (!TIPOS.has(String(entidad_tipo)) || !String(entidad_id || '').trim()) {
@@ -11,10 +51,14 @@ export function validarEntidad({ entidad_tipo, entidad_id }) {
 
 export async function listarComentarios(entidad) {
   const { data, error } = await supabase.from("comentarios")
-    .select("id, usuario_id, parent_id, entidad_tipo, entidad_id, contenido, fijado, created_at, updated_at")
+    .select("id, usuario_id, parent_id, entidad_tipo, entidad_id, contenido, media_paths, fijado, created_at, updated_at")
     .match(validarEntidad(entidad)).order("fijado", { ascending: false }).order("created_at", { ascending: false });
   if (error) throw error;
-  return agregarAutores(data);
+  const commentsWithMedia = (data || []).map(comment => ({
+    ...comment,
+    media_urls: (comment.media_paths || []).map(path => supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl),
+  }));
+  return agregarAutores(commentsWithMedia);
 }
 
 // comentarios.usuario_id referencia auth.users, por eso el perfil público se
@@ -31,14 +75,18 @@ async function agregarAutores(comentarios = []) {
   return comentarios.map(comentario => ({ ...comentario, autor: autores.get(comentario.usuario_id) || null }));
 }
 
-export async function crearComentario(usuarioId, entidad, contenido) {
+export async function crearComentario(usuarioId, entidad, contenido, mediaPaths = []) {
   const text = String(contenido || '').trim();
-  if (!text || text.length > 2000) throw Object.assign(new Error("El comentario debe tener entre 1 y 2000 caracteres."), { status: 400 });
+  const files = validarMediaPaths(usuarioId, mediaPaths);
+  if ((!text && !files.length) || text.length > 2000) throw badRequest("Escribí un comentario o adjuntá una imagen (máximo 2000 caracteres)." );
   const { data, error } = await supabase.from("comentarios").insert({
-    usuario_id: usuarioId, ...validarEntidad(entidad), contenido: text
+    usuario_id: usuarioId, ...validarEntidad(entidad), contenido: text, media_paths: files,
   }).select().single();
   if (error) throw error;
-  return data;
+  return {
+    ...data,
+    media_urls: files.map(path => supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl),
+  };
 }
 
 export async function editarComentario(usuarioId, id, contenido) {
