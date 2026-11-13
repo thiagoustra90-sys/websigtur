@@ -51,15 +51,17 @@ Desarrollar soluciones tecnológicas que conecten personas, destinos y servicios
 
 ## Despliegue y autenticación
 
-El frontend PHP se publica en un hosting con PHP y el backend Express en Render. Publica el contenido de `frontend` conservando las carpetas `html`, `css`, `js`, `imagenes` y `kml`; las páginas quedarán bajo `/html/` (por ejemplo `/html/index.php`). Copia `backend/.env.example` como referencia para las variables del servicio; nunca publiques `backend/.env` ni pongas claves en JavaScript.
+En Render, Express sirve la API y el frontend HTML desde el mismo dominio. Copia `backend/.env.example` como referencia para las variables del servicio; nunca publiques `backend/.env` ni pongas claves en JavaScript. Las páginas PHP antiguas siguen siendo para XAMPP y no forman parte del login de Render.
 
-En Render, configura **Root Directory** como `backend`, **Build Command** como `npm install` y **Start Command** como `npm start`. Carga como variables privadas `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN`, `FRONTEND_URL`, `PASSWORD_RESET_REDIRECT_URL` y `OAUTH_REDIRECT_URL`. Render proporciona `PORT`; el servidor tiene `3000` como fallback local.
+En Render, configura **Root Directory** como `backend`, **Build Command** como `npm install` y **Start Command** como `npm start`. Este servicio Express sirve tanto la API como el frontend estático: el login queda en `https://websigtur.onrender.com/login.html`. Configura las variables privadas `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN=https://websigtur.onrender.com`, `FRONTEND_URL=https://websigtur.onrender.com/login.html`, `PASSWORD_RESET_REDIRECT_URL=https://websigtur.onrender.com/login.html` y `OAUTH_REDIRECT_URL=https://websigtur.onrender.com/api/auth/google/callback`. Render proporciona `PORT`; el servidor tiene `3000` como fallback local.
 
-Después de publicar ambos servicios, reemplaza los dominios de ejemplo en `backend/.env.example` al configurar Render y en `frontend/js/api-config.js` con la URL HTTPS real del backend. `FRONTEND_ORIGIN` debe ser únicamente el origen del hosting (sin ruta); `FRONTEND_URL` y `PASSWORD_RESET_REDIRECT_URL` apuntan a `/html/login.php`; `OAUTH_REDIRECT_URL` apunta a `/api/auth/google/callback` del servicio Render.
+Si cambias el dominio de Render, actualízalo en esas variables y en `frontend/js/api-config.js`. `FRONTEND_ORIGIN` debe ser únicamente el origen del servicio (sin ruta); `FRONTEND_URL` y `PASSWORD_RESET_REDIRECT_URL` apuntan a `/login.html`; `OAUTH_REDIRECT_URL` apunta a `/api/auth/google/callback`.
 
-En **Supabase > Authentication > URL Configuration**, permite como redirect URLs la URL de `login.php`, la URL de callback del backend y la de recuperación. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
+En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html`, `https://websigtur.onrender.com/api/auth/google/callback` y `http://localhost/**` para desarrollo local. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
 
-El endpoint `GET /health` comprueba el proceso sin consultar la base de datos. El callback OAuth valida la sesión de Supabase y devuelve al usuario a `login.php`.
+Para que los eventos guarden su horario por separado del precio, ejecuta una vez `database/eventos_horario.sql` en Supabase antes de publicar eventos con horario.
+
+El endpoint `GET /health` comprueba el proceso sin consultar la base de datos. El callback OAuth valida la sesión de Supabase y devuelve al usuario a `login.html`.
 
 ### Desarrollo local con XAMPP
 

@@ -25,6 +25,7 @@ export async function crearEvento(evento) {
     description,
     date_start: dateStart,
     date_end: dateEnd,
+    event_time: String(evento.event_time || '').trim() || null,
     location,
     latitude,
     longitude,
@@ -40,6 +41,14 @@ export async function crearEvento(evento) {
   }
   if (error) throw error;
   return data;
+}
+
+export async function listarEventosAdmin() {
+  const { data, error } = await supabase.from('events')
+    .select('id,title,categories,date_start,date_end,event_time,location,image_url,price')
+    .order('date_start', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function listarUsuarios() {

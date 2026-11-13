@@ -42,22 +42,21 @@ export async function registrarUsuario({ nombre, apellido, correo, password }) {
   return iniciarSesion({ correo, password });
 }
 
-async function asegurarPerfil(user) {
+export async function asegurarPerfil(user) {
   const metadata = user.user_metadata || {};
   const nombre = String(metadata.nombre || metadata.full_name || user.email?.split('@')[0] || 'Usuario').trim();
   const apellido = String(metadata.apellido || '').trim() || null;
   const correo = String(user.email || '').trim().toLowerCase();
   const { data: perfil, error } = await supabase
     .from('usuarios')
-    .upsert({ id: user.id, nombre, apellido, correo, rol: 'usuario' }, { onConflict: 'id' })
+    .upsert({ id: user.id, nombre, apellido, correo }, { onConflict: 'id' })
     .select('id, nombre, apellido, correo, rol, avatar_url, biografia, ubicacion, sitio_web, created_at')
     .single();
   return error ? null : perfil;
 }
 
 export async function iniciarGoogle() {
-  const redirectTo = process.env.OAUTH_REDIRECT_URL;
-  if (!redirectTo) return { error: 'Google OAuth no está configurado.' };
+  const redirectTo = process.env.OAUTH_REDIRECT_URL || 'https://websigtur.onrender.com/api/auth/google/callback';
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } },

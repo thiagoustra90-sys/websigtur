@@ -3,7 +3,7 @@
 // Recibe el request/response de Express, valida lo básico del body y llama
 // a servicios/auth_servicios.js para hablar con Supabase.
 // ============================================================================
-import { registrarUsuario, iniciarSesion, renovarSesion, cerrarSesion, obtenerPerfil, actualizarPerfil, solicitarRecuperacion, iniciarGoogle, completarGoogle } from "../servicios/auth_servicios.js";
+import { registrarUsuario, iniciarSesion, renovarSesion, cerrarSesion, obtenerPerfil, asegurarPerfil, actualizarPerfil, solicitarRecuperacion, iniciarGoogle, completarGoogle } from "../servicios/auth_servicios.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -59,7 +59,7 @@ export async function logout(req, res) {
 }
 
 export async function me(req, res) {
-  const perfil = await obtenerPerfil(req.user.id);
+  const perfil = await obtenerPerfil(req.user.id) || await asegurarPerfil(req.authUser);
   res.json({ usuario: perfil || req.user });
 }
 
@@ -93,13 +93,14 @@ export async function google(req, res) {
 export async function googleCallback(req, res) {
   let frontend;
   try {
-    frontend = new URL(process.env.FRONTEND_URL);
+    frontend = new URL(process.env.FRONTEND_URL || 'https://websigtur.onrender.com/login.html');
   } catch {
     return res.status(503).json({ error: 'La URL pública del frontend no está configurada.' });
   }
   const code = String(req.query.code || '');
   if (!code) {
-    frontend.searchParams.set('oauth_error', 'missing_code');
+    const providerError = String(req.query.error_description || req.query.error || '').trim().slice(0, 240);
+    frontend.searchParams.set('oauth_error', providerError || 'missing_code');
     return res.redirect(frontend.toString());
   }
   const resultado = await completarGoogle(code);
