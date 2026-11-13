@@ -212,7 +212,7 @@
 
 <!-- 
      ALOJAMIENTO — "En donde nos quedamos?"
-     cards de propiedades tipo Airbnb (foto + precio + rating)
+     tarjetas de alojamientos
 -->
 <section class="alojamiento-section" id="alojamiento">
   <div class="alojamiento-inner">
@@ -241,11 +241,6 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Dayman, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -261,11 +256,6 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Mesias Hotel, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -281,11 +271,6 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Jose Pedro, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-          </div>
         </div>
       </div>
 
