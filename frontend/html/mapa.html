@@ -54,9 +54,9 @@
       {id:'costanera-norte',nombre:'Costanera Norte',tipo:'place',categorias:['Deportes','Imperdible','Infantil'],lat:-31.36945,lng:-57.97070,imagen:'../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg',direccion:'Rambla Costanera Norte, Río Uruguay',resumen:'Paseo costero de 2,5 km para caminar, pedalear y mirar el atardecer sobre el Río Uruguay.',descripcion:'El circuito comienza junto al Club Remeros y recorre el Parque Indígena Vaimaca Pirú y la zona del Ayuí. Es una buena opción para actividades al aire libre, fotografía y salidas en familia.',enlace:'lugares.html#costanera-norte'},
       {id:'parque-solari',nombre:'Parque Benito Solari',tipo:'place',categorias:['Histórico','Cultura','Infantil','Deportes'],lat:-31.379470,lng:-57.948920,imagen:'../imagenes/turismo/solari.jpg',direccion:'Av. Blandengues y Enrique Amorim, Salto',resumen:'Gran espacio verde histórico con lago, esculturas, arbolado y áreas para disfrutar al aire libre.',descripcion:'Inaugurado en 1924, este parque de 17 hectáreas combina jardines de inspiración francesa, lago artificial y rincones para pasear. Es apropiado para una visita familiar y para descansar del movimiento del centro.',enlace:'lugares.html#parque-solari'},
       {id:'plaza-33',nombre:'Plaza Treinta y Tres',tipo:'place',categorias:['Histórico','Imperdible','Religioso','Infantil'],lat:-31.387490,lng:-57.970060,imagen:'../imagenes/turismo/plaza.png',direccion:'Uruguay, Artigas, Florencio Sánchez y Juan Carlos Gómez',resumen:'La plaza más antigua de Salto, junto a la iglesia Nuestra Señora del Carmen.',descripcion:'Conocida históricamente como Plaza Vieja, es una parada clave para entender el trazado original de la ciudad. Combina patrimonio, vida barrial y una caminata corta por el centro, apta para recorrer en familia.',enlace:'lugares.html#plaza-33'},
-      {id:'hotel-dayman',nombre:'Hotel Daymán',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.43070,lng:-57.92530,direccion:'Avda. Paysandú y Rambla de Circunvalación S/N, Termas del Daymán',resumen:'Alojamiento en la zona de Termas del Daymán.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#restaurantes'},
-      {id:'hotel-los-cedros',nombre:'Hotel Los Cedros',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.38520,lng:-57.96010,direccion:'Uruguay 657, 50000 Salto, Departamento de Salto',resumen:'Alojamiento céntrico en la ciudad de Salto.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#restaurantes'},
-      {id:'gran-hotel',nombre:'Gran Hotel',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.38390,lng:-57.96320,direccion:'Brasil 891, 50000 Salto, Departamento de Salto',resumen:'Alojamiento en el centro de Salto.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#restaurantes'}
+      {id:'hotel-dayman',nombre:'Hotel Daymán',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.43070,lng:-57.92530,direccion:'Avda. Paysandú y Rambla de Circunvalación S/N, Termas del Daymán',resumen:'Alojamiento en la zona de Termas del Daymán.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#alojamientos'},
+      {id:'hotel-los-cedros',nombre:'Hotel Los Cedros',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.38520,lng:-57.96010,direccion:'Uruguay 657, 50000 Salto, Departamento de Salto',resumen:'Alojamiento céntrico en la ciudad de Salto.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#alojamientos'},
+      {id:'gran-hotel',nombre:'Gran Hotel',tipo:'place',categorias:['Hospedaje','Imperdible'],lat:-31.38390,lng:-57.96320,direccion:'Brasil 891, 50000 Salto, Departamento de Salto',resumen:'Alojamiento en el centro de Salto.',descripcion:'Punto de referencia para encontrar el alojamiento desde el mapa.',enlace:'turismo.html#alojamientos'}
     ];
     const API_BASE=window.SIGTUR_BACKEND_URL||'',LOCAL_MAP_API='api/mapa.php',ROUTING_SERVICES={car:'https://router.project-osrm.org/route/v1/driving/',bike:'https://routing.openstreetmap.de/routed-bike/route/v1/driving/',foot:'https://routing.openstreetmap.de/routed-foot/route/v1/driving/'};
     const themeToggle=document.getElementById('theme-toggle');const applyTheme=dark=>{document.body.classList.toggle('theme-dark',dark);themeToggle.setAttribute('aria-pressed',String(dark));themeToggle.textContent=dark?'Modo claro':'Modo oscuro'};applyTheme(localStorage.getItem('sigtur-theme')==='dark');themeToggle.addEventListener('click',()=>{const dark=!document.body.classList.contains('theme-dark');applyTheme(dark);localStorage.setItem('sigtur-theme',dark?'dark':'light')});
@@ -88,7 +88,49 @@
     function renderRouteDestinations(){const points=items.filter(item=>Number.isFinite(item.lat)&&Number.isFinite(item.lng)),originCurrent=routeOrigin.value,destinationCurrent=routeDestination.value;routeOrigin.innerHTML='<option value="user">Mi ubicación</option>'+points.map(item=>`<option value="${esc(item.id)}">${esc(item.nombre)}</option>`).join('');routeDestination.innerHTML='<option value="">Elegí un punto</option>'+points.map(item=>`<option value="${esc(item.id)}">${esc(item.nombre)}</option>`).join('');if(originCurrent==='user'||points.some(item=>item.id===originCurrent))routeOrigin.value=originCurrent;if(points.some(item=>item.id===destinationCurrent))routeDestination.value=destinationCurrent}
     function routeOriginPoint(){if(routeOrigin.value==='user'&&userPos)return userPos;const item=items.find(value=>value.id===routeOrigin.value);return item?{lat:item.lat,lng:item.lng}:null}
     function instruction(step){const maneuver=step.maneuver||{},type=maneuver.type||'continue',modifier=maneuver.modifier?` hacia ${maneuver.modifier}`:'';const names=step.name?` por ${step.name}`:'';const labels={depart:'Salí',arrive:'Llegaste',turn:'Girá',new_name:'Continuá',continue:'Continuá',merge:'Incorporate',on_ramp:'Tomá la entrada',off_ramp:'Tomá la salida',fork:'Mantenete',roundabout:'En la rotonda',end_of_road:'Al final de la calle'};return`${labels[type]||'Continuá'}${modifier}${names}`}
-    async function calculateRoute(){const origin=routeOriginPoint(),destination=items.find(item=>item.id===routeDestination.value),mode=routeMode.value;if(!origin||!destination){setMapStatus('Activa tu ubicación o elegí un origen y un destino.','error');return}routeCalculate.disabled=true;routeSummary.textContent='Calculando recorrido…';routeSteps.hidden=true;try{const params=new URLSearchParams({overview:'full',geometries:'geojson',steps:'true'});if(mode==='car'&&(avoidTolls.checked||avoidHighways.checked))params.set('exclude',[avoidTolls.checked?'toll':'',avoidHighways.checked?'motorway':''].filter(Boolean).join(','));const response=await fetch(`${ROUTING_SERVICES[mode]}${origin.lng},${origin.lat};${destination.lng},${destination.lat}?${params}`);if(!response.ok)throw Error();const data=await response.json(),route=data.routes?.[0];if(!route)throw Error();if(routeLayer)map.removeLayer(routeLayer);routeLayer=L.geoJSON(route.geometry,{style:{color:mode==='foot'?'#17805a':mode==='bike'?'#7752b5':'#087f72',weight:6,opacity:.85,dashArray:mode==='foot'?'8 7':mode==='bike'?'3 7':null}}).addTo(map);map.fitBounds(routeLayer.getBounds(),{padding:[35,35]});const km=(route.distance/1000).toFixed(1),minutes=Math.max(1,Math.round(route.duration/60)),label={car:'auto',bike:'bicicleta',foot:'a pie'}[mode];routeSummary.textContent=`${km} km · ${minutes} min en ${label}${avoidTolls.checked?' · sin peajes':''}${avoidHighways.checked?' · sin autopistas':''}`;const steps=(route.legs||[]).flatMap(leg=>leg.steps||[]).map(instruction).filter(Boolean);routeSteps.innerHTML=steps.map((step,index)=>`<li>${index+1}. ${esc(step)}</li>`).join('');routeSteps.hidden=!steps.length;setMapStatus('Ruta calculada sobre calles reales.','info')}catch{routeSummary.textContent='No se pudo calcular la ruta con esas opciones.';setMapStatus('El servicio de rutas no respondió o no admite ese perfil. Probá otra opción.','error')}finally{routeCalculate.disabled=false}}
+    function decodePolyline6(encoded){let index=0,lat=0,lng=0;const readValue=()=>{let result=0,shift=0,byte;do{if(index>=encoded.length)throw new Error('Geometría de ruta inválida.');byte=encoded.charCodeAt(index++)-63;if(byte<0||byte>63||shift>30)throw new Error('Geometría de ruta inválida.');result|=(byte&0x1f)<<shift;shift+=5}while(byte>=0x20);return result&1?~(result>>1):result>>1};const points=[];while(index<encoded.length){lat+=readValue();lng+=readValue();points.push([lng/1e6,lat/1e6])}if(points.length<2)throw new Error('La ruta no tiene suficientes puntos.');return points}
+    async function calculateRoute(){
+      const origin=routeOriginPoint(),destination=items.find(item=>item.id===routeDestination.value),mode=routeMode.value;
+      if(!origin&&routeOrigin.value==='user'){locateMe();routeSummary.textContent='Buscando tu ubicación. Volvé a calcular la ruta cuando se active.';return}
+      if(!origin||!destination){setMapStatus('Elegí un origen y un destino para calcular la ruta.','error');return}
+      routeCalculate.disabled=true;routeSummary.textContent='Calculando recorrido…';routeSteps.hidden=true;
+      if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}
+      try{
+        let route;
+        if(mode==='car'&&(avoidTolls.checked||avoidHighways.checked)){
+          const costingOptions={};
+          if(avoidTolls.checked)costingOptions.use_tolls=0;
+          if(avoidHighways.checked)costingOptions.use_highways=0;
+          const request={locations:[{lat:origin.lat,lon:origin.lng},{lat:destination.lat,lon:destination.lng}],costing:'auto',costing_options:{auto:costingOptions},shape_format:'polyline6',directions_options:{units:'kilometers',language:'es-ES'}};
+          const response=await fetch(`https://valhalla1.openstreetmap.de/route?${new URLSearchParams({json:JSON.stringify(request)})}`);
+          if(!response.ok)throw new Error(`El servicio de rutas respondió ${response.status}.`);
+          const data=await response.json(),trip=data.trip,summary=trip?.summary;
+          if(!trip?.legs?.length||!summary)throw new Error('El servicio no devolvió una ruta válida.');
+          const coordinates=trip.legs.flatMap(leg=>decodePolyline6(leg.shape)).filter((point,index,array)=>index===0||point[0]!==array[index-1][0]||point[1]!==array[index-1][1]);
+          route={geometry:{type:'LineString',coordinates},distance:summary.length*1000,duration:summary.time,hasToll:summary.has_toll,hasHighway:summary.has_highway,legs:trip.legs.map(leg=>({steps:(leg.maneuvers||[]).map(maneuver=>({instruction:maneuver.instruction}))}))};
+        }else{
+          const params=new URLSearchParams({overview:'full',geometries:'geojson',steps:'true'});
+          const response=await fetch(`${ROUTING_SERVICES[mode]}${origin.lng},${origin.lat};${destination.lng},${destination.lat}?${params}`);
+          if(!response.ok)throw new Error(`El servicio de rutas respondió ${response.status}.`);
+          const data=await response.json();route=data.routes?.[0];
+          if(!route)throw new Error('El servicio no devolvió una ruta válida.');
+        }
+        routeLayer=L.geoJSON(route.geometry,{style:{color:mode==='foot'?'#17805a':mode==='bike'?'#7752b5':'#087f72',weight:6,opacity:.85,dashArray:mode==='foot'?'8 7':mode==='bike'?'3 7':null}}).addTo(map);
+        map.fitBounds(routeLayer.getBounds(),{padding:[35,35]});
+        const km=(route.distance/1000).toFixed(1),minutes=Math.max(1,Math.round(route.duration/60)),label={car:'auto',bike:'bicicleta',foot:'a pie'}[mode],notes=[];
+        if(mode==='car'&&avoidTolls.checked)notes.push(route.hasToll?'incluye peaje (no se pudo evitar)':'sin peajes');
+        if(mode==='car'&&avoidHighways.checked)notes.push(route.hasHighway?'incluye autopista (no se pudo evitar)':'sin autopistas');
+        routeSummary.textContent=`${km} km · ${minutes} min en ${label}${notes.length?` · ${notes.join(' · ')}`:''}`;
+        const steps=(route.legs||[]).flatMap(leg=>leg.steps||[]).map(step=>step.instruction||instruction(step)).filter(Boolean);
+        routeSteps.innerHTML=steps.map((step,index)=>`<li>${index+1}. ${esc(step)}</li>`).join('');routeSteps.hidden=!steps.length;
+        const missedPreference=(avoidTolls.checked&&route.hasToll)||(avoidHighways.checked&&route.hasHighway);
+        setMapStatus(missedPreference?'Ruta calculada, pero no se pudieron evitar todas las opciones seleccionadas.':'Ruta calculada sobre calles reales.',missedPreference?'error':'info');
+      }catch(error){
+        console.error('No se pudo calcular la ruta:',error);
+        routeSummary.textContent='No se pudo calcular la ruta con esas opciones.';
+        setMapStatus('El servicio de rutas no respondió o no pudo encontrar un recorrido. Probá otra opción.','error');
+      }finally{routeCalculate.disabled=false}
+    }
     function clearRoute(){if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}routeSummary.textContent='';routeSteps.innerHTML='';routeSteps.hidden=true}
     function replaceExternalRouteAction(){const link=detail.querySelector('a[href^="https://www.google.com/maps/dir"]');if(!link)return;const button=document.createElement('button');button.type='button';button.className='action';button.textContent='Cómo llegar';button.addEventListener('click',()=>{routeDestination.value=selectedId;routeDestination.closest('.route-panel')?.scrollIntoView({behavior:'smooth',block:'nearest'});routeSummary.textContent='Destino seleccionado. Elegí el medio y calculá la ruta.';routeDestination.focus()});link.replaceWith(button)}
     const detailObserver=new MutationObserver(replaceExternalRouteAction);
@@ -193,6 +235,19 @@
         detail.querySelector('[data-interaction-status]').textContent = error.message;
       }
     });
+    detail.addEventListener('click',event=>{
+      const category=event.target.closest('[data-map-category]');
+      if(!category)return;
+      activeCategory=category.dataset.mapCategory;search.value='';closeDetail();update();
+    });
+    function syncRouteOptions(){const isCar=routeMode.value==='car';avoidTolls.disabled=!isCar;avoidHighways.disabled=!isCar}
+    locateBtn.addEventListener('click',locateMe);
+    clearBtn.addEventListener('click',clearAll);
+    routeCalculate.addEventListener('click',calculateRoute);
+    routeClear.addEventListener('click',clearRoute);
+    routeOrigin.addEventListener('change',()=>{if(routeOrigin.value==='user'&&!userPos)locateMe()});
+    routeMode.addEventListener('change',syncRouteOptions);
+    syncRouteOptions();
     load();
   </script>
 </body>
