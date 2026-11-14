@@ -1284,6 +1284,19 @@ async function setupMessaging() {
     if (attachmentInput) attachmentInput.value = '';
     renderPendingAttachments();
   };
+  const addPendingAttachments = files => {
+    const chosen = [...files];
+    const remaining = maxAttachments - pendingAttachments.length;
+    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
+    const accepted = valid.slice(0, Math.max(remaining, 0));
+    pendingAttachments.push(...accepted);
+    renderPendingAttachments();
+    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
+      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
+    } else if (accepted.length < chosen.length) {
+      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+    }
+  };
 
   const currentUserId = () => sigturGetSession()?.usuario?.id;
   const setComposerEnabled = enabled => {
@@ -1328,17 +1341,28 @@ async function setupMessaging() {
   const renderConversations = () => {
     if (!contactList) return;
     const term = (contactSearch?.value || '').trim().toLowerCase();
+    const matchesTerm = (user, preview = '') => {
+      const hayTexto = [nameOf(user), user.correo || '', preview].filter(Boolean).join(' ').toLowerCase();
+      return !term || hayTexto.includes(term);
+    };
     const visible = conversations.filter((item) => {
       const user = item.usuario || {};
-      const hayTexto = [nameOf(user), user.correo || '', item.last_message?.contenido || '']
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return !term || hayTexto.includes(term);
+      return matchesTerm(user, item.last_message?.contenido || '');
     });
+    const conversationIds = new Set(conversations.map(item => item.usuario_id));
+    if (term) {
+      contacts.filter(user => !conversationIds.has(user.id) && matchesTerm(user))
+        .forEach(user => visible.push({ usuario_id: user.id, usuario: user, isNew: true }));
+    }
+    const activeContact = contacts.find(user => user.id === activeId);
+    if (activeContact && !conversationIds.has(activeId) && !visible.some(item => item.usuario_id === activeId)) {
+      visible.unshift({ usuario_id: activeId, usuario: activeContact, isNew: true });
+    }
 
     if (!visible.length) {
-      contactList.innerHTML = '<p class="dm-empty">No hay conversaciones para mostrar.</p>';
+      contactList.innerHTML = term
+        ? '<p class="dm-empty">No encontramos usuarios ni conversaciones con ese nombre.</p>'
+        : '<p class="dm-empty">Todavía no hay conversaciones. Buscá un usuario para iniciar una.</p>';
       return;
     }
 
@@ -1349,7 +1373,7 @@ async function setupMessaging() {
         ? '🎙 Mensaje de voz'
         : item.last_message?.tipo === 'archivo'
           ? '📎 Archivo adjunto'
-        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : 'No hay mensajes todavía.';
+        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : item.isNew ? 'Iniciar chat · se entrega al reconectar' : 'No hay mensajes todavía.';
       const unread = Number(item.unread_count || 0);
       const active = item.usuario_id === activeId ? 'is-active' : '';
       return `
@@ -1378,12 +1402,14 @@ async function setupMessaging() {
     }
   };
 
-  const loadThread = async (userId) => {
+  const loadThread = async (userId, { scrollToBottom = false } = {}) => {
     if (!userId) return;
     if (activeId && activeId !== userId && mediaRecorder?.state === 'recording') {
       status.textContent = 'Detené o terminá la grabación antes de cambiar de conversación.';
       return;
     }
+    const conversationChanged = activeId !== userId;
+    const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
     if (activeId !== userId) {
       resetAudioPreview();
       clearPendingAttachments();
@@ -1397,6 +1423,7 @@ async function setupMessaging() {
     try {
       const result = await sigturApiFetch(`/api/mensajes?usuario_id=${encodeURIComponent(userId)}`);
       const items = Array.isArray(result) ? result : result.data || [];
+      if (activeId !== userId) return;
       thread.innerHTML = (items || []).map((item) => {
         const isOutgoing = item.remitente_id === currentUserId();
         const stateText = isOutgoing ? (item.leido ? '✓✓ Leído' : '✓ Enviado') : '';
@@ -1410,10 +1437,12 @@ async function setupMessaging() {
           </article>
         `;
       }).join('') || '<p class="dm-empty">No hay mensajes todavía.</p>';
-      thread.scrollTop = thread.scrollHeight;
+      if (scrollToBottom || conversationChanged || wasNearBottom) thread.scrollTop = thread.scrollHeight;
       status.textContent = '';
-      await sigturApiFetch('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: userId }) });
-      notifyMessagingSync(userId);
+      if (items.some(item => item.destinatario_id === currentUserId() && !item.leido)) {
+        await sigturApiFetch('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: userId }) });
+        notifyMessagingSync(userId);
+      }
       await loadConversations();
     } catch (error) {
       status.textContent = error.message || 'No se pudo abrir la conversación.';
@@ -1475,17 +1504,38 @@ const refreshMessaging = async () => {
   attachmentButton?.addEventListener('click', () => attachmentInput?.click());
   attachmentInput?.addEventListener('change', () => {
     const chosen = [...(attachmentInput.files || [])];
-    const remaining = maxAttachments - pendingAttachments.length;
-    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
-    const accepted = valid.slice(0, Math.max(remaining, 0));
-    pendingAttachments.push(...accepted);
     attachmentInput.value = '';
-    renderPendingAttachments();
-    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
-      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
-    } else if (accepted.length < chosen.length) {
-      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+    addPendingAttachments(chosen);
+  });
+  message?.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+    event.preventDefault();
+    if (textSendButton && !textSendButton.disabled) form.requestSubmit();
+  });
+  message?.addEventListener('paste', event => {
+    const files = [...(event.clipboardData?.items || [])]
+      .filter(item => item.kind === 'file')
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+    if (!files.length) return;
+    event.preventDefault();
+    addPendingAttachments(files);
+  });
+  form.addEventListener('dragover', event => {
+    if ([...(event.dataTransfer?.items || [])].some(item => item.kind === 'file')) {
+      event.preventDefault();
+      form.classList.add('is-drop-target');
     }
+  });
+  form.addEventListener('dragleave', event => {
+    if (!form.contains(event.relatedTarget)) form.classList.remove('is-drop-target');
+  });
+  form.addEventListener('drop', event => {
+    form.classList.remove('is-drop-target');
+    const files = [...(event.dataTransfer?.files || [])];
+    if (!files.length) return;
+    event.preventDefault();
+    addPendingAttachments(files);
   });
 
   if ('BroadcastChannel' in window) {
@@ -1615,9 +1665,9 @@ document.addEventListener('visibilitychange', refreshMessaging);
         }),
       });
       resetAudioPreview();
-      status.textContent = 'Mensaje de voz enviado.';
+      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
       notifyMessagingSync(recipientId);
-      await loadThread(recipientId);
+      await loadThread(recipientId, { scrollToBottom: true });
       await loadConversations();
     } catch (error) {
       status.textContent = error.message || 'No se pudo enviar el audio.';
@@ -1683,9 +1733,9 @@ window.addEventListener('beforeunload', () => {
       });
       message.value = '';
       clearPendingAttachments();
-      status.textContent = 'Mensaje enviado.';
+      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
       notifyMessagingSync(recipientId);
-      await loadThread(recipientId);
+      await loadThread(recipientId, { scrollToBottom: true });
       await loadConversations();
     } catch (error) {
       status.textContent = error.message || 'No se pudo enviar el mensaje.';

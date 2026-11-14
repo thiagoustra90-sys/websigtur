@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi perfil - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261113-messaging" />
 </head>
 <body class="profile-page">
   <main class="profile-wrapper">
@@ -40,8 +40,8 @@
       </div>
       <div class="dm-layout">
         <aside class="dm-contacts">
-          <label for="dm-contact-search">Buscar conversación</label>
-          <input id="dm-contact-search" type="search" placeholder="Buscar por nombre o correo" aria-label="Buscar conversación" />
+          <label for="dm-contact-search">Buscar conversación o usuario</label>
+          <input id="dm-contact-search" type="search" placeholder="Nombre o correo" aria-label="Buscar conversación o usuario" />
           <label for="dm-contact">Nueva conversación</label>
           <select id="dm-contact"><option value="">Elegí un usuario</option></select>
           <div id="dm-contact-list" aria-live="polite"></div>
@@ -49,12 +49,12 @@
         <section class="dm-thread" aria-live="polite">
           <header class="dm-thread-header">
             <div><small>MENSAJES PRIVADOS</small><strong id="dm-active-contact">Seleccioná una conversación</strong></div>
-            <span>🔒 Privado</span>
+            <span>🔒 Privado · se entrega al reconectar</span>
           </header>
           <div id="dm-thread-list" class="dm-thread-list"><p class="dm-empty">Seleccioná una conversación para comenzar.</p></div>
           <form id="dm-form" class="dm-form">
             <div class="dm-compose-row">
-              <textarea id="dm-message" rows="2" maxlength="5000" placeholder="Escribí un mensaje..." disabled></textarea>
+              <textarea id="dm-message" rows="2" maxlength="5000" placeholder="Escribí un mensaje... (Enter para enviar)" disabled></textarea>
               <button class="dm-send-text" type="submit" disabled><span aria-hidden="true">➤</span> Enviar</button>
             </div>
             <div class="dm-audio-tools">
@@ -69,9 +69,9 @@
               </div>
             </section>
             <div class="dm-attachment-tools">
-              <button id="dm-attach" class="dm-attach-button" type="button" disabled><span aria-hidden="true">📎</span> Adjuntar archivos</button>
+              <button id="dm-attach" class="dm-attach-button" type="button" disabled><span aria-hidden="true">📎</span> Fotos, GIF o PDF</button>
               <input id="dm-attachment-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple hidden disabled>
-              <span id="dm-attachment-status" aria-live="polite">JPG, PNG, WebP, GIF o PDF · hasta 3 archivos de 10 MB</span>
+              <span id="dm-attachment-status" aria-live="polite">Pegá o arrastrá imágenes y GIF · hasta 3 archivos de 10 MB</span>
             </div>
             <div id="dm-attachment-preview" class="dm-attachment-preview" aria-live="polite"></div>
           </form>
@@ -105,6 +105,6 @@
     </footer>
   </main>
   <script src="../js/api-config.js"></script>
-  <script src="../js/main.js?v=20260915-profile-editor"></script>
+  <script src="../js/main.js?v=20261113-offline-messaging"></script>
 </body>
 </html>
