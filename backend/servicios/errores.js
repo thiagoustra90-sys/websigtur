@@ -71,7 +71,7 @@ export function gestionarErrorHttp(fallo, req, res, next) {
   });
 }
 
-// Alias de compatibilidad temporal para imports antiguos.
+// Alias de compatibilidad temporal para imports antiguos
 export {
   crearErrorHttp as httpError,
   recursoNoEncontrado as notFound,

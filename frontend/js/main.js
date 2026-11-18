@@ -742,7 +742,7 @@ async function configurarClimaInicio() {
     });
 
     const respuesta = await fetch(`https://api.open-meteo.com/v1/forecast?${parametros.toString()}`);
-    if (!respuesta.ok) throw new Error('Weather request failed');
+    if (!respuesta.ok) throw new Error('No se pudo consultar el clima.');
     const datos = await respuesta.json();
     const actual = datos.current || {};
     const [descripcion, icono] = codigos[actual.weather_code] || ['Clima actual', '◐'];
@@ -856,7 +856,7 @@ async function procesarRetornoOAuth(establecerEstado) {
   establecerEstado(esRecuperacion ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
   try {
     const resultado = await solicitarApiSigtur('/api/auth/me');
-    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('Profile validation failed.');
+    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('No se pudo validar el perfil.');
     guardarSesionSigtur({ ...obtenerSesionSigtur(), usuario: resultado.usuario }, true);
     if (esRecuperacion) {
       mostrarFormularioRestablecerContrasena();
@@ -866,7 +866,7 @@ async function procesarRetornoOAuth(establecerEstado) {
     establecerEstado(`Bienvenido, ${resultado.usuario.nombre}.`, 'ok');
     window.location.replace('index.html');
   } catch (fallo) {
-    if (fallo.status === 401 || fallo.message === 'Profile validation failed.') limpiarSesionSigtur();
+    if (fallo.status === 401 || fallo.message === 'No se pudo validar el perfil.') limpiarSesionSigtur();
     establecerEstado(esRecuperacion ? 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.' : 'No pudimos validar la sesión de Google. Intentá nuevamente.', 'error');
   }
 }
@@ -968,10 +968,10 @@ async function validarSesionAlmacenadaSigtur() {
   if (!sesion?.token || (sesion.token === SIGTUR_TOKEN_VALIDADO && (!venceEn || venceEn > Math.floor(Date.now() / 1000) + 30))) return;
   try {
     const resultado = await solicitarApiSigtur('/api/auth/me');
-    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('Profile validation failed.');
+    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('No se pudo validar el perfil.');
     guardarSesionSigtur({ ...obtenerSesionSigtur(), usuario: resultado.usuario }, true);
   } catch (fallo) {
-    if (fallo.status === 401 || fallo.message === 'Profile validation failed.') limpiarSesionSigtur();
+    if (fallo.status === 401 || fallo.message === 'No se pudo validar el perfil.') limpiarSesionSigtur();
   }
 }
 
@@ -1718,7 +1718,7 @@ let ultimaActualizacionConversacion = Date.now();
 
 
   try {
-    estado.textContent = 'Cargando usuarios...';
+    estado.textContent = 'Cargando usuarios?';
     const resultado = await solicitarApiSigtur('/api/mensajes/usuarios');
     contactos = Array.isArray(resultado) ? resultado : resultado.data || [];
     representarContactos();
@@ -2326,7 +2326,7 @@ async function configurarInteraccionesEventos() {
       estado.setAttribute('aria-busy', 'true');
       estado.classList.add('ui-list-status', 'is-loading');
       estado.classList.remove('is-error');
-      estado.textContent = 'Cargando comentarios...';
+      estado.textContent = 'Cargando comentarios?';
       const resultado = await solicitarApiSigtur(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
       panelActual._eventComments = await Promise.all((resultado.data || []).map(async comentario => {
         try { return { ...comentario, likeState: await solicitarApiSigtur(`/api/comentarios/${comentario.id}/likes`) }; }
@@ -2711,7 +2711,7 @@ async function configurarPaginaAdministracion() {
   let paginaEventos = 1;
   const cargarAdministracionEventos = async () => {
     if (!listaEventos) return;
-    listaEventos.setAttribute('aria-busy', 'true'); listaEventos.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos...</li>;'
+    listaEventos.setAttribute('aria-busy', 'true'); listaEventos.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos?</li>;'
     try {
       const consulta = new URLSearchParams({ page: paginaEventos, pageSize: 10, q: document.getElementById('admin-events-search')?.value || '' });
       const respuesta = await solicitarApiSigtur(`/api/admin/eventos?${consulta}`);
@@ -2776,7 +2776,7 @@ async function configurarPaginaAdministracion() {
   };
   const paginas = { users: 1, comments: 1, support: 1 };
   const cargarUsuarios = async () => {
-    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios...</li>'; }
+    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios?</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
       const resultado = await solicitarApiSigtur(`/api/admin/usuarios?${q}`);
@@ -2788,7 +2788,7 @@ async function configurarPaginaAdministracion() {
     } finally { usuariosLista?.setAttribute('aria-busy', 'false'); }
   };
   const cargarComentarios = async () => {
-    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios...</li>'; }
+    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios?</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
       const resultado = await solicitarApiSigtur(`/api/admin/comentarios?${q}`);
@@ -2801,7 +2801,7 @@ async function configurarPaginaAdministracion() {
   };
   const cargarSoporte = async () => {
     const lista = document.getElementById('admin-support-list');
-    if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas...</li>'; }
+    if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas?</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
       const resultado = await solicitarApiSigtur(`/api/admin/soporte?${q}`);
@@ -2881,7 +2881,7 @@ async function configurarPaginaAdministracion() {
     const identificadorEnEdicion = formularioEvento.dataset.editingId;
     const metodo = identificadorEnEdicion ? 'PATCH' : 'POST';
     const url = identificadorEnEdicion ? `/api/admin/eventos/${encodeURIComponent(identificadorEnEdicion)}` : '/api/admin/eventos';
-    if (enviarEvento) { enviarEvento.disabled = true; enviarEvento.textContent = 'Guardando...'; }
+    if (enviarEvento) { enviarEvento.disabled = true; enviarEvento.textContent = 'Guardando?'; }
     try {
       await solicitarApiSigtur(url, { method: metodo, body: JSON.stringify({ title: datos.get('title'), description: datos.get('description'), date_start: datos.get('date_start'), date_end: datos.get('date_end'), event_time: datos.get('event_time'), location: datos.get('location'), latitude: datos.get('latitude'), longitude: datos.get('longitude'), price: datos.get('price'), color: datos.get('color'), image_url: datos.get('image_url'), categories: [datos.get('category')] }) });
       restablecerEditorEvento();
