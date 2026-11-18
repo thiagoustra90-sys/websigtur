@@ -27,7 +27,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
+      <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
     </div>
 
     <div class="nav-links">
@@ -69,17 +69,7 @@
 
     <div class="utility-grid support-grid">
 
-      <!--
-        PANEL: Enviar consulta (el formulario principal)
-        action="#" de nuevo, así que confirmamos otra vez que no hay
-        backend real recibiendo esto. El <select> de "Tema" no tiene
-        atributo value en ninguna <option> -- eso está bien, cuando
-        no hay value explícito el navegador usa el texto visible como
-        value (ej: seleccionar "Eventos" manda topic=Eventos).
-        Funciona, aunque para un sistema mas prolijo se sueler poner
-        value="eventos" en minúscula para que el backend reciba algo
-        más fácil de comparar en código.
-      -->
+      <!-- Formulario de soporte y solicitud de verificacion, guardados por la API. -->
       <section class="support-panel">
         <div class="panel-heading">
           <h2>Enviar consulta</h2>
@@ -100,15 +90,30 @@
           <div class="form-row">
             <label for="support-topic">Tema</label>
             <select id="support-topic" name="topic">
-              <option>Cuenta</option>
-              <option>Eventos</option>
-              <option>Lugares</option>
-              <option>Configuración</option>
-              <option>Comercios</option>
+              <option value="account">Cuenta</option>
+              <option value="events">Eventos</option>
+              <option value="places">Lugares</option>
+              <option value="settings">Configuración</option>
+              <option value="commerce">Comercios</option>
+              <option value="business_verification">Verificación de empresa u organización</option>
             </select>
           </div>
+          <fieldset id="support-business-fields" class="support-verification-fields" hidden disabled>
+            <legend>Datos para verificar la cuenta</legend>
+            <p>Esta solicitud debe enviarse desde la cuenta que querés verificar. No compartas contraseñas ni códigos de acceso.</p>
+            <div class="form-row"><label for="support-organization-type">Tipo de cuenta</label><select id="support-organization-type" name="organization_type" required><option value="">Elegí una opción</option><option value="company">Empresa o comercio</option><option value="nonprofit">Organización o asociación</option><option value="tourism_service">Servicio turístico</option><option value="independent_professional">Profesional independiente</option></select></div>
+            <div class="form-row"><label for="support-legal-name">Razón social o nombre legal</label><input id="support-legal-name" name="legal_name" maxlength="180" required></div>
+            <div class="form-row"><label for="support-public-name">Nombre público o comercial</label><input id="support-public-name" name="public_name" maxlength="180" required></div>
+            <div class="form-row"><label for="support-registration-number">RUT o registro (si corresponde)</label><input id="support-registration-number" name="registration_number" maxlength="80" autocomplete="off"></div>
+            <div class="form-row"><label for="support-phone">Teléfono de contacto</label><input id="support-phone" name="phone" type="tel" autocomplete="tel" minlength="7" maxlength="40" required></div>
+            <div class="form-row"><label for="support-business-address">Dirección del establecimiento</label><input id="support-business-address" name="address" maxlength="250" required></div>
+            <div class="form-row"><label for="support-locality">Localidad o departamento</label><input id="support-locality" name="locality" maxlength="120" required></div>
+            <div class="form-row"><label for="support-website">Sitio web o red social</label><input id="support-website" name="website" type="url" placeholder="https://..." maxlength="1500"></div>
+            <div class="form-row"><label for="support-evidence-url">Enlace adicional que ayude a verificar</label><input id="support-evidence-url" name="evidence_url" type="url" placeholder="https://..." maxlength="1500"></div>
+            <label class="support-verification-consent"><input name="authorization" type="checkbox" required> Confirmo que estoy autorizado/a a enviar estos datos en nombre de la cuenta.</label>
+          </fieldset>
           <div class="form-row">
-            <label for="support-message">Mensaje</label>
+            <label id="support-message-label" for="support-message">Mensaje</label>
             <textarea id="support-message" name="message" placeholder="Contanos que necesitas revisar" required></textarea>
           </div>
           <div class="button-row">
@@ -155,16 +160,7 @@
         </div>
       </section>
 
-      <!--
-        ============================================================
-        PANEL: Tickets recientes
-        vacío en el HTML (id="support-ticket-list" sin contenido), lo
-        llena main.js dinámicamente leyendo lo que se guardó en
-        localStorage cada vez que alguien mandó el form de arriba.
-        aria-live="polite" otra vez, mismo patrón de accesibilidad
-        que venimos viendo en todo el sitio para listas que se
-        actualizan dinámicamente (bien ahí, es consistente)
-      -->
+      <!-- Los tickets y su estado se cargan desde el backend para la cuenta actual. -->
       <section class="utility-card support-wide">
         <h2>Tickets recientes</h2>
         <div class="ticket-list" id="support-ticket-list" aria-live="polite"></div>

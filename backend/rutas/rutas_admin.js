@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requiereSesion, requiereAdmin } from "../servicios/verificacion.js";
 import {
   crearEvento,
+  actualizarEvento,
   listarEventos,
   listarUsuarios,
   banearUsuario,
@@ -33,6 +34,7 @@ router.get("/soporte", tickets);
 router.patch("/soporte/:id", estadoTicket);
 router.get("/eventos", listarEventos);
 router.post("/eventos", validate(eventSchema), crearEvento);
+router.patch("/eventos/:id", validate(eventSchema), actualizarEvento);
 router.delete("/eventos/:id", eliminarEvento);
 router.delete("/comentarios/:id", eliminarComentario);
 router.patch("/comentarios/:id/fijado", fijarComentario);

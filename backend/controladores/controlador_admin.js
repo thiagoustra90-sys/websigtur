@@ -33,6 +33,18 @@ export async function listarEventos(req, res) {
     fail(res, error);
   }
 }
+export async function actualizarEvento(req, res) {
+  try {
+    const event = await servicio.actualizarEvento(req.params.id, req.validatedBody || req.body);
+    await servicio.registrarActividad(req.user.id, "event.updated", {
+      eventId: event.id,
+      title: event.title,
+    });
+    res.json(event);
+  } catch (error) {
+    fail(res, error);
+  }
+}
 export async function listarUsuarios(req, res) {
   try {
     res.json(await servicio.listarUsuarios(req.query));

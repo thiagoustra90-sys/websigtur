@@ -31,7 +31,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
+      <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
     </div>
 
     <!--
@@ -234,7 +234,7 @@
       </section>
 
       <section class="admin-panel">
-        <h2>Crear evento</h2>
+        <h2 id="admin-event-form-title">Crear evento</h2>
         <form id="admin-event-form" class="settings-list">
           <div class="form-row"><label for="admin-event-title">Título</label><input id="admin-event-title" name="title" required></div>
           <div class="form-row"><label for="admin-event-description">Descripción</label><textarea id="admin-event-description" name="description" placeholder="Opcional"></textarea></div>
@@ -248,7 +248,7 @@
           <div class="form-row"><label for="admin-event-price">Precio (0 para gratuito)</label><input id="admin-event-price" name="price" type="number" min="0" step="1" value="0"></div>
           <div class="form-row"><label for="admin-event-color">Color del evento</label><input id="admin-event-color" name="color" type="color" value="#16b3a3" title="Elegí el color principal del evento"></div>
           <div class="form-row"><label for="admin-event-image">Imagen de portada (URL pública)</label><input id="admin-event-image" name="image_url" type="url" placeholder="https://..." autocomplete="url"><div id="admin-event-image-preview" class="admin-event-image-preview" hidden><img alt="Vista previa de portada" loading="lazy" decoding="async"><span>Vista previa</span></div></div>
-          <button class="btn-primary" type="submit">Publicar evento</button>
+          <div class="admin-event-form-actions"><button class="btn-primary" id="admin-event-submit" type="submit">Publicar evento</button><button class="btn-secondary" id="admin-event-cancel" type="button" hidden>Cancelar edición</button></div>
         </form>
         <h3>Eventos publicados</h3>
         <label>Buscar eventos <input id="admin-events-search" type="search" placeholder="Título o lugar"></label>
@@ -268,6 +268,7 @@
         <nav class="admin-pagination" aria-label="Páginas de comentarios"><button type="button" data-admin-page="comments" data-direction="-1">Anterior</button><span id="admin-comments-page">Página 1</span><button type="button" data-admin-page="comments" data-direction="1">Siguiente</button></nav>
         <h3>Consultas de soporte</h3>
         <label>Estado <select id="admin-support-status"><option value="">Todos</option><option value="open">Abiertas</option><option value="in_progress">En curso</option><option value="resolved">Resueltas</option></select></label>
+        <label>Tipo de solicitud <select id="admin-support-type"><option value="">Todas</option><option value="general">Consultas generales</option><option value="business_verification">Verificaciones de empresa</option></select></label>
         <ul id="admin-support-list" class="admin-users-list"></ul>
         <nav class="admin-pagination" aria-label="Páginas de soporte"><button type="button" data-admin-page="support" data-direction="-1">Anterior</button><span id="admin-support-page">Página 1</span><button type="button" data-admin-page="support" data-direction="1">Siguiente</button></nav>
         <p class="form-help">Los permisos de administración se asignan desde el entorno Supabase protegido del proyecto.</p>

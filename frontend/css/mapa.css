@@ -1,0 +1,41 @@
+@media (max-width: 820px) {
+  .explorer {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+  }
+
+  .sidebar { max-height: none; }
+  .search-wrap {
+    max-height: min(34svh, 230px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .map-zone {
+    height: clamp(230px, 34svh, 320px);
+    min-height: 0;
+  }
+  .results {
+    max-height: min(32svh, 250px);
+    min-height: 110px;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 420px) {
+  .page { width: calc(100% - 16px); margin: 8px auto; }
+  .head { gap: 8px; margin-bottom: 10px; }
+  .head h1 { font-size: 1.45rem; }
+  .head > div:last-child { display: flex; align-items: center; gap: 8px; }
+  .theme-toggle { padding: 7px 9px; font-size: .78rem; }
+  .back { font-size: .8rem; }
+  .search-wrap { max-height: min(32svh, 210px); padding: 10px; }
+  .map-zone { height: clamp(220px, 32svh, 290px); }
+  .results { max-height: min(30svh, 220px); padding: 7px; }
+  .detail { left: 8px; bottom: 8px; width: calc(100% - 16px); max-height: calc(100% - 16px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result, .tool-btn, .chip { scroll-behavior: auto; transition: none; }
+}

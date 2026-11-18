@@ -1,6 +1,6 @@
 import supabase from "../config/supabase.js";
 
-export async function crearEvento(evento) {
+function validarEvento(evento) {
   const title = String(evento.title || evento.titulo || "").trim();
   if (!title)
     throw Object.assign(new Error("El título del evento es obligatorio."), { status: 400 });
@@ -54,13 +54,31 @@ export async function crearEvento(evento) {
     image_url: String(evento.image_url || "").trim() || null,
     color,
   };
-  let { data, error } = await supabase.from("events").insert(eventPayload).select().single();
+  return eventPayload;
+}
+
+async function guardarEvento(eventPayload, eventId = null) {
+  const guardar = (payload) => {
+    const consulta = eventId
+      ? supabase.from("events").update(payload).eq("id", eventId)
+      : supabase.from("events").insert(payload);
+    return consulta.select().single();
+  };
+  let { data, error } = await guardar(eventPayload);
   if (error?.code === "PGRST204" || /column .*color.*does not exist/i.test(error?.message || "")) {
     delete eventPayload.color;
-    ({ data, error } = await supabase.from("events").insert(eventPayload).select().single());
+    ({ data, error } = await guardar(eventPayload));
   }
   if (error) throw error;
   return data;
+}
+
+export async function crearEvento(evento) {
+  return guardarEvento(validarEvento(evento));
+}
+
+export async function actualizarEvento(eventId, evento) {
+  return guardarEvento(validarEvento(evento), eventId);
 }
 
 const pageArgs = (query) => ({
@@ -69,17 +87,24 @@ const pageArgs = (query) => ({
 });
 export async function listarEventosAdmin(query = {}) {
   const { page, pageSize } = pageArgs(query);
-  let request = supabase
-    .from("events")
-    .select("id,title,categories,date_start,date_end,event_time,location,image_url,price", {
-      count: "exact",
-    })
-    .order("date_start", { ascending: true });
-  if (query.q)
-    request = request.or(
-      `title.ilike.%${String(query.q).replace(/[,%()]/g, "")}%,location.ilike.%${String(query.q).replace(/[,%()]/g, "")}%`,
-    );
-  const { data, error, count } = await request.range((page - 1) * pageSize, page * pageSize - 1);
+  const buildQuery = (includeColor) => {
+    let request = supabase
+      .from("events")
+      .select(
+        `id,title,description,categories,date_start,date_end,event_time,location,latitude,longitude,image_url,price${includeColor ? ",color" : ""}`,
+        { count: "exact" },
+      )
+      .order("date_start", { ascending: true });
+    if (query.q)
+      request = request.or(
+        `title.ilike.%${String(query.q).replace(/[,%()]/g, "")}%,location.ilike.%${String(query.q).replace(/[,%()]/g, "")}%`,
+      );
+    return request.range((page - 1) * pageSize, page * pageSize - 1);
+  };
+  let { data, error, count } = await buildQuery(true);
+  if (error?.code === "PGRST204" || /column .*color.*does not exist/i.test(error?.message || "")) {
+    ({ data, error, count } = await buildQuery(false));
+  }
   if (error) throw error;
   return { data: data || [], total: count || 0, page, pageSize };
 }
@@ -131,16 +156,19 @@ export async function eliminarEvento(eventId) {
 }
 
 export async function crearTicket(ticket, userId = null) {
+  const ticketType = ticket.ticket_type === "business_verification" ? ticket.ticket_type : "general";
   const payload = {
     name: String(ticket.name || "").trim(),
-    email: String(ticket.email || "")
-      .trim()
-      .toLowerCase(),
-    topic: String(ticket.topic || "General")
-      .trim()
-      .slice(0, 100),
+    email: String(ticket.email || "").trim().toLowerCase(),
+    topic: String(
+      ticketType === "business_verification"
+        ? "Verificaci\u00f3n de empresa u organizaci\u00f3n"
+        : ticket.topic || "General",
+    ).trim().slice(0, 100),
     message: String(ticket.message || "").trim(),
     user_id: userId,
+    ticket_type: ticketType,
+    details: {},
   };
   if (
     payload.name.length < 2 ||
@@ -148,15 +176,66 @@ export async function crearTicket(ticket, userId = null) {
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) ||
     payload.message.length < 10 ||
     payload.message.length > 5000
-  )
+  ) {
     throw Object.assign(
-      new Error("Revisá el nombre, correo y mensaje (entre 10 y 5000 caracteres)."),
+      new Error("Revis\u00e1 el nombre, correo y mensaje (entre 10 y 5000 caracteres)."),
       { status: 400 },
     );
+  }
+  if (ticketType === "business_verification") {
+    if (!userId)
+      throw Object.assign(new Error("IniciÃ¡ sesiÃ³n con la cuenta que querÃ©s verificar."), {
+        status: 401,
+      });
+    const details = ticket.details || {};
+    const organizationType = String(details.organization_type || "").trim();
+    const legalName = String(details.legal_name || "").trim();
+    const publicName = String(details.public_name || "").trim();
+    const phone = String(details.phone || "").trim();
+    const address = String(details.address || "").trim();
+    const locality = String(details.locality || "").trim();
+    const registrationNumber = String(details.registration_number || "").trim();
+    const website = String(details.website || "").trim();
+    const evidenceUrl = String(details.evidence_url || "").trim();
+    const validUrl = (value) => {
+      if (!value) return true;
+      if (value.length > 1500) return false;
+      try { return ["http:", "https:"].includes(new URL(value).protocol); }
+      catch { return false; }
+    };
+    if (
+      !["company", "nonprofit", "tourism_service", "independent_professional"].includes(organizationType) ||
+      legalName.length < 2 || legalName.length > 180 ||
+      publicName.length < 2 || publicName.length > 180 ||
+      phone.length < 7 || phone.length > 40 ||
+      address.length < 4 || address.length > 250 ||
+      locality.length < 2 || locality.length > 120 ||
+      registrationNumber.length > 80 ||
+      !validUrl(website) || !validUrl(evidenceUrl) ||
+      details.authorization !== true
+    ) {
+      throw Object.assign(
+        new Error("Complet\u00e1 los datos obligatorios y confirm\u00e1 que est\u00e1s autorizado a enviarlos."),
+        { status: 400 },
+      );
+    }
+    payload.details = {
+      organization_type: organizationType,
+      legal_name: legalName,
+      public_name: publicName,
+      registration_number: registrationNumber || null,
+      phone,
+      website: website || null,
+      evidence_url: evidenceUrl || null,
+      address,
+      locality,
+      authorization: true,
+    };
+  }
   const { data, error } = await supabase
     .from("support_tickets")
     .insert(payload)
-    .select("id,status,created_at")
+    .select("id,status,created_at,ticket_type")
     .single();
   if (error) throw error;
   return data;
@@ -165,11 +244,15 @@ export async function listarTickets(query = {}, userId = null) {
   const { page, pageSize } = pageArgs(query);
   let request = supabase
     .from("support_tickets")
-    .select("id,user_id,name,email,topic,message,status,created_at,updated_at", { count: "exact" })
+    .select("id,user_id,name,email,topic,message,ticket_type,details,status,created_at,updated_at", { count: "exact" })
     .order("created_at", { ascending: false });
   if (userId) request = request.eq("user_id", userId);
-  else if (query.status && ["open", "in_progress", "resolved"].includes(query.status))
-    request = request.eq("status", query.status);
+  else {
+    if (query.status && ["open", "in_progress", "resolved"].includes(query.status))
+      request = request.eq("status", query.status);
+    if (query.type && ["general", "business_verification"].includes(query.type))
+      request = request.eq("ticket_type", query.type);
+  }
   if (query.q)
     request = request.or(
       `name.ilike.%${String(query.q).replace(/[,%()]/g, "")}%,email.ilike.%${String(query.q).replace(/[,%()]/g, "")}%,topic.ilike.%${String(query.q).replace(/[,%()]/g, "")}%`,

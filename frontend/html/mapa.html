@@ -33,13 +33,14 @@
     .tool-btn,.chip,.action,.interaction-button{display:inline-flex;align-items:center;justify-content:center}
     .detail-close{width:44px;height:44px}
   </style>
+  <link rel="stylesheet" href="../css/mapa.css">
 </head>
 <body>
   <main class="page">
     <header class="head"><div><h1>Explorá Salto</h1><p>Elegí un punto para conocerlo sin perder su ubicación en el mapa.</p></div><div><button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">Modo oscuro</button> <a class="back" href="index.html">← Volver al inicio</a></div></header>
     <section class="explorer" aria-label="Mapa de lugares y patrimonio">
       <aside class="sidebar"><div class="search-wrap"><input id="search" class="search" type="search" placeholder="Buscar lugares, patrimonio o categorías" aria-label="Buscar en el mapa"><div id="chips" class="chips" aria-label="Categorías"></div><div class="toolbar"><button id="locate" class="tool-btn" type="button">📍 Usar mi ubicación</button><button id="clear-filters" class="tool-btn" type="button" hidden>Limpiar filtros</button></div><section class="route-panel" aria-labelledby="route-title"><h2 id="route-title">Cómo llegar</h2><label for="route-origin">Desde</label><select id="route-origin"><option value="user">Mi ubicación</option></select><label for="route-destination">Hasta</label><select id="route-destination"><option value="">Elegí un punto</option></select><label for="route-mode">Medio de transporte</label><select id="route-mode"><option value="car">🚗 Auto</option><option value="bike">🚲 Bicicleta</option><option value="foot">🚶 A pie</option></select><div class="route-options"><label><input id="avoid-tolls" type="checkbox"> Evitar peajes</label><label><input id="avoid-highways" type="checkbox"> Evitar autopistas</label></div><div class="route-actions"><button id="route-calculate" class="tool-btn" type="button">Calcular ruta</button><button id="route-clear" class="tool-btn" type="button">Limpiar</button></div><p id="route-summary" class="route-summary" aria-live="polite"></p><ol id="route-steps" class="route-steps" hidden></ol></section><section class="guide-links" aria-labelledby="guide-title"><h2 id="guide-title">Guías SIGTUR</h2><a href="index.html#lugares">Lugares recomendados</a><a href="lugares.html#plaza-artigas">Guía: Plaza Artigas</a><a href="lugares.html#costanera-norte">Guía: Costanera Norte</a><a href="lugares.html#parque-solari">Guía: Parque Solari</a><a href="lugares.html#plaza-33">Guía: Plaza Treinta y Tres</a></section></div><div id="results" class="results" aria-live="polite"></div></aside>
-      <div class="map-zone"><div id="map" aria-label="Mapa interactivo de Salto"></div><div id="map-status" class="map-status" hidden></div><article id="detail" class="detail" hidden></article></div>
+      <div class="map-zone"><div id="map" role="region" aria-label="Mapa interactivo de Salto"></div><div id="map-status" class="map-status" role="status" aria-live="polite" hidden></div><article id="detail" class="detail" hidden></article></div>
     </section>
   </main>
   <script src="../js/api-config.js"></script>

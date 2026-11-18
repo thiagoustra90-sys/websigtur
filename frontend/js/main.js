@@ -2215,10 +2215,14 @@ async function setupEventInteractions() {
       row.dataset.cat = category;
       row.dataset.eventId = `event-${event.id}`;
       const eventColor = /^#[0-9a-f]{6}$/i.test(String(event.color || '')) ? event.color : '#16b3a3';
+      const eventImage = (() => { try { const source = String(event.image_url || '').trim(); if (!source) return ''; const image = new URL(source, window.location.href); return ['http:', 'https:'].includes(image.protocol) ? image.href : ''; } catch { return ''; } })();
+      row.dataset.eventColor = eventColor;
+      row.dataset.eventImage = eventImage;
       row.style.setProperty('--event-color', eventColor);
       const eventTime = event.event_time ? String(event.event_time).slice(0, 5) : 'Horario a confirmar';
       const eventPrice = Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis';
-      row.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(date.getTime()) ? '--' : String(date.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(date.getTime()) ? '---' : monthNames[date.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><span class="ticket-title">${escapeText(event.title)}</span><span class="ticket-subtitle">${escapeText(event.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${eventIcon('location')}${escapeText(event.location || 'Ubicación a confirmar')}</div></div><span class="ticket-badge badge-green">${categoryIcon(event.categories?.[0])}<span>${escapeText(event.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${eventIcon('time')}<span>${escapeText(eventTime)}</span></span><span class="ticket-time ticket-price">${eventIcon('price')}<span>${eventPrice}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
+      row.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(date.getTime()) ? '--' : String(date.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(date.getTime()) ? '---' : monthNames[date.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><div class="ticket-heading"><span class="ticket-image">${eventImage ? `<img class="ticket-thumbnail" src="${escapeText(eventImage)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ticket-image-fallback">${categoryIcon(event.categories?.[0])}</span></span><span class="ticket-title">${escapeText(event.title)}</span></div><span class="ticket-subtitle">${escapeText(event.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${eventIcon('location')}${escapeText(event.location || 'Ubicaci\u00f3n a confirmar')}</div></div><span class="ticket-badge badge-green">${categoryIcon(event.categories?.[0])}<span>${escapeText(event.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${eventIcon('time')}<span>${escapeText(eventTime)}</span></span><span class="ticket-time ticket-price">${eventIcon('price')}<span>${eventPrice}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
+      row.querySelector('.ticket-thumbnail')?.addEventListener('error', imageError => imageError.currentTarget.remove(), { once: true });
       ticketList.prepend(row);
     });
   } catch (error) {
@@ -2259,13 +2263,13 @@ async function setupEventInteractions() {
     const time = row.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
     const price = row.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
     const description = row.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
-    return { title, id: row.dataset.eventId || `event-${slugify(`${title}-${date}-${location}`)}`, date, location, category, time, price, description };
+    return { title, id: row.dataset.eventId || `event-${slugify(`${title}-${date}-${location}`)}`, date, location, category, time, price, description, image: row.dataset.eventImage || '', color: /^#[0-9a-f]{6}$/i.test(row.dataset.eventColor || '') ? row.dataset.eventColor : '#087f72' };
   };
   const detailDialog = document.createElement('dialog');
   detailDialog.className = 'event-detail-dialog';
   document.body.appendChild(detailDialog);
   const openEventDetail = event => {
-    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}"><button class="event-detail-close" type="button" aria-label="Cerrar detalle">×</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR · Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${eventIcon('time')}Horario</small><strong>${escapeHtml(event.time)}</strong></div><div><small>${eventIcon('price')}Precio</small><strong>${escapeHtml(event.price)}</strong></div><div><small>${eventIcon('location')}Dónde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guardá el evento, reservá tu lugar y compartí tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
+    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}" style="--event-accent:${event.color}">${event.image ? `<img class="event-detail-image" src="${escapeHtml(event.image)}" alt="" decoding="async">` : ''}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${eventIcon('time')}Horario</small><strong>${escapeHtml(event.time)}</strong></div><div><small>${eventIcon('price')}Precio</small><strong>${escapeHtml(event.price)}</strong></div><div><small>${eventIcon('location')}D\u00f3nde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
     detailDialog.showModal();
     detailDialog.querySelector('.event-detail-close').addEventListener('click', () => detailDialog.close());
     detailDialog.querySelector('[data-detail-reserve]').addEventListener('click', () => { detailDialog.close(); const ticket = [...rows].find(row => getEventData(row).id === event.id); ticket?.querySelector('[data-event-reservation]')?.click(); });
@@ -2670,6 +2674,9 @@ async function setupAdminPage() {
 
   const eventForm = document.getElementById('admin-event-form');
   const eventsList = document.getElementById('admin-events-list');
+  const eventFormTitle = document.getElementById('admin-event-form-title');
+  const eventSubmit = document.getElementById('admin-event-submit');
+  const eventCancel = document.getElementById('admin-event-cancel');
   const eventImageInput = document.getElementById('admin-event-image');
   const eventImagePreview = document.getElementById('admin-event-image-preview');
   const eventImagePreviewImg = eventImagePreview?.querySelector('img');
@@ -2684,16 +2691,20 @@ async function setupAdminPage() {
     const category = Array.isArray(categories) ? categories[0] : categories;
     return eventCategorySymbols[String(category || '').toLowerCase()] || '◉';
   };
+  const adminEventRecords = new Map();
   const renderAdminEvents = (events) => {
     if (!eventsList) return;
+    adminEventRecords.clear();
     eventsList.innerHTML = events.map(event => {
+      adminEventRecords.set(String(event.id), event);
       const category = Array.isArray(event.categories) ? event.categories[0] : '';
       const eventDate = event.date_start ? new Date(`${event.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
+      const eventColor = /^#[0-9a-f]{6}$/i.test(String(event.color || '')) ? event.color : '#16b3a3';
       const eventTime = event.event_time ? ` · ${String(event.event_time).slice(0, 5)}` : '';
       const image = event.image_url
         ? `<img src="${escapeText(event.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`
         : `<span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`;
-      return `<li class="admin-event-item"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin título')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} · ${eventDate}${eventTime}</span><small>${escapeText(event.location || 'Lugar sin especificar')} · ${Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</small></div><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar ${escapeText(event.title || 'evento')}" title="Eliminar evento">Eliminar</button></li>`;
+      return `<li class="admin-event-item" style="--admin-event-color:${eventColor}"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin t\u00edtulo')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} | ${eventDate}${eventTime}</span><small>${escapeText(event.location || 'Lugar sin especificar')} | ${Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</small></div><div class="admin-event-actions"><button type="button" class="admin-event-edit" data-edit-event="${escapeText(event.id)}" aria-label="Editar evento">Editar</button><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
     }).join('') || '<li class="admin-event-empty ui-list-status">Todavía no hay eventos publicados.</li>';
     eventsList.querySelectorAll('.admin-event-thumb img').forEach(image => image.addEventListener('error', () => image.remove(), { once: true }));
   };
@@ -2727,6 +2738,8 @@ async function setupAdminPage() {
   loadAdminEvents();
   document.querySelectorAll('[data-admin-page="events"]').forEach(button => button.addEventListener('click', () => { eventsPage = Math.max(1, eventsPage + Number(button.dataset.direction)); loadAdminEvents(); }));
   document.getElementById('admin-events-search')?.addEventListener('input', () => { eventsPage = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(loadAdminEvents, 250); });
+  let setAdminEventPoint = null;
+  let clearAdminEventMarker = () => {};
   if (eventMapElement && eventLatitude && eventLongitude && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
     const eventMap = L.map(eventMapElement).setView([-31.383, -57.964], 13);
@@ -2738,6 +2751,8 @@ async function setupAdminPage() {
       if (eventMarker) eventMarker.setLatLng([latitude, longitude]);
       else eventMarker = L.marker([latitude, longitude]).addTo(eventMap);
     };
+    setAdminEventPoint = (latitude, longitude) => { setEventPoint(latitude, longitude); eventMap.setView([latitude, longitude], Math.max(eventMap.getZoom(), 15)); };
+    clearAdminEventMarker = () => { if (eventMarker) eventMap.removeLayer(eventMarker); eventMarker = null; };
     eventMap.on('click', clickEvent => setEventPoint(clickEvent.latlng.lat, clickEvent.latlng.lng));
     // Tambien permite pegar coordenadas manuales para ajustar el punto.
     [eventLatitude, eventLongitude].forEach(input => input.addEventListener('change', () => {
@@ -2788,9 +2803,22 @@ async function setupAdminPage() {
     const list = document.getElementById('admin-support-list');
     if (list) { list.setAttribute('aria-busy', 'true'); list.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas...</li>'; }
     try {
-      const q = new URLSearchParams({ page: pages.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '' });
+      const q = new URLSearchParams({ page: pages.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
       const result = await sigturApiFetch(`/api/admin/soporte?${q}`);
-      if (list) list.innerHTML = (result.data || []).map(ticket => `<li><span><strong>${escapeText(ticket.topic)}</strong> \u00b7 ${escapeText(ticket.name)} (${escapeText(ticket.email)})<br>${escapeText(ticket.message.slice(0, 160))}<small> \u00b7 ${escapeText(ticket.status)}</small></span><select data-ticket-status="${ticket.id}" aria-label="Estado del ticket"><option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${ticket.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`).join('') || '<li class="ui-list-status">No hay consultas.</li>';
+      if (list) list.innerHTML = (result.data || []).map(ticket => {
+        const verification = ticket.ticket_type === 'business_verification', details = ticket.details || {};
+        const organizationTypes = { company: 'Empresa o comercio', nonprofit: 'Organización o asociación', tourism_service: 'Servicio turístico', independent_professional: 'Profesional independiente' };
+        const rows = [
+          ['Tipo de cuenta', organizationTypes[details.organization_type] || details.organization_type],
+          ['Nombre legal', details.legal_name], ['Nombre público', details.public_name],
+          ['RUT o registro', details.registration_number], ['Teléfono', details.phone],
+          ['Dirección', details.address], ['Localidad', details.locality],
+          ['Web o red social', details.website], ['Enlace de referencia', details.evidence_url],
+          ['ID de cuenta', ticket.user_id],
+        ].filter(([, value]) => value);
+        const detailsMarkup = verification ? `<details class="admin-verification-data"><summary>Ver datos de verificación</summary><dl>${rows.map(([label, value]) => `<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('')}</dl></details>` : '';
+        return `<li class="admin-support-ticket ${verification ? 'is-verification' : ''}"><div class="admin-support-ticket-content"><span><strong>${verification ? 'Verificación de cuenta' : escapeText(ticket.topic)}</strong> · ${escapeText(ticket.name)} (${escapeText(ticket.email)})</span><p>${escapeText(ticket.message.slice(0, 500))}</p>${detailsMarkup}<small>${escapeText(ticket.created_at ? new Date(ticket.created_at).toLocaleString('es-UY') : '')}</small></div><select data-ticket-status="${escapeText(ticket.id)}" aria-label="Estado del ticket"><option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${ticket.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
+      }).join('') || '<li class="ui-list-status">No hay consultas.</li>';
       const label = document.getElementById('admin-support-page'); if (label) label.textContent = `Página ${pages.support} · ${result.total} consultas`;
     } catch (error) {
       if (list) list.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar las consultas.')}</li>`;
@@ -2801,27 +2829,86 @@ async function setupAdminPage() {
   document.querySelectorAll('[data-admin-page]').forEach(button => button.addEventListener('click', async () => { const key = button.dataset.adminPage; pages[key] = Math.max(1, pages[key] + Number(button.dataset.direction)); try { await ({ users: loadUsers, comments: loadComments, support: loadSupport })[key](); } catch (error) { showResourceStatus(error.message); } }));
   [['admin-users-search','users',loadUsers],['admin-comments-search','comments',loadComments]].forEach(([id,key,loader]) => document.getElementById(id)?.addEventListener('input', () => { pages[key] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => loader().catch(error => showResourceStatus(error.message)), 250); }));
   document.getElementById('admin-support-status')?.addEventListener('change', () => { pages.support = 1; loadSupport().catch(error => showResourceStatus(error.message)); });
+  document.getElementById('admin-support-type')?.addEventListener('change', () => { pages.support = 1; loadSupport().catch(error => showResourceStatus(error.message)); });
   document.getElementById('admin-support-list')?.addEventListener('change', async event => { const select = event.target.closest('[data-ticket-status]'); if (!select) return; try { await sigturApiFetch(`/api/admin/soporte/${select.dataset.ticketStatus}`, { method: 'PATCH', body: JSON.stringify({ status: select.value }) }); await loadSupport(); } catch (error) { showResourceStatus(error.message); } });
+  const resetEventEditor = () => {
+    eventForm?.reset();
+    if (eventForm) delete eventForm.dataset.editingId;
+    if (eventFormTitle) eventFormTitle.textContent = 'Crear evento';
+    if (eventSubmit) eventSubmit.textContent = 'Publicar evento';
+    if (eventCancel) eventCancel.hidden = true;
+    clearAdminEventMarker();
+    updateEventImagePreview();
+  };
+  const beginEventEdit = (eventRecord) => {
+    if (!eventForm || !eventRecord) return;
+    const fields = {
+      title: eventRecord.title,
+      description: eventRecord.description,
+      location: eventRecord.location,
+      latitude: eventRecord.latitude,
+      longitude: eventRecord.longitude,
+      date_start: eventRecord.date_start,
+      date_end: eventRecord.date_end,
+      event_time: eventRecord.event_time,
+      price: eventRecord.price ?? 0,
+      color: eventRecord.color || '#16b3a3',
+      image_url: eventRecord.image_url,
+    };
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = eventForm.elements.namedItem(name);
+      if (input) input.value = value ?? '';
+    });
+    const category = (Array.isArray(eventRecord.categories) ? eventRecord.categories[0] : '') || 'cultura';
+    const categoryKey = String(category).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    eventForm.elements.namedItem('category').value = categoryKey;
+    eventForm.dataset.editingId = eventRecord.id;
+    if (eventRecord.latitude != null && eventRecord.longitude != null) {
+      const latitude = Number(eventRecord.latitude), longitude = Number(eventRecord.longitude);
+      if (Number.isFinite(latitude) && Number.isFinite(longitude)) setAdminEventPoint?.(latitude, longitude);
+    }
+    if (eventFormTitle) eventFormTitle.textContent = 'Editar evento';
+    if (eventSubmit) eventSubmit.textContent = 'Guardar cambios';
+    if (eventCancel) eventCancel.hidden = false;
+    updateEventImagePreview();
+    showResourceStatus(`Editando: ${eventRecord.title || 'evento'}.`);
+    eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  eventCancel?.addEventListener('click', resetEventEditor);
   eventForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(eventForm);
+    const editingId = eventForm.dataset.editingId;
+    const method = editingId ? 'PATCH' : 'POST';
+    const url = editingId ? `/api/admin/eventos/${encodeURIComponent(editingId)}` : '/api/admin/eventos';
+    if (eventSubmit) { eventSubmit.disabled = true; eventSubmit.textContent = 'Guardando...'; }
     try {
-      await sigturApiFetch('/api/admin/eventos', { method: 'POST', body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), event_time: data.get('event_time'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
-      eventForm.reset();
-      updateEventImagePreview();
-      showResourceStatus('Evento creado correctamente.');
+      await sigturApiFetch(url, { method, body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), event_time: data.get('event_time'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
+      resetEventEditor();
+      showResourceStatus(editingId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
       await loadAdminEvents();
-    } catch (error) { showResourceStatus(error.message); }
+    } catch (error) {
+      showResourceStatus(error.message);
+    } finally {
+      if (eventSubmit) { eventSubmit.disabled = false; eventSubmit.textContent = eventForm.dataset.editingId ? 'Guardar cambios' : 'Publicar evento'; }
+    }
   });
   eventsList?.addEventListener('click', async (event) => {
+    const editButton = event.target.closest('[data-edit-event]');
+    if (editButton) {
+      const record = adminEventRecords.get(String(editButton.dataset.editEvent));
+      if (record) beginEventEdit(record);
+      else showResourceStatus('No se pudo encontrar ese evento. Actualiza la lista e intenta nuevamente.');
+      return;
+    }
     const button = event.target.closest('[data-delete-event]');
-    if (!button || !window.confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
+    if (!button || !window.confirm('Eliminar este evento? Esta accion no se puede deshacer.')) return;
     button.disabled = true;
     try {
       await sigturApiFetch(`/api/admin/eventos/${encodeURIComponent(button.dataset.deleteEvent)}`, { method: 'DELETE' });
-      button.closest('.admin-event-item')?.remove();
-      if (!eventsList.querySelector('.admin-event-item')) renderAdminEvents([]);
+      if (eventForm?.dataset.editingId === button.dataset.deleteEvent) resetEventEditor();
       showResourceStatus('Evento eliminado.');
+      await loadAdminEvents();
     } catch (error) {
       button.disabled = false;
       showResourceStatus(error.message || 'No se pudo eliminar el evento.');
@@ -2885,6 +2972,24 @@ function setupSupportPage() {
 
   const list = document.getElementById('support-ticket-list');
   const status = document.getElementById('support-status');
+  const topic = form.elements.namedItem('topic');
+  const verificationFields = document.getElementById('support-business-fields');
+  const messageLabel = document.getElementById('support-message-label');
+  const messageField = form.elements.namedItem('message');
+  const updateVerificationFields = () => {
+    const verification = topic?.value === 'business_verification';
+    if (verificationFields) { verificationFields.hidden = !verification; verificationFields.disabled = !verification; }
+    if (messageLabel) messageLabel.textContent = verification ? 'Actividad y motivo de la solicitud' : 'Mensaje';
+    if (messageField) messageField.placeholder = verification
+      ? 'Contanos qué servicios ofrecen y por qué solicitan la verificación.'
+      : 'Contanos qué necesitás revisar.';
+    if (verification && !sigturGetSession()?.token && status)
+      status.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
+    else if (status && status.textContent.startsWith('Iniciá sesión')) status.textContent = 'Listo';
+  };
+  topic?.addEventListener('change', updateVerificationFields);
+  form.addEventListener('reset', () => window.setTimeout(updateVerificationFields, 0));
+  updateVerificationFields();
 
   const render = tickets => {
     if (!list) return;
@@ -2900,20 +3005,37 @@ function setupSupportPage() {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(form);
+    const verification = data.get('topic') === 'business_verification';
     const ticket = {
       // crypto.randomUUID genera un id único, el fallback es Date.now() para browsers viejos
       name: String(data.get('name') || '').trim(),
       email: String(data.get('email') || '').trim(),
-      topic: String(data.get('topic') || 'General'),
+      topic: String(topic?.selectedOptions?.[0]?.textContent || 'General').trim(),
       message: String(data.get('message') || '').trim(),
-      createdAt: new Date().toISOString()
+      ticket_type: verification ? 'business_verification' : 'general',
+      details: verification ? {
+        organization_type: data.get('organization_type'),
+        legal_name: data.get('legal_name'),
+        public_name: data.get('public_name'),
+        registration_number: data.get('registration_number'),
+        phone: data.get('phone'),
+        website: data.get('website'),
+        evidence_url: data.get('evidence_url'),
+        address: data.get('address'),
+        locality: data.get('locality'),
+        authorization: data.get('authorization') === 'on'
+      } : {}
     };
     if (!ticket.name || !ticket.email || !ticket.message) {
       if (status) status.textContent = 'Completa los campos requeridos';
       return;
     }
+    if (verification && !sigturGetSession()?.token) {
+      if (status) status.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
+      return;
+    }
     if (status) status.textContent = 'Enviando consulta…';
-    try { const result = await sigturApiFetch('/api/soporte', { method: 'POST', body: JSON.stringify(ticket) }); form.reset(); if (status) status.textContent = `Consulta recibida (${result.data.id.slice(0, 8)}).`; await loadMine(); }
+    try { const result = await sigturApiFetch('/api/soporte', { method: 'POST', body: JSON.stringify(ticket) }); form.reset(); updateVerificationFields(); if (status) status.textContent = `Consulta recibida (${result.data.id.slice(0, 8)}).`; await loadMine(); }
     catch (error) { if (status) status.textContent = error.message || 'No se pudo enviar la consulta. Intentá nuevamente.'; }
   });
 }

@@ -31,7 +31,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
+      <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
     </div>
 
     <!--
@@ -262,6 +262,7 @@
         <ul id="admin-comments-list" class="admin-users-list"></ul>
         <nav class="admin-pagination" aria-label="Páginas de comentarios"><button type="button" data-admin-page="comments" data-direction="-1">Anterior</button><span id="admin-comments-page">Página 1</span><button type="button" data-admin-page="comments" data-direction="1">Siguiente</button></nav>
         <h3>Consultas de soporte</h3><label>Estado <select id="admin-support-status"><option value="">Todos</option><option value="open">Abiertas</option><option value="in_progress">En curso</option><option value="resolved">Resueltas</option></select></label>
+        <label>Tipo de solicitud <select id="admin-support-type"><option value="">Todas</option><option value="general">Consultas generales</option><option value="business_verification">Verificaciones de empresa</option></select></label>
         <ul id="admin-support-list" class="admin-users-list"></ul><nav class="admin-pagination" aria-label="Páginas de soporte"><button type="button" data-admin-page="support" data-direction="-1">Anterior</button><span id="admin-support-page">Página 1</span><button type="button" data-admin-page="support" data-direction="1">Siguiente</button></nav>
         <p class="form-help">Los permisos de administración se asignan desde el entorno Supabase protegido del proyecto.</p>
       </section>

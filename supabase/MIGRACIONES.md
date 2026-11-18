@@ -5,3 +5,5 @@ Aplicar en orden los archivos SQL versionados de `migrations/` con Supabase CLI 
 Los datos de demostración deben vivir en `supabase/seed.sql` (o scripts de seed del entorno), nunca en estos archivos de migración.
 
 Para habilitar reservas persistentes y planes turísticos, aplicar también `20261118000200_planes_reservas_archivos.sql`.
+
+Para recibir y administrar solicitudes estructuradas de verificacion de empresas y organizaciones, aplicar tambien `20261118000300_solicitudes_verificacion.sql`. Esta migracion agrega el tipo de ticket, sus datos estructurados y el indice que usa el filtro administrativo.
