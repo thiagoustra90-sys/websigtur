@@ -1998,7 +1998,10 @@ function escaparTexto(valor) {
 
 function configurarBotonesFavoritos() {
   document.querySelectorAll('.prop-heart, .lugar-action-link.guardar').forEach(boton => {
-    const tarjeta = boton.closest('.prop-card') || boton.closest('.lugar-actions')?.parentElement?.parentElement || boton.parentElement;
+    // Los botones de lugares viven dentro de .lugar-actions, que es hijo
+    // directo de la tarjeta. Subir dos niveles seleccionaba .lugares-list
+    // y terminaba guardando todas las tarjetas como si fueran Plaza Artigas.
+    const tarjeta = boton.closest('.prop-card, .lugar-card') || boton.parentElement;
     const titulo = tarjeta.querySelector('.prop-name, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
     const identificadorEntidad = boton.dataset.entityId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     boton.dataset.entityId = identificadorEntidad;
