@@ -6,6 +6,7 @@
   <title>Mi perfil - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
   <link rel="stylesheet" href="../css/styles.css?v=20261118-profile-social" />
+  <link rel="stylesheet" href="../css/profile.css?v=20261118-messages-layout" />
 </head>
 <body class="profile-page">
   <main class="profile-wrapper">
