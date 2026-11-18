@@ -13,7 +13,7 @@ export async function registrarUsuario({ nombre, apellido, correo, password }) {
   const { data: created, error: authError } = await supabase.auth.admin.createUser({
     email: correo,
     password,
-    email_confirm: true, // no exigimos verificación por mail en este prototipo
+    email_confirm: false,
     user_metadata: { nombre, apellido },
   });
 
@@ -38,8 +38,11 @@ export async function registrarUsuario({ nombre, apellido, correo, password }) {
     return { error: "No se pudo crear el perfil del usuario." };
   }
 
-  // Iniciamos sesión automáticamente después de registrar
-  return iniciarSesion({ correo, password });
+  // Iniciamos el registro sin crear una sesión: la cuenta debe confirmar el correo.
+  return {
+    pending: true,
+    message: "Cuenta creada. Revisá tu correo para confirmar la cuenta antes de iniciar sesión.",
+  };
 }
 
 export async function asegurarPerfil(user) {

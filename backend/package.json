@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node app.js",
     "dev": "node --watch app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node --check app.js && node --check servicios/errores.js && node --check servicios/validacion.js",
+    "test": "node --test",
+    "health": "node -e \"const base=process.env.BASE_URL||'http://localhost:3000'; fetch(base+'/health').then(r=>{console.log(r.status); process.exit(r.ok?0:1)}).catch(e=>{console.error(e.message); process.exit(1)})\""
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,9 @@
     "@supabase/supabase-js": "^2.116.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
+    "zod": "^4.6.7"
   }
 }

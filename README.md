@@ -1,4 +1,3 @@
-
 ## Interacciones reutilizables
 
 La migración `database/migration_interacciones.sql` agrega comentarios, likes, guardados y reportes con el contrato común `entidad_tipo` (`company`, `event`, `place`) + `entidad_id`. Ejecutala en Supabase después de `migration_mapa_auth.sql`.
@@ -80,3 +79,47 @@ Para habilitar adjuntos en los comentarios de eventos y del mapa, ejecuta una ve
 ### Mensajes de voz
 
 Para habilitar audios y archivos en mensajes directos, ejecuta `database/mensajes_audio.sql` en Supabase después de `database/interacciones.sql`. Crea los buckets privados `message-audio` y `message-files`; el backend emite enlaces temporales solo a los participantes de la conversación. Las notas de voz requieren permiso de micrófono y HTTPS o `localhost`, duran hasta 2 minutos y pesan hasta 10 MB. Se pueden adjuntar hasta 3 archivos por mensaje (JPG, PNG, WebP, GIF o PDF), de hasta 10 MB cada uno.
+
+## Configuración por entorno
+
+### Variables obligatorias
+
+- `SUPABASE_URL`: URL HTTPS del proyecto Supabase.
+- `SUPABASE_SERVICE_KEY`: clave privada service-role utilizada únicamente por Node/PHP servidor.
+- `SUPABASE_ANON_KEY`: clave pública opcional para consultas solo lectura desde el modo XAMPP.
+- `ALLOWED_ORIGINS`: orígenes exactos permitidos por CORS, separados por comas.
+- `FRONTEND_ORIGIN`: origen principal del frontend.
+- `FRONTEND_URL`: página completa a la que vuelve OAuth.
+- `OAUTH_REDIRECT_URL`: callback público de Google en Express.
+- `PASSWORD_RESET_REDIRECT_URL`: página pública para restablecer contraseña.
+
+Nunca agregues `SUPABASE_SERVICE_KEY`, secretos OAuth ni claves privadas a archivos JavaScript o HTML.
+
+### Render
+
+1. Root Directory: `backend`.
+2. Build Command: `npm ci`.
+3. Start Command: `npm start`.
+4. Health Check Path: `/health`.
+5. Configura `NODE_ENV=production` y todas las variables privadas en el panel de Render.
+6. Configura el mismo dominio en `ALLOWED_ORIGINS`, `FRONTEND_ORIGIN`, `FRONTEND_URL`, `OAUTH_REDIRECT_URL` y `PASSWORD_RESET_REDIRECT_URL`.
+
+El archivo `render.yaml` contiene el blueprint del servicio. Los valores secretos deben completarse manualmente en Render y no en el repositorio.
+
+### Desarrollo local
+
+Copia `backend/.env.example` como `backend/.env`, ajusta las URLs locales y ejecuta:
+
+```powershell
+npm --prefix backend install
+npm --prefix backend run dev
+```
+
+Prueba el servidor en `http://localhost:3000/health`. Para usar XAMPP, ejecuta `setup_local.bat` y configura únicamente las claves necesarias en `backend/.env`.
+
+### Comprobaciones
+
+- Sintaxis: `npm --prefix backend run check`
+- Tests: `npm --prefix backend test`
+- Health check: `npm --prefix backend run health`
+- Dependencias: `npm --prefix backend audit --omit=dev`

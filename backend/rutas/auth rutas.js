@@ -9,17 +9,18 @@
 import { Router } from "express";
 import { register, login, renovar, logout, me, actualizarMiPerfil, esAdmin, recuperar, google, googleCallback } from "../controladores/controlador auth.js";
 import { requiereSesion, requiereAdmin } from "../servicios/verificacion.js";
+import { validate, registerSchema, loginSchema, refreshSchema, recuperarSchema, profileSchema } from "../servicios/validacion.js";
 
 const router = Router();
 
-router.post("/register", register);
-router.post("/login", login);
-router.post("/refresh", renovar);
+router.post("/register", validate(registerSchema), register);
+router.post("/login", validate(loginSchema), login);
+router.post("/refresh", validate(refreshSchema), renovar);
 router.post("/logout", requiereSesion, logout);
 router.get("/me", requiereSesion, me);
-router.patch("/me", requiereSesion, actualizarMiPerfil);
+router.patch("/me", requiereSesion, validate(profileSchema), actualizarMiPerfil);
 router.get("/es-admin", requiereSesion, requiereAdmin, esAdmin);
-router.post("/recuperar", recuperar);
+router.post("/recuperar", validate(recuperarSchema), recuperar);
 router.get("/google", google);
 router.get("/google/callback", googleCallback);
 

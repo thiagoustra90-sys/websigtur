@@ -77,9 +77,19 @@ export async function listarUsuarios() {
 }
 
 export async function cambiarBaneo(userId, duration = '24h') {
-  const { data, error } = await supabase.auth.admin.updateUserById(userId, { ban_duration: duration === 'none' ? 'none' : duration });
+  const normalized = duration === 'none' ? 'none' : String(duration || '24h').trim();
+  const allowed = new Set(['none', '1h', '24h', '7d', '30d']);
+  if (!allowed.has(normalized)) {
+    throw Object.assign(new Error('Duración de baneo no válida.'), { status: 400 });
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(String(userId || ''))) {
+    throw Object.assign(new Error('Usuario no válido.'), { status: 400 });
+  }
+  const { data, error } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: normalized === 'none' ? 'none' : normalized,
+  });
   if (error) throw error;
-  return { id: data.user.id, banned: duration !== 'none', duration };
+  return { id: data.user.id, banned: normalized !== 'none', duration: normalized };
 }
 
 export async function eliminarEvento(eventId) {

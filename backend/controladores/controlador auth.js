@@ -8,10 +8,11 @@ import { registrarUsuario, iniciarSesion, renovarSesion, cerrarSesion, obtenerPe
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function register(req, res) {
-  const nombre = String(req.body?.nombre || "").trim();
-  const apellido = String(req.body?.apellido || "").trim();
-  const correo = String(req.body?.correo || req.body?.email || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
+  const data = req.validatedBody || req.body || {};
+  const nombre = String(data.nombre || "").trim();
+  const apellido = String(data.apellido || "").trim();
+  const correo = String(data.correo || data.email || "").trim().toLowerCase();
+  const password = String(data.password || "");
 
   if (!nombre) return res.status(400).json({ error: "El nombre es obligatorio." });
   if (!emailRegex.test(correo)) return res.status(400).json({ error: "Correo inválido." });
@@ -28,12 +29,9 @@ export async function register(req, res) {
 }
 
 export async function login(req, res) {
-  const correo = String(req.body?.correo || req.body?.email || req.body?.user || "").trim().toLowerCase();
-  const password = String(req.body?.password || "");
-
-  if (!correo || !password) {
-    return res.status(400).json({ error: "Completá correo y contraseña." });
-  }
+  const data = req.validatedBody || req.body || {};
+  const correo = String(data.correo || "").trim().toLowerCase();
+  const password = String(data.password || "");
 
   const resultado = await iniciarSesion({ correo, password });
   if (resultado.error) return res.status(401).json({ error: resultado.error });
@@ -42,15 +40,11 @@ export async function login(req, res) {
 }
 
 export async function renovar(req, res) {
-  try {
-    const refreshToken = String(req.body?.refreshToken || req.body?.refresh_token || "");
-    const resultado = await renovarSesion(refreshToken);
-    if (resultado.error) return res.status(401).json({ error: resultado.error });
-    res.json(resultado);
-  } catch (error) {
-    console.error("Error al renovar sesión:", error);
-    res.status(401).json({ error: "La sesión venció. Iniciá sesión nuevamente." });
-  }
+  const data = req.validatedBody || req.body || {};
+  const refreshToken = String(data.refreshToken || data.refresh_token || "");
+  const resultado = await renovarSesion(refreshToken);
+  if (resultado.error) return res.status(401).json({ error: resultado.error });
+  res.json(resultado);
 }
 
 export async function logout(req, res) {
@@ -65,7 +59,7 @@ export async function me(req, res) {
 
 export async function actualizarMiPerfil(req, res) {
   try {
-    res.json({ usuario: await actualizarPerfil(req.user.id, req.body || {}) });
+    res.json({ usuario: await actualizarPerfil(req.user.id, req.validatedBody || req.body || {}) });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.status ? error.message : 'No se pudo guardar el perfil.' });
   }
@@ -76,8 +70,8 @@ export function esAdmin(req, res) {
 }
 
 export async function recuperar(req, res) {
-  const correo = String(req.body?.correo || req.body?.email || "").trim().toLowerCase();
-  if (!emailRegex.test(correo)) return res.status(400).json({ error: "Correo inválido." });
+  const data = req.validatedBody || req.body || {};
+  const correo = String(data.correo || "").trim().toLowerCase();
 
   const resultado = await solicitarRecuperacion(correo);
   if (resultado.error) return res.status(400).json({ error: resultado.error });

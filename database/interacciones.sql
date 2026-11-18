@@ -105,5 +105,79 @@ DROP POLICY IF EXISTS "mensajes_participantes_select" ON public.mensajes;
 CREATE POLICY "mensajes_participantes_select" ON public.mensajes FOR SELECT USING (auth.uid() = remitente_id OR auth.uid() = destinatario_id);
 DROP POLICY IF EXISTS "mensajes_own_insert" ON public.mensajes;
 CREATE POLICY "mensajes_own_insert" ON public.mensajes FOR INSERT WITH CHECK (auth.uid() = remitente_id);
+
+-- Reforzar perfiles: el usuario puede modificar datos propios, pero no su rol.
+DROP POLICY IF EXISTS "usuarios_update_own" ON public.usuarios;
+CREATE POLICY "usuarios_update_own" ON public.usuarios
+  FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = id)
+  WITH CHECK (
+    (select auth.uid()) = id
+    AND rol = (SELECT u.rol FROM public.usuarios u WHERE u.id = (select auth.uid()))
+  );
+
+DROP POLICY IF EXISTS "usuarios_insert_own" ON public.usuarios;
+CREATE POLICY "usuarios_insert_own" ON public.usuarios
+  FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = id AND rol = 'usuario');
+
+DROP POLICY IF EXISTS "usuarios_select_own" ON public.usuarios;
+CREATE POLICY "usuarios_select_own" ON public.usuarios
+  FOR SELECT TO authenticated
+  USING ((select auth.uid()) = id);
+
+-- Un destinatario solo puede marcar el mensaje como leído.
 DROP POLICY IF EXISTS "mensajes_destinatario_update" ON public.mensajes;
-CREATE POLICY "mensajes_destinatario_update" ON public.mensajes FOR UPDATE USING (auth.uid() = destinatario_id);
+CREATE POLICY "mensajes_destinatario_update" ON public.mensajes
+  FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = destinatario_id)
+  WITH CHECK (
+    (select auth.uid()) = destinatario_id
+    AND remitente_id = remitente_id
+    AND destinatario_id = destinatario_id
+  );
+
+-- El rol no puede ser elevado por usuarios autenticados.
+CREATE OR REPLACE FUNCTION public.proteger_rol_usuario()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.rol IS DISTINCT FROM OLD.rol THEN
+    RAISE EXCEPTION 'El rol de usuario no puede modificarse desde una operación normal.';
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS proteger_rol_usuario ON public.usuarios;
+CREATE TRIGGER proteger_rol_usuario
+BEFORE UPDATE ON public.usuarios
+FOR EACH ROW EXECUTE FUNCTION public.proteger_rol_usuario();
+
+-- El destinatario puede cambiar únicamente el estado leído.
+CREATE OR REPLACE FUNCTION public.proteger_mensaje_leido()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.remitente_id IS DISTINCT FROM OLD.remitente_id
+     OR NEW.destinatario_id IS DISTINCT FROM OLD.destinatario_id
+     OR NEW.contenido IS DISTINCT FROM OLD.contenido
+     OR NEW.tipo IS DISTINCT FROM OLD.tipo
+     OR NEW.audio_path IS DISTINCT FROM OLD.audio_path
+     OR NEW.duration_seconds IS DISTINCT FROM OLD.duration_seconds
+     OR NEW.attachments IS DISTINCT FROM OLD.attachments
+     OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'Solo se permite actualizar el estado leído del mensaje.';
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS proteger_mensaje_leido ON public.mensajes;
+CREATE TRIGGER proteger_mensaje_leido
+BEFORE UPDATE ON public.mensajes
+FOR EACH ROW EXECUTE FUNCTION public.proteger_mensaje_leido();

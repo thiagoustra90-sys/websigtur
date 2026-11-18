@@ -41,7 +41,9 @@ export async function sesionOpcional(req, res, next) {
 }
 
 export function requiereAdmin(req, res, next) {
-  if (!req.user || req.user.rol !== "admin") {
+  const appRole = req.authUser?.app_metadata?.role || req.authUser?.app_metadata?.rol;
+  const profileRole = req.user?.rol;
+  if (appRole !== "admin" && profileRole !== "admin") {
     return res.status(403).json({ error: "Necesitás permisos de administrador." });
   }
   next();

@@ -27,8 +27,8 @@ function supabaseRequest(string $method, string $path, ?array $body = null, ?str
     $baseUrl = rtrim(envValue('SUPABASE_URL'), '/');
     // Este proxy se ejecuta en Apache, no en el navegador. Usa la clave del
     // servidor para que el modo XAMPP no dependa de una anon key antigua.
-    $serverKey = envValue('SUPABASE_SERVICE_KEY') ?: envValue('SUPABASE_ANON_KEY');
-    if ($baseUrl === '' || $serverKey === '') return [503, ['error' => 'Configura SUPABASE_URL y SUPABASE_SERVICE_KEY en backend/.env.']];
+    $serverKey = envValue('SUPABASE_SERVICE_KEY');
+    if ($baseUrl === '' || $serverKey === '' || str_contains(strtolower($serverKey), 'tu-service')) return [503, ['error' => 'Configura SUPABASE_URL y SUPABASE_SERVICE_KEY en backend/.env.']];
     $headers = ['apikey: ' . $serverKey, 'Authorization: Bearer ' . ($token ?: $serverKey), 'Accept: application/json', 'Content-Type: application/json'];
     $curl = curl_init($baseUrl . $path);
     curl_setopt_array($curl, [
@@ -96,10 +96,9 @@ if ($action === 'register' && $method === 'POST') {
     $email = strtolower(trim((string) ($body['correo'] ?? $body['email'] ?? '')));
     $password = (string) ($body['password'] ?? '');
     if ($nombre === '' || !preg_match($emailRegex, $email) || strlen($password) < 8) { http_response_code(400); echo json_encode(['error' => 'Completa nombre, correo y una contraseña de al menos 8 caracteres.']); exit; }
-    // El alta se hace server-side con confirmación automática para no
-    // depender del límite de correos de Supabase en el modo XAMPP.
+    // El alta espera confirmación por correo; no se inicia sesión automáticamente.
     [$status, $created] = supabaseRequest('POST', '/auth/v1/admin/users', [
-        'email' => $email, 'password' => $password, 'email_confirm' => true,
+        'email' => $email, 'password' => $password, 'email_confirm' => false,
         'user_metadata' => ['nombre' => $nombre],
     ]);
     if ($status < 200 || $status >= 300 || empty($created['id'])) {
@@ -107,19 +106,19 @@ if ($action === 'register' && $method === 'POST') {
         echo json_encode(['error' => $created['msg'] ?? $created['message'] ?? $created['error_description'] ?? 'No se pudo crear la cuenta.']);
         exit;
     }
-    [$loginStatus, $auth] = supabaseRequest('POST', '/auth/v1/token?grant_type=password', ['email' => $email, 'password' => $password]);
-    if ($loginStatus < 200 || $loginStatus >= 300 || empty($auth['access_token'])) {
-        http_response_code(500);
-        echo json_encode(['error' => 'La cuenta se creó, pero no se pudo iniciar sesión automáticamente.']);
-        exit;
-    }
-    [$profileStatus, $profile] = supabaseRequest('POST', '/rest/v1/usuarios', ['id' => $created['id'], 'nombre' => $nombre, 'correo' => $email, 'rol' => 'usuario'], $auth['access_token']);
+    [$profileStatus, $profile] = supabaseRequest('POST', '/rest/v1/usuarios', [
+        'id' => $created['id'], 'nombre' => $nombre, 'correo' => $email, 'rol' => 'usuario'
+    ]);
     if ($profileStatus < 200 || $profileStatus >= 300) {
         http_response_code(500);
         echo json_encode(['error' => 'La cuenta se creó, pero no se pudo crear el perfil.']);
         exit;
     }
-    echo json_encode(sessionResponse($auth), JSON_UNESCAPED_UNICODE); exit;
+    echo json_encode([
+        'pending' => true,
+        'message' => 'Cuenta creada. Revisá tu correo para confirmar la cuenta antes de iniciar sesión.',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 if ($action === 'me' && $method === 'GET') {
