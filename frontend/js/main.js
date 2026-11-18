@@ -1148,8 +1148,8 @@ function configurarPaginaAutenticacion() {
       return;
     }
 
-    if (!expresionCorreo.test(correo) && !correo.includes('@')) {
-      establecerEstado('El correo o usuario no es válido. Revisá el formato.', 'error');
+    if (!expresionCorreo.test(correo)) {
+      establecerEstado('Ingresá un correo válido. Revisá el formato.', 'error');
       formularioInicioSesion.querySelector('[name="user"]').focus();
       return;
     }
@@ -2320,13 +2320,19 @@ async function configurarInteraccionesEventos() {
       : '<p class="event-panel-status">Todavía no hay comentarios.</p>';
   };
   const cargarComentarios = async (panelActual, identificadorEvento) => {
+    if (panelActual._commentsLoading) {
+      panelActual._commentsReload = true;
+      return;
+    }
     const estado = panelActual.querySelector('[data-event-panel-status]');
+    if (!estado) return;
+    panelActual._commentsLoading = true;
     try {
       estado.setAttribute('role', 'status');
       estado.setAttribute('aria-busy', 'true');
       estado.classList.add('ui-list-status', 'is-loading');
       estado.classList.remove('is-error');
-      estado.textContent = 'Cargando comentarios?';
+      estado.textContent = 'Cargando comentarios…';
       const resultado = await solicitarApiSigtur(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
       panelActual._eventComments = await Promise.all((resultado.data || []).map(async comentario => {
         try { return { ...comentario, likeState: await solicitarApiSigtur(`/api/comentarios/${comentario.id}/likes`) }; }
@@ -2342,6 +2348,12 @@ async function configurarInteraccionesEventos() {
       estado.classList.remove('is-loading');
       estado.classList.add('ui-list-status', 'is-error');
       estado.textContent = fallo.message || 'No se pudieron cargar los comentarios. Revisa database/README.md y aplica las migraciones pendientes con Supabase CLI.';
+    } finally {
+      panelActual._commentsLoading = false;
+      if (panelActual._commentsReload) {
+        panelActual._commentsReload = false;
+        void cargarComentarios(panelActual, identificadorEvento);
+      }
     }
   };
   const mostrarInicioSesion = () => { window.location.replace('login.html'); };
@@ -2392,7 +2404,6 @@ async function configurarInteraccionesEventos() {
     panelActual.hidden = true;
     panelActual.innerHTML = `<div class="event-panel-head"><strong>${escaparHtml(evento.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
     fila.insertAdjacentElement('afterend', panelActual);
-    cargarComentarios(panelActual, evento.id);
     sincronizarBotonGuardado(controles.querySelector('[data-event-save]'), evento);
 
     const cerrarPanel = () => {
@@ -2743,7 +2754,7 @@ async function configurarPaginaAdministracion() {
   if (elementoMapaEvento && latitudEvento && longitudEvento && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
     const mapaEvento = L.map(elementoMapaEvento).setView([-31.383, -57.964], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(mapaEvento);
+    L.tileLayer(window.SIGTUR_MAP_TILE_URL || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: window.SIGTUR_MAP_TILE_ATTRIBUTION || '© OpenStreetMap contributors, © CARTO' }).addTo(mapaEvento);
     let marcadorEvento;
     const establecerPuntoEvento = (latitud, longitud) => {
       latitudEvento.value = latitud.toFixed(6);
@@ -2788,7 +2799,7 @@ async function configurarPaginaAdministracion() {
     } finally { usuariosLista?.setAttribute('aria-busy', 'false'); }
   };
   const cargarComentarios = async () => {
-    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios?</li>'; }
+    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios…</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
       const resultado = await solicitarApiSigtur(`/api/admin/comentarios?${q}`);

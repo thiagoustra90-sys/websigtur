@@ -52,13 +52,13 @@ function leerCuerpoJson(): array {
     return is_array($cuerpo) ? $cuerpo : [];
 }
 
-function solicitarSupabase(string $metodo, string $ruta, ?array $cuerpo = null, ?string $token = null): array {
+function solicitarSupabase(string $metodo, string $ruta, ?array $cuerpo = null, ?string $token = null, ?string $claveApi = null): array {
     $urlBase = rtrim(leerVariableEntorno('SUPABASE_URL'), '/');
     // Este proxy se ejecuta en Apache, no en el navegador. Usa la clave del
     // servidor para que el modo XAMPP no dependa de una anon key antigua.
     $claveServidor = leerVariableEntorno('SUPABASE_SERVICE_KEY');
     if ($urlBase === '' || $claveServidor === '' || str_contains(strtolower($claveServidor), 'tu-service')) return [503, ['error' => 'Configura SUPABASE_URL y SUPABASE_SERVICE_KEY en backend/.env.']];
-    $encabezados = ['apikey: ' . $claveServidor, 'Authorization: Bearer ' . ($token ?: $claveServidor), 'Accept: application/json', 'Content-Type: application/json'];
+    $encabezados = ['apikey: ' . ($claveApi ?: $claveServidor), 'Authorization: Bearer ' . ($token ?: $claveApi ?: $claveServidor), 'Accept: application/json', 'Content-Type: application/json'];
     $conexion = curl_init($urlBase . $ruta);
     curl_setopt_array($conexion, [
         CURLOPT_CUSTOMREQUEST => $metodo, CURLOPT_RETURNTRANSFER => true,
@@ -146,20 +146,32 @@ if ($accion === 'register' && $metodo === 'POST') {
     $correo = strtolower(trim((string) ($cuerpo['correo'] ?? $cuerpo['email'] ?? '')));
     $contrasena = (string) ($cuerpo['contrasena'] ?? $cuerpo['password'] ?? '');
     if ($nombre === '' || !preg_match($expresionCorreo, $correo) || strlen($contrasena) < 8) { http_response_code(400); responderJson(['error' => 'Completa nombre, correo y una contraseña de al menos 8 caracteres.']); exit; }
-    // El alta espera confirmación por correo; no se inicia sesión automáticamente.
-    [$estado, $usuarioCreado] = solicitarSupabase('POST', '/auth/v1/admin/users', [
-        'email' => $correo, 'password' => $contrasena, 'email_confirm' => false,
-        'user_metadata' => ['nombre' => $nombre],
-    ]);
+    $clavePublica = leerVariableEntorno('SUPABASE_ANON_KEY');
+    if ($clavePublica === '' || str_contains(strtolower($clavePublica), 'tu-anon-key')) {
+        http_response_code(503);
+        responderJson(['error' => 'El registro no está configurado: falta SUPABASE_ANON_KEY en backend/.env.']);
+        exit;
+    }
+    $urlConfirmacion = leerVariableEntorno('FRONTEND_URL') ?: 'https://websigtur.onrender.com/login.html';
+    [$estado, $autenticacion] = solicitarSupabase('POST', '/auth/v1/signup?redirect_to=' . rawurlencode($urlConfirmacion), [
+        'email' => $correo, 'password' => $contrasena,
+        'data' => ['nombre' => $nombre, 'apellido' => ''],
+    ], null, $clavePublica);
+    $usuarioCreado = $autenticacion['user'] ?? [];
     if ($estado < 200 || $estado >= 300 || empty($usuarioCreado['id'])) {
-        http_response_code($estado === 429 ? 429 : 400);
-        responderJson(['error' => $usuarioCreado['msg'] ?? $usuarioCreado['message'] ?? $usuarioCreado['error_description'] ?? 'No se pudo crear la cuenta.']);
+        http_response_code($estado === 429 ? 429 : ($estado >= 500 ? 503 : 400));
+        responderJson(['error' => $autenticacion['msg'] ?? $autenticacion['message'] ?? $autenticacion['error_description'] ?? 'No se pudo crear la cuenta. Revisa la configuración de correo de Supabase.']);
+        exit;
+    }
+    if (array_key_exists('identities', $usuarioCreado) && $usuarioCreado['identities'] === []) {
+        responderJson(['pending' => true, 'message' => 'Si el correo está disponible, recibirás un enlace para confirmar la cuenta.'], JSON_UNESCAPED_UNICODE);
         exit;
     }
     [$estadoPerfil, $perfil] = solicitarSupabase('POST', '/rest/v1/usuarios', [
         'id' => $usuarioCreado['id'], 'nombre' => $nombre, 'correo' => $correo, 'rol' => 'usuario'
     ]);
     if ($estadoPerfil < 200 || $estadoPerfil >= 300) {
+        solicitarSupabase('DELETE', '/auth/v1/admin/users/' . rawurlencode((string) $usuarioCreado['id']));
         http_response_code(500);
         responderJson(['error' => 'La cuenta se creó, pero no se pudo crear el perfil.']);
         exit;

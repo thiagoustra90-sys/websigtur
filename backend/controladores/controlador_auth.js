@@ -35,7 +35,7 @@ export async function registrar(req, res) {
 
   try {
     const resultado = await registrarUsuario({ nombre, apellido, correo, contrasena });
-    if (resultado.error) return res.status(400).json({ error: resultado.error });
+    if (resultado.error) return res.status(resultado.status || 400).json({ error: resultado.error });
     res.status(201).json(resultado);
   } catch (fallo) {
     console.error("Error al registrar usuario:", fallo);

@@ -4,27 +4,52 @@
 // Usa la Service Role Key (backend/config/supabase.js) porque este código
 // corre en el servidor, nunca en el navegador.
 // ============================================================================
-import supabase from "../config/supabase.js";
+import supabase, { supabaseAutenticacion } from "../config/supabase.js";
 
 // Crea el usuario en Supabase Auth (auth.users) y su fila de perfil en
 // public.usuarios. Si algo falla a mitad de camino, deshace lo creado
 // para no dejar usuarios "fantasma" sin perfil.
 export async function registrarUsuario({ nombre, apellido, correo, contrasena, password }) {
   const contrasenaFinal = contrasena || password;
-  const { data: usuarioCreado, error: errorAutenticacion } = await supabase.auth.admin.createUser({
+  if (!supabaseAutenticacion) {
+    return {
+      error: "El registro no está configurado: falta SUPABASE_ANON_KEY en el backend.",
+      status: 503,
+    };
+  }
+
+  const { data: registro, error: errorAutenticacion } = await supabaseAutenticacion.auth.signUp({
     email: correo,
     password: contrasenaFinal,
-    email_confirm: false,
-    user_metadata: { nombre, apellido },
+    options: {
+      data: { nombre, apellido: apellido || "" },
+      emailRedirectTo: process.env.FRONTEND_URL || "https://websigtur.onrender.com/login.html",
+    },
   });
 
   if (errorAutenticacion) {
-    // Supabase devuelve este mensaje cuando el correo ya existe
-    const yaExiste = /already been registered|already exists/i.test(errorAutenticacion.message || "");
-    return { error: yaExiste ? "Ese correo ya está registrado." : errorAutenticacion.message };
+    const errorCorreo = /already been registered|already exists|user already registered/i.test(
+      errorAutenticacion.message || "",
+    );
+    return {
+      error: errorCorreo
+        ? "Ese correo ya está registrado. Iniciá sesión o solicitá recuperar la contraseña."
+        : errorAutenticacion.status === 429
+          ? "Se alcanzó el límite de correos de confirmación. Intentá más tarde."
+          : "No se pudo registrar la cuenta. Revisá la configuración de correo de Supabase e intentá nuevamente.",
+      status: errorAutenticacion.status === 429 ? 429 : 400,
+    };
   }
 
-  const usuarioId = usuarioCreado.user.id;
+  const usuarioAuth = registro?.user;
+  if (!usuarioAuth?.id) return { error: "Supabase no devolvió la cuenta creada.", status: 503 };
+  if (usuarioAuth.identities?.length === 0) {
+    return {
+      pending: true,
+      message: "Si el correo está disponible, recibirás un enlace para confirmar la cuenta.",
+    };
+  }
+  const usuarioId = usuarioAuth.id;
 
   const { error: errorPerfil } = await supabase.from("usuarios").insert({
     id: usuarioId,
@@ -39,7 +64,23 @@ export async function registrarUsuario({ nombre, apellido, correo, contrasena, p
     return { error: "No se pudo crear el perfil del usuario." };
   }
 
-  // Iniciamos el registro sin crear una sesión: la cuenta debe confirmar el correo.
+  if (registro.session) {
+    const { data: perfil, error: errorLecturaPerfil } = await supabase
+      .from("usuarios")
+      .select("id, nombre, apellido, correo, rol, avatar_url, biografia, ubicacion, sitio_web, created_at")
+      .eq("id", usuarioId)
+      .single();
+    if (errorLecturaPerfil || !perfil) return { error: "No se pudo validar el perfil recién creado.", status: 503 };
+    return {
+      token: registro.session.access_token,
+      tokenActualizacion: registro.session.refresh_token,
+      refreshToken: registro.session.refresh_token,
+      expiresAt: registro.session.expires_at,
+      usuario: perfil,
+    };
+  }
+
+  // Con la confirmación activa, Supabase envía el correo y no crea sesión aún.
   return {
     pending: true,
     message: "Cuenta creada. Revisá tu correo para confirmar la cuenta antes de iniciar sesión.",

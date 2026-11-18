@@ -35,11 +35,13 @@ Las migraciones obligatorias y su orden se describen en `supabase/MIGRACIONES.md
 
 En Render, Express sirve la API y el frontend HTML desde el mismo dominio. Copia `backend/.env.example` como referencia para las variables del servicio; nunca publiques `backend/.env` ni pongas claves en JavaScript. Las páginas PHP antiguas siguen siendo para XAMPP y no forman parte del login de Render.
 
-En Render, configura **Root Directory** como `backend`, **Build Command** como `npm install` y **Start Command** como `npm start`. Este servicio Express sirve tanto la API como el frontend estático: el login queda en `https://websigtur.onrender.com/login.html`. Configura las variables privadas `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `FRONTEND_ORIGIN=https://websigtur.onrender.com`, `FRONTEND_URL=https://websigtur.onrender.com/login.html`, `PASSWORD_RESET_REDIRECT_URL=https://websigtur.onrender.com/login.html` y `OAUTH_REDIRECT_URL=https://websigtur.onrender.com/api/auth/google/callback`. Render proporciona `PORT`; el servidor tiene `3000` como fallback local.
+En Render, configura **Root Directory** como `backend`, **Build Command** como `npm install` y **Start Command** como `npm start`. Este servicio Express sirve tanto la API como el frontend estático: el login queda en `https://websigtur.onrender.com/login.html`. Configura `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ANON_KEY`, `FRONTEND_ORIGIN=https://websigtur.onrender.com`, `FRONTEND_URL=https://websigtur.onrender.com/login.html`, `PASSWORD_RESET_REDIRECT_URL=https://websigtur.onrender.com/login.html` y `OAUTH_REDIRECT_URL=https://websigtur.onrender.com/api/auth/google/callback`. Render proporciona `PORT`; el servidor tiene `3000` como fallback local.
 
 Si cambias el dominio de Render, actualízalo en esas variables y en `frontend/js/api-config.js`. `FRONTEND_ORIGIN` debe ser únicamente el origen del servicio (sin ruta); `FRONTEND_URL` y `PASSWORD_RESET_REDIRECT_URL` apuntan a `/login.html`; `OAUTH_REDIRECT_URL` apunta a `/api/auth/google/callback`.
 
 En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html`, `https://websigtur.onrender.com/api/auth/google/callback` y `http://localhost/**` para desarrollo local. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
+
+El registro usa `signUp` para enviar el correo real de confirmación. Configura SMTP personalizado en **Supabase > Authentication > SMTP Settings** para entregar correos a usuarios externos; el servicio de correo de prueba de Supabase tiene límites de destinatarios y frecuencia.
 
 El horario de eventos forma parte de las migraciones versionadas. Consulta `supabase/MIGRACIONES.md` y aplica el historial con `supabase db push`.
 
@@ -69,7 +71,7 @@ La migración `20261117000500_mensajes_audio.sql` habilita los buckets privados 
 
 - `SUPABASE_URL`: URL HTTPS del proyecto Supabase.
 - `SUPABASE_SERVICE_KEY`: clave privada service-role utilizada únicamente por Node/PHP servidor.
-- `SUPABASE_ANON_KEY`: clave pública opcional para consultas solo lectura desde el modo XAMPP.
+- `SUPABASE_ANON_KEY`: clave pública requerida por el registro para que Supabase envíe confirmaciones; también se usa en el proxy PHP/XAMPP.
 - `ALLOWED_ORIGINS`: orígenes exactos permitidos por CORS, separados por comas.
 - `FRONTEND_ORIGIN`: origen principal del frontend.
 - `FRONTEND_URL`: página completa a la que vuelve OAuth.

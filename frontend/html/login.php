@@ -27,8 +27,8 @@
 
     <form class="auth-form active" id="login-form" data-auth-panel="login" role="tabpanel" aria-labelledby="login-tab" action="#" novalidate>
       <div class="auth-field">
-        <label for="login-user">Correo / Usuario</label>
-        <input id="login-user" name="user" type="text" autocomplete="username" placeholder="Correo / Usuario" required />
+        <label for="login-user">Correo</label>
+        <input id="login-user" name="user" type="email" autocomplete="username" placeholder="correo@ejemplo.com" required />
       </div>
       <div class="auth-field auth-field--password">
         <label for="login-password">Contraseña</label>
