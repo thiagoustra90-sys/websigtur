@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="../css/font.css" />
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
+<body class="auth-remake">
+<main class="auth-stage">
+  <a class="auth-sun-link" href="index.php" aria-label="Volver al inicio de SIGTUR">
+    <img src="../imagenes/logo-salto.svg" alt="SIGTUR · Salto" />
+  </a>
+  <section class="auth-card" aria-labelledby="auth-title">
+    <div class="auth-avatar" aria-hidden="true"><span>✦</span></div>
+    <div class="auth-copy">
       <h1 id="auth-title">Inicia sesión para<br>ver más</h1>
       <p>Únete a nuestra comunidad viajera</p>
     </div>
@@ -111,6 +119,6 @@
 
 
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261117-auth-session"></script>
+<script src="../js/main.js?v=20261118-auth-repair"></script>
 </body>
 </html>
