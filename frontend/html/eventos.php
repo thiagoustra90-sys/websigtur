@@ -102,7 +102,7 @@
   <div class="destacados-grid">
     <!-- Card 3 – Vacaciones de Julio en Energimundo -->
     <div class="event-card" style="border-radius:49px; margin-top:12px;">
-      <img class="event-card-img" src="../imagenes/eventos/energimundo.webp" alt="Vacaciones de Julio en Energimundo" />
+      <img class="event-card-img" src="../imagenes/eventos/energimundo.webp" alt="Vacaciones de Julio en Energimundo" loading="lazy" decoding="async" />
       <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">27 Jun</p>
       <p class="event-card-title">Vacaciones de Julio en Energimundo 2026</p>
       <p class="event-card-sub">Familiar | Salto Grande · Energimundo</p>
@@ -110,7 +110,7 @@
 
     <!-- Card 4 – Rally de Salto -->
     <div class="event-card" style="border-radius:49px; margin-top:12px;">
-      <img class="event-card-img" src="../imagenes/eventos/rally.webp" alt="4ª Fecha Rally de Salto" />
+      <img class="event-card-img" src="../imagenes/eventos/rally.webp" alt="4ª Fecha Rally de Salto" loading="lazy" decoding="async" />
       <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">26 Jun</p>
       <p class="event-card-title">4ª Fecha Rally de Salto &ndash; Copa 95 Años de ANCAP 2026</p>
       <p class="event-card-sub">Deportivo | Del 26 al 28 de junio · Entrada libre</p>
@@ -118,7 +118,7 @@
 
     <!-- Card 5 – Muestra Academia de Danzas de Lucía Tenca -->
     <div class="event-card" style="border-radius:49px; margin-top:12px;">
-      <img class="event-card-img" src="../imagenes/eventos/muestradanza.webp" alt="Muestra Academia de Danzas de Lucía Tenca" />
+      <img class="event-card-img" src="../imagenes/eventos/muestradanza.webp" alt="Muestra Academia de Danzas de Lucía Tenca" loading="lazy" decoding="async" />
       <p class="event-card-date" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">25 Jun</p>
       <p class="event-card-title">Muestra Academia de Danzas de Lucía Tenca</p>
       <p class="event-card-sub">Cultural | Teatro Larrañaga · 20:30 hs</p>
@@ -287,7 +287,7 @@
       <!-- Slide 1 – Noche de Milonga -->
       <div class="feat-slide">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Noche de Milonga</p>
             <p class="feat-sub">Cultura | Club Remeros | Vie. 27/6</p>
@@ -298,7 +298,7 @@
       <!-- Slide 2 – Feria del Libro Salteño -->
       <div class="feat-slide">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Feria del Libro Salteño</p>
             <p class="feat-sub">Feria | Biblioteca Departamental | Sáb. 28/6</p>
@@ -309,7 +309,7 @@
       <!-- Slide 3 – Torneo de Paddle Nocturno -->
       <div class="feat-slide">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Torneo de Paddle Nocturno</p>
             <p class="feat-sub">Deportivo | Complejo Solari | Dom. 29/6</p>
@@ -320,7 +320,7 @@
       <!-- Slide 4 (clone para loop suave) -->
       <div class="feat-slide" aria-hidden="true">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Noche de Milonga</p>
             <p class="feat-sub">Cultura | Club Remeros | Vie. 27/6</p>
@@ -331,7 +331,7 @@
       <!-- Slide 5 (clone) -->
       <div class="feat-slide" aria-hidden="true">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Feria del Libro Salteño</p>
             <p class="feat-sub">Feria | Biblioteca Departamental | Sáb. 28/6</p>
@@ -342,7 +342,7 @@
       <!-- Slide 6 (clone) -->
       <div class="feat-slide" aria-hidden="true">
         <div class="feat-card" style="overflow:hidden;position:relative;">
-          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" />
+          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
           <div style="position:relative;z-index:1;">
             <p class="feat-title">Torneo de Paddle Nocturno</p>
             <p class="feat-sub">Deportivo | Complejo Solari | Dom. 29/6</p>
@@ -353,7 +353,7 @@
     </div><!-- /feat-track -->
   </div><!-- /feat-carousel -->
 
-  <!-- puntos de paginas carousel -->
+  <!-- puntos de páginas carousel -->
   <div class="carousel-dots"></div>
 
 </section>
@@ -674,7 +674,7 @@
 
 <script src="../js/api-config.js"></script>
 <script src="../js/comment-media.js"></script>
-<script src="../js/main.js?v=20260915-events-v6"></script>
+<script src="../js/main.js?v=20261117-auth-session"></script>
 
 </body>
 </html>

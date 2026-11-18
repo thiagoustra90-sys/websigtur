@@ -1,45 +1,4 @@
-﻿/* ============================================================================
-   NOTA DEL EQUIPO — LEER ESTO ANTES QUE NADA
-  
-   Este es EL archivo de estilos de todo el sitio (SIGTUR Salto). Como dice
-   el comentario original de Thiago en la línea de abajo, es un "megamix":
-   un solo styles.css de +6500 líneas que cubre TODAS las páginas
-   (index, eventos, turismo, lugares, login, admin, soporte). No hay
-   Sass/Less, no hay módulos, no hay build step: es CSS plano, uno solo,
-   servido tal cual. Funciona, pero para orientarse acá adentro conviene
-   saber cómo está organizado. Mapa rápido (con número de línea aproximado
-   en ESTE archivo anotado, puede correrse un poco por los comentarios
-   nuevos que agregamos):
-
-      1. Variables globales (:root) y reset básico
-     2. @scope (body.page-home)    → todo el CSS específico de la home
-     3. @scope (body.page-eventos) → todo el CSS específico de eventos.html
-     4. @scope (body.page-turismo) → todo el CSS específico de turismo.html
-     5. @scope (body.page-lugares) → todo el CSS específico de lugares.html
-     6. "Global VPI paleta capas"  → variables de color repetidas/ajustadas
-     7. "LOGO MENU, THEME MODE AND UTILITY PAGES" → el menú circular del
-        logo (armado por JS), el toggle de tema claro/oscuro, y las
-        páginas utilitarias (admin.html, soporte.html)
-     8. "AUTH REMAKE" → todo el look de login.html
-     9. "Glass Morphism?" → un sistema de estilos "glass" (blur, bordes
-        translúcidos) que se agregó DESPUÉS para unificar cards y navbars
-        entre todas las páginas, pisando reglas de secciones anteriores
-    10. "ARREGLOS MOBILE" y varios "FIX" con fecha → parches de responsive
-        y bugs puntuales, agregados sobre la marcha (ver fechas en los
-        comentarios, el más nuevo es del 11/07/2026)
-
-   Dato clave para entender TODO lo que sigue: este archivo se fue
-   escribiendo por etapas (se nota en los comentarios con fecha, tipo
-   "arreglado por quinta vez 27/06/2026"), no de una sola sentada con un
-   plan prolijo desde el día uno. Es normal encontrar :root{} duplicados,
-   selectores que se pisan entre sí, y parches al final del archivo que
-   sobreescriben cosas de más arriba (en CSS, si dos reglas tienen la
-   MISMA especificidad, gana la que está más abajo en el archivo — por
-   eso el orden acá importa un montón, y por eso casi todos los "fixes"
-   se agregaron al FINAL, para asegurarse de que ganen).
-   ============================================================================ */
-
-/* SIGTUR megamix stylesheet, deberia separarse en archivos individuales pero pereza --Thiago */
+/* Shared SIGTUR styles and page-specific component rules. */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito:wght@300;400;600;700;800&display=swap');
 @import url('https://fonts.cdnfonts.com/css/brittany-signature');
 
@@ -484,7 +443,7 @@ img { display: block; max-width: 100%; }
 .hero-bg {
   position: absolute;
   inset: 0;
-  background-image: url('../image/index/Rectangle10.png');
+  background-image: url('../imagenes/index/Rectangle10.webp');
   background-size: cover;
   background-position: center top;
   z-index: 0;
@@ -743,6 +702,9 @@ img { display: block; max-width: 100%; }
 }
 
 .dot {
+  display: block;
+  padding: 0;
+  border: 0;
   width: 9px;
   height: 9px;
   border-radius: 50%;
@@ -1316,7 +1278,7 @@ img { display: block; max-width: 100%; }
 .hero-bg {
   position: absolute;
   inset: -8% -22% 0 -22%;   /* mantiene con el figma, config predeterminada*/
-  background-image: url('../image/eventos/campoagricolascaled20.png');
+  background-image: url('../imagenes/eventos/campoagricolascaled20.webp');
   background-size: cover;
   background-position: center 30%;
   z-index: 0;
@@ -7657,12 +7619,12 @@ body.profile-page {
 
 /* Correct asset paths and keep each landing hero on its own photograph. */
 body.page-home .hero-bg {
-  background-image: url('../imagenes/index/Rectangle10.png');
+  background-image: url('../imagenes/index/Rectangle10.webp');
   background-position: center 42%;
 }
 
 body.page-eventos .hero-bg {
-  background-image: url('../imagenes/eventos/campoagricolascaled20.png');
+  background-image: url('../imagenes/eventos/campoagricolascaled20.webp');
   background-position: center 36%;
 }
 
@@ -8908,6 +8870,7 @@ body.auth-remake .auth-field input { font-size: 16px; }
   padding: 14px 8px 0;
   border-top: 1px solid #edf0f3;
 }
+.dm-form.is-drop-target { outline: 2px dashed var(--color-primary); outline-offset: 4px; border-radius: 12px; }
 
 .dm-compose-row {
   display: grid;
@@ -9064,4 +9027,101 @@ body.theme-dark .dm-thread-header > span { color: #8de0d4; }
   .dm-pending-file { width: 100%; }
   .dm-file-image,
   .dm-file-document { width: 100%; max-width: 100%; }
+}
+.site-announcement { position: relative; z-index: 1000; padding: .8rem 1.25rem; text-align: center; background: #fff1b8; color: #493b0b; font-weight: 700; }
+.admin-pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 1rem 0; }
+.admin-pagination button { cursor: pointer; }
+.utility-page { width: min(900px, calc(100% - 2rem)); margin: 3rem auto; }
+.utility-page h1, .utility-page h2 { margin: 1.25rem 0 .6rem; }
+.utility-page p { line-height: 1.7; }
+
+/* Un indicador de foco compartido para navegación por teclado. */
+:focus-visible {
+  outline: 3px solid #075f56;
+  outline-offset: 3px;
+}
+body.theme-dark :focus-visible {
+  outline-color: #8de0d4;
+}
+body.theme-dark .ticket-subtitle,
+body.theme-dark .ticket-time,
+body.theme-dark .form-help,
+body.theme-dark .settings-item span,
+body.theme-dark .dm-contact small,
+body.theme-dark .dm-thread-header small {
+  color: #c0d0da;
+}
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder {
+  color: #afc1cc;
+  opacity: 1;
+}
+
+/* Shared control and list feedback foundations used across pages. */
+:root {
+  --control-radius: 12px;
+  --control-min-height: 44px;
+  --status-muted: #536b65;
+  --status-error: #a12622;
+}
+.form-row input,
+.form-row select,
+.form-row textarea,
+.auth-field input,
+.dm-compose-row textarea,
+.support-panel input,
+.support-panel select,
+.support-panel textarea {
+  border-radius: var(--control-radius);
+}
+.form-row input,
+.form-row select,
+.auth-field input,
+.support-panel input,
+.support-panel select {
+  min-height: var(--control-min-height);
+}
+.btn-primary,
+.btn-secondary,
+.auth-submit,
+.event-panel-submit,
+.support-action,
+.admin-pagination button {
+  min-height: var(--control-min-height);
+  font: inherit;
+  font-weight: 700;
+}
+.ui-list-status {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--control-radius);
+  color: var(--status-muted);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.ui-list-status.is-error {
+  color: var(--status-error);
+  background: #fff0ef;
+}
+.ui-list-status.is-loading::before {
+  display: inline-block;
+  width: .9em;
+  height: .9em;
+  margin-right: .65em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  vertical-align: -.12em;
+  animation: ui-spin .8s linear infinite;
+}
+@keyframes ui-spin { to { transform: rotate(360deg); } }
+body.theme-dark .ui-list-status { color: #c0d0da; background: #152d3a; }
+body.theme-dark .ui-list-status.is-error { color: #ffc2bd; background: #452d32; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }

@@ -1,30 +1,6 @@
-// ============================================================================
-// main.js — ÚNICO archivo de JavaScript de todo el sitio (SIGTUR Salto)
+// Interactividad del sitio. La API y Supabase gestionan los datos persistentes.
 
-// Nota del equipo: acá vive TODA la interactividad de las 7 páginas del
-// sitio (home, eventos, turismo, lugares, login, admin, soporte). No hay
-// ningún framework (nada de React/Vue), es JS "vanilla" puro con
-// querySelector/addEventListener de toda la vida. Tampoco hay backend real:
-// todo lo que "se guarda" en este sitio (sesión de usuario, tickets de
-// soporte, ajustes del admin, tema claro/oscuro) se guarda en
-// localStorage del navegador. Buscar "localStorage" en este archivo para
-// ver los ~6 lugares donde pasa esto.
-//
-// Fijate que ya hay comentarios de "gonza" (uno del equipo, según parece)
-// repartidos por todo el archivo, bastante buenos y explicando las partes
-// más complicadas (el carrusel con clones, el fetch del clima, etc). Los
-// dejamos tal cual están y solo sumamos algunas notas nuestras donde
-// hacía falta un poco más de contexto o donde vimos algo para señalar.
-//
-// Estructura general del archivo:
-//   1) Un solo DOMContentLoaded gigante al principio, que arranca TODO:
-//      tema guardado, menú del logo, setup de auth/admin/soporte/footer,
-//      y después un bloque por página (page-home / page-eventos / etc)
-//   2) Funciones sueltas declaradas más abajo (setupFooterAccordions,
-//      buildLogoMenu, setupHomeWeather, setupAuthPage, setupAdminPage,
-//      setupSupportPage) que el DOMContentLoaded de arriba llama
-// ============================================================================
-
+// Inicializacion despues de cargar el DOM.
 // gonza: esto se ejecuta cuando el HTML terminó de cargar del todo.
 // si ponés código acá afuera (fuera del DOMContentLoaded) y el HTML
 // todavía no cargó, querySelector va a devolver null y nada va a funcionar.
@@ -40,15 +16,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupAuthPage();
   const oauthStatus = document.getElementById('auth-status');
-  processOAuthCallback((message, type = 'ok') => {
+  const setAuthStatus = (message, type = 'ok') => {
     if (!oauthStatus) return;
     oauthStatus.textContent = message;
     oauthStatus.dataset.type = type;
     oauthStatus.hidden = !message;
-  });
-  setupAdminPage();
-  setupProfilePage();
+  };
+  let cachedAuthToken = false;
+  try { cachedAuthToken = Boolean(JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY) || 'null')?.token); } catch { /* caché inválida */ }
+  if (oauthStatus && cachedAuthToken && !window.location.hash.includes('access_token')) {
+    setAuthStatus('Verificando la sesión guardada...', 'loading');
+  }
+  processOAuthCallback(setAuthStatus)
+    .then(() => sigturValidateStoredSession())
+    .finally(() => {
+      refreshLogoMenuAccount();
+      setupAdminPage();
+      setupProfilePage();
+      const session = sigturGetSession();
+      if (document.querySelector('.auth-remake') && session?.usuario && (!oauthStatus?.textContent || oauthStatus.dataset.type === 'loading')) {
+        setAuthStatus(`Ya iniciaste sesión como ${session.usuario.nombre}.`, 'ok');
+      } else if (document.querySelector('.auth-remake') && cachedAuthToken && !session?.usuario && oauthStatus?.dataset.type === 'loading') {
+        setAuthStatus('No pudimos verificar la sesión guardada. Iniciá sesión nuevamente.', 'error');
+      }
+    });
   setupSupportPage();
+  loadPublicSiteSettings();
   setupFooterAccordions();
 
   // --- HOME (index.html) ---
@@ -77,26 +70,56 @@ document.addEventListener('DOMContentLoaded', () => {
       let current = 0;
       const total = slides.length;
       let autoTimer;
+      const carousel = track.closest('.carousel');
+      const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
 
       // creamos un puntito por cada slide y lo agregamos al DOM
       slides.forEach((_, i) => {
-        const dot = document.createElement('div');
+        const dot = document.createElement('button');
+        dot.type = 'button';
         dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', `Mostrar evento ${i + 1}`);
+        dot.setAttribute('aria-controls', 'home-event-carousel');
         dot.addEventListener('click', () => goTo(i));
         dotsEl.appendChild(dot);
       });
+      slides.forEach((slide, i) => {
+        slide.setAttribute('role', 'group');
+        slide.setAttribute('aria-roledescription', 'diapositiva');
+        slide.setAttribute('aria-label', `${i + 1} de ${total}`);
+      });
 
-      function updateDots() { dotsEl.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === current)); }
+      function updateDots() {
+        dotsEl.querySelectorAll('.dot').forEach((dot, i) => {
+          dot.classList.toggle('active', i === current);
+          dot.setAttribute('aria-current', String(i === current));
+          slides[i].setAttribute('aria-hidden', String(i !== current));
+        });
+      }
 
       // gonza: el truco del carrusel es mover el track con translateX.
       // si current=1 y cada slide ocupa 100%, movemos -100% → muestra el slide 2
       function goTo(index) { current = (index + total) % total; track.style.transform = `translateX(-${current * 100}%)`; updateDots(); }
 
       // reseteamos el timer automático cada vez que el usuario clickea una flecha
-      function resetAuto() { clearInterval(autoTimer); autoTimer = setInterval(() => goTo(current + 1), 4500); }
+      function resetAuto() { stopAuto(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) autoTimer = setInterval(() => goTo(current + 1), 4500); }
 
       prevBtn?.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
       nextBtn?.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+      carousel?.addEventListener('keydown', event => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          stopAuto();
+          goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
+          event.preventDefault();
+        }
+      });
+      carousel?.addEventListener('focusin', stopAuto);
+      carousel?.addEventListener('mouseenter', stopAuto);
+      carousel?.setAttribute('role', 'region');
+      carousel?.setAttribute('aria-roledescription', 'carrusel');
+      carousel?.setAttribute('aria-label', 'Eventos destacados');
+      track.id = 'home-event-carousel';
+      carousel?.addEventListener('focusout', event => { if (!carousel.contains(event.relatedTarget)) resetAuto(); });
       resetAuto();
     }
 
@@ -241,8 +264,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // pausamos el auto cuando el mouse está encima, es más cómodo para el usuario
     const featCarousel = featTrack?.closest('.feat-carousel');
-    featCarousel?.addEventListener('mouseenter', () => clearInterval(autoTimer));
-    featCarousel?.addEventListener('mouseleave', () => { autoTimer = setInterval(next, 4000); });
+    const stopFeatureAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+    const startFeatureAuto = () => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !autoTimer) autoTimer = setInterval(next, 4000); };
+    featCarousel?.setAttribute('role', 'region');
+    featCarousel?.setAttribute('aria-roledescription', 'carrusel');
+    featCarousel?.setAttribute('aria-label', 'Eventos destacados');
+    featCarousel?.addEventListener('mouseenter', stopFeatureAuto);
+    featCarousel?.addEventListener('focusin', stopFeatureAuto);
+    featCarousel?.addEventListener('keydown', event => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      stopFeatureAuto();
+      goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
+      event.preventDefault();
+    });
+    featCarousel?.addEventListener('mouseleave', () => { if (!featCarousel.contains(document.activeElement)) startFeatureAuto(); });
+    featCarousel?.addEventListener('focusout', event => { if (!featCarousel.contains(event.relatedTarget)) startFeatureAuto(); });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) stopFeatureAuto();
 
     // recalculamos los clones si cambia el tamaño de pantalla (mobile <-> desktop)
     let resizeTimer;
@@ -259,10 +296,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.category-tabs').forEach(group => {
       const tabs = group.querySelectorAll('.cat-tab');
       const section = group.closest('section');
+      const tabListId = group.id || `category-tabs-${Math.random().toString(36).slice(2)}`;
+      group.id = tabListId;
+      group.setAttribute('role', 'tablist');
+      group.setAttribute('aria-label', 'Filtrar eventos por categoría');
+      const list = group.parentElement?.querySelector('.event-tickets');
+      if (list) { list.id ||= `${tabListId}-events`; list.setAttribute('role', 'tabpanel'); list.setAttribute('aria-labelledby', tabs[0]?.id || `${tabListId}-tab-0`); }
+      tabs.forEach((tab, index) => {
+        tab.type = 'button'; tab.setAttribute('role', 'tab');
+        if (!tab.id) tab.id = `${tabListId}-tab-${index}`;
+        tab.setAttribute('aria-controls', list?.id || tabListId);
+        tab.setAttribute('aria-selected', String(tab.classList.contains('active')));
+        tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
+      });
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-          tabs.forEach(item => item.classList.remove('active'));
+          tabs.forEach(item => { item.classList.remove('active'); item.setAttribute('aria-selected', 'false'); item.tabIndex = -1; });
           tab.classList.add('active');
+          tab.setAttribute('aria-selected', 'true'); tab.tabIndex = 0;
+          if (list) list.setAttribute('aria-labelledby', tab.id);
           const filter = tab.dataset.cat;
           section?.querySelectorAll('.ticket-row').forEach(row => {
             const rowCat = row.dataset.cat || '';
@@ -272,6 +324,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!visible && panel?.classList.contains('event-interaction-panel')) panel.hidden = true;
           });
         });
+      });
+      group.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const currentIndex = [...tabs].indexOf(document.activeElement);
+        const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (currentIndex + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+        event.preventDefault(); tabs[nextIndex]?.focus(); tabs[nextIndex]?.click();
       });
     });
 
@@ -300,22 +358,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- LUGARES (lugares.html) ---
   if (body.classList.contains('page-lugares')) {
-    document.querySelectorAll('.lugar-action-link.guardar').forEach(btn => {
-      btn.addEventListener('click', (event) => { event.preventDefault(); btn.classList.toggle('liked'); });
-    });
+    setupFavoriteButtons();
   }
-
-  // corazones de las cards de alojamiento y tickets de eventos
-  document.querySelectorAll('.prop-heart, .ticket-heart').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('liked');
-      const fill = btn.querySelector('.heart-fill');
-      if (fill) {
-        const liked = btn.classList.contains('liked');
-        fill.setAttribute('fill', liked ? '#e84040' : 'none');
-        fill.setAttribute('stroke', liked ? '#e84040' : 'rgba(0,0,0,0.25)');
-      }
-    });
+  if (body.classList.contains('page-turismo')) setupFavoriteButtons();
+  if (body.classList.contains('page-home')) setupFavoriteButtons();
+  document.getElementById('content-grid')?.addEventListener('click', async event => {
+    const button = event.target.closest('[data-remove-saved]'); if (!button) return;
+    button.disabled = true;
+    try { await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: button.dataset.savedType, entidad_id: button.dataset.removeSaved, activo: false }) }); button.closest('.profile-card')?.remove(); const total = document.getElementById('total-count'), places = document.getElementById('following'); if (total) total.textContent = String(Math.max(0, Number(total.textContent) - 1)); if (places && button.dataset.savedType === 'place') places.textContent = String(Math.max(0, Number(places.textContent) - 1)); }
+    catch (error) { button.disabled = false; window.alert(error.message || 'No se pudo quitar de guardados.'); }
   });
 
   setupNavbarSearch();
@@ -556,7 +607,7 @@ const revealStyle = document.createElement('style');
 revealStyle.textContent = '.revealed { opacity: 1 !important; transform: translateY(0) !important; } @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }';
 document.head.appendChild(revealStyle);
 
-// el botón de "Cerrar sesion" del menú del logo reusa la pinta de los <a>
+// el botón de "Cerrar sesión" del menú del logo reusa la pinta de los <a>
 // de .logo-menu, pero es un <button> (no navega a ningún lado), asi que
 // necesita este reset minimo para no verse como un boton de navegador.
 const logoutStyle = document.createElement('style');
@@ -574,18 +625,13 @@ function buildLogoMenu(initialTheme) {
 
   // gonza: creamos el div del menú desde JS en vez de tenerlo en el HTML
   // porque así funciona en todas las páginas sin repetir el markup
-  const session = sigturGetSession();
-  const accountLink = session?.usuario
-    ? `<a href="perfil.html" role="menuitem">Mi perfil (${session.usuario.nombre})</a>`
-    : `<a href="login.html" role="menuitem">Login / Registro</a>`;
-
   const menu = document.createElement('div');
   menu.className = 'logo-menu';
   menu.setAttribute('role', 'menu');
   menu.innerHTML = `
     <a href="index.html" role="menuitem">Inicio</a>
-    ${accountLink}
-    <a href="admin.html" role="menuitem">Configuracion admin</a>
+    <span data-menu-account></span>
+    <a href="admin.html" role="menuitem">Configuración admin</a>
     <a href="soporte.html" role="menuitem">Soporte</a>
     <button class="theme-switch" type="button" role="menuitem" aria-pressed="${initialTheme === 'dark'}">
       <span class="theme-orbit" aria-hidden="true">
@@ -596,12 +642,7 @@ function buildLogoMenu(initialTheme) {
     </button>
   `;
   logo.insertAdjacentElement('afterend', menu);
-
-  menu.querySelector('[data-logout]')?.addEventListener('click', async () => {
-    try { await sigturApiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* igual limpiamos local */ }
-    sigturClearSession();
-    window.location.reload();
-  });
+  renderLogoMenuAccount(menu);
 
   const themeBtn = menu.querySelector('.theme-switch');
   const themeText = menu.querySelector('.theme-switch-text');
@@ -633,6 +674,25 @@ function buildLogoMenu(initialTheme) {
     menu.classList.remove('open');
     logo.setAttribute('aria-expanded', 'false');
   });
+}
+
+function renderLogoMenuAccount(menu = document.querySelector('.logo-menu')) {
+  const slot = menu?.querySelector('[data-menu-account]');
+  if (!slot) return;
+  const session = sigturGetSession();
+  if (!session?.usuario) {
+    slot.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
+    return;
+  }
+  slot.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escapeText(session.usuario.nombre || 'Usuario')})</a><button class="logo-menu-account" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
+  slot.querySelector('[data-logout]')?.addEventListener('click', async () => {
+    await sigturLogout();
+    window.location.reload();
+  });
+}
+
+function refreshLogoMenuAccount() {
+  renderLogoMenuAccount();
 }
 
 // gonza: esta función es async porque hace un fetch a una API externa (open-meteo).
@@ -704,7 +764,7 @@ async function setupHomeWeather() {
 }
 
 // Auth conectado al backend real (Express + Supabase, ver backend/app.js
-// y backend/rutas/auth rutas.js). La sesión (token + datos del usuario) se
+// y backend/rutas/auth_rutas.js). La sesión (token + datos del usuario) se
 // cachea en localStorage bajo 'sigtur-session' solo para no tener que
 // loguearse de nuevo en cada página, pero la fuente de verdad es siempre
 // el backend: el token se manda en el header Authorization de cada fetch.
@@ -714,9 +774,12 @@ const SIGTUR_XAMPP_BASE = SIGTUR_IS_LOCAL_HOST && xamppRoot !== window.location.
 const SIGTUR_BACKEND_URL = window.SIGTUR_BACKEND_URL || '';
 const SIGTUR_API_BASE = SIGTUR_XAMPP_BASE || SIGTUR_BACKEND_URL;
 const SIGTUR_SESSION_KEY = 'sigtur-session';
+let SIGTUR_VALIDATED_TOKEN = null;
+let SIGTUR_REFRESH_PROMISE = null;
+let SIGTUR_EXPIRY_TIMER = null;
 
 function sanitizeAuthMessage(message, fallback) {
-  const text = String(message || '').trim();
+  const text = String(message || '').trim().slice(0, 240);
   if (!text) return fallback;
   if (/token|refresh_token|access_token|authorization|Bearer|secret|api[_ -]?key/i.test(text)) {
     return fallback;
@@ -726,25 +789,47 @@ function sanitizeAuthMessage(message, fallback) {
 
 function sigturGetSession() {
   try {
-    return JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY)) || null;
+    const session = JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY)) || null;
+    if (!session?.token) return null;
+    const expiresAt = Number(session.expiresAt || 0);
+    const unexpired = !expiresAt || expiresAt > Math.floor(Date.now() / 1000);
+    return session.token === SIGTUR_VALIDATED_TOKEN && unexpired ? session : { ...session, usuario: null, profileValidated: false };
   } catch {
     return null;
   }
 }
 
-function sigturSaveSession(session) {
+function sigturSaveSession(session, profileValidated = false) {
+  if (!session?.token) return sigturClearSession();
+  const currentToken = SIGTUR_VALIDATED_TOKEN;
+  SIGTUR_VALIDATED_TOKEN = profileValidated && session.usuario ? session.token : (currentToken === session.token ? currentToken : null);
+  session = { ...session, profileValidated: Boolean(SIGTUR_VALIDATED_TOKEN === session.token && session.usuario) };
   localStorage.setItem(SIGTUR_SESSION_KEY, JSON.stringify(session));
+  clearTimeout(SIGTUR_EXPIRY_TIMER);
+  const expiresAt = Number(session.expiresAt || 0);
+  if (session.profileValidated && expiresAt) {
+    SIGTUR_EXPIRY_TIMER = setTimeout(async () => {
+      if (!sigturGetSession()?.refreshToken) {
+        sigturClearSession();
+        return;
+      }
+      const renewed = await sigturRefreshSession();
+      if (!renewed) refreshLogoMenuAccount();
+    }, Math.max(0, expiresAt * 1000 - Date.now()));
+  }
 }
 
 function sigturClearSession() {
+  SIGTUR_VALIDATED_TOKEN = null;
   localStorage.removeItem(SIGTUR_SESSION_KEY);
+  refreshLogoMenuAccount();
 }
 
 async function processOAuthCallback(setStatus) {
   const queryParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
-  const params = queryParams.has('access_token') || queryParams.has('refresh_token') ? queryParams : hashParams;
-  const oauthError = queryParams.get('oauth_error') || hashParams.get('oauth_error');
+  const params = hashParams.has('access_token') || hashParams.has('refresh_token') ? hashParams : queryParams;
+  const oauthError = queryParams.get('oauth_error') || hashParams.get('oauth_error') || hashParams.get('error_description') || hashParams.get('error');
   const accessToken = params.get('access_token');
   if (oauthError && !accessToken) {
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -754,7 +839,7 @@ async function processOAuthCallback(setStatus) {
       window.location.replace(loginUrl.toString());
       return;
     }
-    setStatus(oauthError, 'error');
+    setStatus(sanitizeAuthMessage(oauthError, 'No se pudo completar el acceso con Google.'), 'error');
     return;
   }
   if (!accessToken) return;
@@ -762,59 +847,95 @@ async function processOAuthCallback(setStatus) {
   const session = {
     token: accessToken,
     refreshToken: params.get('refresh_token') || null,
-    expiresAt: Number(params.get('expires_at')) || null,
+    expiresAt: Number(params.get('expires_at') || params.get('expires_in')) || null,
   };
+  if (session.expiresAt && session.expiresAt < 1000000000) session.expiresAt += Math.floor(Date.now() / 1000);
   sigturSaveSession(session);
+  const isRecovery = params.get('type') === 'recovery';
   window.history.replaceState({}, document.title, window.location.pathname);
+  setStatus(isRecovery ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
   try {
     const result = await sigturApiFetch('/api/auth/me');
-    sigturSaveSession({ ...session, usuario: result.usuario });
-    setStatus(`Bienvenido, ${result.usuario?.nombre || 'usuario'}.`, 'ok');
-    window.location.href = 'index.html';
-  } catch {
-    sigturClearSession();
-    setStatus('La sesión de Google no pudo validarse. Intenta nuevamente.', 'error');
+    if (!result?.usuario?.id || !result.usuario.nombre || !result.usuario.correo) throw new Error('Profile validation failed.');
+    sigturSaveSession({ ...sigturGetSession(), usuario: result.usuario }, true);
+    if (isRecovery) {
+      showPasswordResetForm();
+      setStatus('El enlace fue validado. Elige una contrasena nueva.', 'ok');
+      return;
+    }
+    setStatus(`Bienvenido, ${result.usuario.nombre}.`, 'ok');
+    window.location.replace('index.html');
+  } catch (error) {
+    if (error.status === 401 || error.message === 'Profile validation failed.') sigturClearSession();
+    setStatus(isRecovery ? 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.' : 'No pudimos validar la sesión de Google. Intentá nuevamente.', 'error');
   }
+}
+
+async function sigturLogout() {
+  try { await sigturApiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* La sesión local también debe limpiarse. */ }
+  sigturClearSession();
 }
 
 async function logout() {
-  try { await sigturApiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* la sesión local también debe limpiarse */ }
-  sigturClearSession();
-  window.location.href = 'login.html';
+  await sigturLogout();
+  window.location.replace('login.html');
 }
 
 async function sigturRefreshSession() {
-  const currentSession = sigturGetSession();
-  if (!currentSession?.refreshToken) return null;
-
-  try {
-    const response = await fetch(`${SIGTUR_BACKEND_URL}/api/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: currentSession.refreshToken }),
-    });
-    const renewedSession = await response.json().catch(() => null);
-    if (!response.ok || !renewedSession?.token) return null;
-    sigturSaveSession({ ...currentSession, ...renewedSession, usuario: renewedSession.usuario || currentSession.usuario });
-    return sigturGetSession();
-  } catch {
-    return null;
-  }
+  if (SIGTUR_REFRESH_PROMISE) return SIGTUR_REFRESH_PROMISE;
+  SIGTUR_REFRESH_PROMISE = (async () => {
+    const currentSession = sigturGetSession();
+    if (!currentSession?.refreshToken) return null;
+    try {
+      const refreshTarget = SIGTUR_XAMPP_BASE
+        ? `${SIGTUR_XAMPP_BASE}/api/auth.php?action=refresh`
+        : `${SIGTUR_BACKEND_URL}/api/auth/refresh`;
+      const response = await fetch(refreshTarget, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: currentSession.refreshToken }),
+      });
+      const renewedSession = await response.json().catch(() => null);
+      if (!response.ok || !renewedSession?.token || !renewedSession?.usuario?.id) {
+        let latestSession = null;
+        try { latestSession = JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY) || 'null'); } catch { /* almacenamiento local inválido */ }
+        if (latestSession?.token && latestSession.refreshToken && latestSession.refreshToken !== currentSession.refreshToken) return sigturGetSession();
+        if (response.status === 400 || response.status === 401) sigturClearSession();
+        return null;
+      }
+      sigturSaveSession({ ...currentSession, ...renewedSession }, true);
+      return sigturGetSession();
+    } catch {
+      return null;
+    } finally {
+      SIGTUR_REFRESH_PROMISE = null;
+    }
+  })();
+  return SIGTUR_REFRESH_PROMISE;
 }
 
 async function sigturApiFetch(path, options = {}, retriedAfterRefresh = false) {
-  const session = sigturGetSession();
+  let session = sigturGetSession();
+  const isRefresh = path === '/api/auth/refresh';
+  const isAuthEntry = ['/api/auth/login', '/api/auth/register', '/api/auth/recuperar', '/api/auth/password'].includes(path);
+  if (!retriedAfterRefresh && !isRefresh && !isAuthEntry && session?.token) {
+    const expiresAt = Number(session.expiresAt || 0);
+    if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 30) {
+      const renewed = await sigturRefreshSession();
+      session = renewed || sigturGetSession();
+    }
+  }
+
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (session?.token) headers.Authorization = `Bearer ${session.token}`;
-
   const isXamppAuth = SIGTUR_API_BASE.endsWith('/frontend/html') && path.startsWith('/api/auth/');
-  const isRefresh = path === '/api/auth/refresh';
   const isProfileUpdate = path === '/api/auth/me' && String(options.method || 'GET').toUpperCase() === 'PATCH';
-  const isXamppInteraction = SIGTUR_API_BASE.endsWith('/frontend/html') && /^(\/api\/(guardados|likes|comentarios|mensajes|admin))/.test(path);
+  const isPasswordUpdate = path === '/api/auth/password';
+  const isXamppInteraction = SIGTUR_API_BASE.endsWith('/frontend/html') && /^(\/api\/(guardados|likes|comentarios|mensajes|reservas|admin))/.test(path);
   const isXamppBackendRoute = SIGTUR_API_BASE.endsWith('/frontend/html') && /^\/api\/(eventos|companias|mapa)/.test(path);
-  const target = isXamppAuth && !isProfileUpdate && !isRefresh
+  const target = isXamppAuth && !isProfileUpdate
     ? `${SIGTUR_API_BASE}/api/auth.php?action=${encodeURIComponent(path.slice('/api/auth/'.length))}`
-    : isXamppInteraction || isXamppBackendRoute || isProfileUpdate || isRefresh
+    : isXamppInteraction || isXamppBackendRoute || isProfileUpdate || isPasswordUpdate || isRefresh
       ? `${SIGTUR_BACKEND_URL}${path}`
       : `${SIGTUR_API_BASE}${path}`;
   let response;
@@ -822,21 +943,59 @@ async function sigturApiFetch(path, options = {}, retriedAfterRefresh = false) {
     response = await fetch(target, { ...options, headers });
   } catch (cause) {
     console.error(`Error de red al llamar a ${target}`, cause);
-    throw new Error('No se pudo conectar al servidor. Verificá la configuración de la URL pública del backend.');
+    throw new Error('No se pudo conectar al servidor. Verifica la URL publica del backend.');
   }
   let payload = null;
-  try { payload = await response.json(); } catch { /* respuesta vacía */ }
+  try { payload = await response.json(); } catch { /* Empty response. */ }
 
   if (response.status === 401 && !retriedAfterRefresh && !isRefresh && session?.refreshToken) {
     const renewedSession = await sigturRefreshSession();
     if (renewedSession) return sigturApiFetch(path, options, true);
   }
-
   if (!response.ok) {
-    throw new Error(payload?.error || 'Ocurrió un error inesperado. Intenta de nuevo.');
+    if (response.status === 401 && session?.token) sigturClearSession();
+    throw Object.assign(new Error(payload?.error || 'Ocurrió un error inesperado. Intentá de nuevo.'), { status: response.status });
   }
   return payload;
 }
+
+window.sigturApiFetch = sigturApiFetch;
+window.sigturGetSession = sigturGetSession;
+
+async function sigturValidateStoredSession() {
+  const session = sigturGetSession();
+  const expiresAt = Number(session?.expiresAt || 0);
+  if (!session?.token || (session.token === SIGTUR_VALIDATED_TOKEN && (!expiresAt || expiresAt > Math.floor(Date.now() / 1000) + 30))) return;
+  try {
+    const result = await sigturApiFetch('/api/auth/me');
+    if (!result?.usuario?.id || !result.usuario.nombre || !result.usuario.correo) throw new Error('Profile validation failed.');
+    sigturSaveSession({ ...sigturGetSession(), usuario: result.usuario }, true);
+  } catch (error) {
+    if (error.status === 401 || error.message === 'Profile validation failed.') sigturClearSession();
+  }
+}
+
+window.addEventListener('storage', event => {
+  if (event.key !== SIGTUR_SESSION_KEY) return;
+  SIGTUR_VALIDATED_TOKEN = null;
+  if (!event.newValue) {
+    refreshLogoMenuAccount();
+    const authStatus = document.getElementById('auth-status');
+    if (authStatus) { authStatus.hidden = true; authStatus.textContent = ''; }
+    if (document.querySelector('.profile-page') || document.getElementById('admin-settings-form')) window.location.reload();
+    return;
+  }
+  sigturValidateStoredSession().finally(() => {
+    refreshLogoMenuAccount();
+    const session = sigturGetSession();
+    const authStatus = document.getElementById('auth-status');
+    if (authStatus && session?.usuario) {
+      authStatus.textContent = `Ya iniciaste sesión como ${session.usuario.nombre}.`;
+      authStatus.dataset.type = 'ok';
+      authStatus.hidden = false;
+    }
+  });
+});
 
 function loginGoogle(button) {
   if (button) button.disabled = true;
@@ -858,6 +1017,7 @@ function setupAuthPage() {
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
   const recoveryForm = document.getElementById('recovery-form');
+  const passwordResetForm = document.getElementById('password-reset-form');
 
   const setStatus = (message, type = 'ok') => {
     if (!status) return;
@@ -879,6 +1039,12 @@ function setupAuthPage() {
   };
 
   const activateTab = (name) => {
+    recoveryForm?.toggleAttribute('hidden', true);
+    passwordResetForm?.toggleAttribute('hidden', true);
+    passwordResetForm?.classList.remove('active');
+    loginForm?.toggleAttribute('hidden', name !== 'login');
+    registerForm?.toggleAttribute('hidden', name !== 'register');
+    tabs.forEach(tab => tab.removeAttribute('hidden'));
     tabs.forEach(tab => {
       const active = tab.dataset.authTab === name;
       tab.classList.toggle('active', active);
@@ -908,12 +1074,17 @@ function setupAuthPage() {
   // si ya hay sesión guardada, lo avisamos en vez de mostrar los forms como si nada
   const existingSession = sigturGetSession();
   if (existingSession?.usuario) {
-    setStatus(`Ya iniciaste sesión como ${existingSession.usuario.nombre}. Podes cerrar sesión desde el menú del logo.`, 'ok');
+    setStatus(`Ya iniciaste sesión como ${existingSession.usuario.nombre}. Podés cerrar sesión desde el menú del logo.`, 'ok');
   }
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => activateTab(tab.dataset.authTab));
   });
+      tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const target = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+        event.preventDefault(); tabs[target].focus(); activateTab(tabs[target].dataset.authTab);
+      }));
 
   registerForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -953,7 +1124,7 @@ function setupAuthPage() {
         activateTab('login');
         return;
       }
-      sigturSaveSession(resultado);
+      sigturSaveSession(resultado, true);
       setStatus(`Cuenta creada. Sesión iniciada como ${resultado.usuario.nombre}.`, 'ok');
       registerForm.reset();
       window.location.href = 'index.html';
@@ -995,7 +1166,7 @@ function setupAuthPage() {
         method: 'POST',
         body: JSON.stringify({ correo, password })
       });
-      sigturSaveSession(resultado);
+      sigturSaveSession(resultado, true);
       setStatus(`Bienvenido de nuevo, ${resultado.usuario.nombre}.`, 'ok');
       loginForm.reset();
       window.location.href = 'index.html';
@@ -1058,6 +1229,31 @@ function setupAuthPage() {
     }
   });
 
+  passwordResetForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(passwordResetForm);
+    const password = String(data.get('password') || '');
+    const confirmation = String(data.get('password_confirmation') || '');
+    if (password.length < 8) return setStatus('La contraseña debe tener al menos 8 caracteres.', 'error');
+    if (password !== confirmation) return setStatus('Las contraseñas no coinciden.', 'error');
+    if (!sigturGetSession()?.token) return setStatus('Solicitá un enlace nuevo para cambiar la contraseña.', 'error');
+    setBusy(passwordResetForm, true, 'Actualizando contraseña...');
+    try {
+      await sigturApiFetch('/api/auth/password', { method: 'PATCH', body: JSON.stringify({ password }) });
+      await sigturLogout();
+      passwordResetForm.reset();
+      passwordResetForm.hidden = true;
+      passwordResetForm.classList.remove('active');
+      tabs.forEach(tab => tab.removeAttribute('hidden'));
+      activateTab('login');
+      setStatus('Contraseña actualizada. Ya puedes iniciar sesión.', 'ok');
+    } catch (error) {
+      setStatus(sanitizeAuthMessage(error.message, 'No se pudo cambiar la contraseña. Solicitá un enlace nuevo.'), 'error');
+    } finally {
+      setBusy(passwordResetForm, false);
+    }
+  });
+
   document.getElementById('recovery-cancel')?.addEventListener('click', () => {
     recoveryForm?.toggleAttribute('hidden', true);
     loginForm?.toggleAttribute('hidden', false);
@@ -1067,20 +1263,35 @@ function setupAuthPage() {
   });
 }
 
+function showPasswordResetForm() {
+  const reset = document.getElementById('password-reset-form');
+  if (!reset) return;
+  document.querySelectorAll('[data-auth-panel]').forEach(panel => {
+    panel.hidden = true;
+    panel.classList.remove('active');
+  });
+  document.querySelectorAll('[data-auth-tab]').forEach(tab => tab.hidden = true);
+  reset.hidden = false;
+  reset.classList.add('active');
+}
+
 async function setupProfilePage() {
   const profilePage = document.querySelector('.profile-page');
   if (!profilePage) return;
+  profilePage.setAttribute('aria-busy', 'true');
 
   const session = sigturGetSession();
   if (!session?.token) {
-    window.location.href = 'login.html';
+    window.location.replace('login.html');
     return;
   }
 
   try {
     const result = await sigturApiFetch('/api/auth/me');
-    const usuario = result.usuario || {};
-    sigturSaveSession({ ...session, usuario });
+    const usuario = result.usuario;
+    if (!usuario?.id || !usuario.nombre || !usuario.correo) throw new Error('No se pudo validar el perfil de la cuenta.');
+    sigturSaveSession({ ...session, usuario }, true);
+    profilePage.setAttribute('aria-busy', 'false');
 
     const name = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
     const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
@@ -1088,7 +1299,7 @@ async function setupProfilePage() {
     document.getElementById('role-tags').innerHTML = `<span class="tag">${usuario.rol === 'admin' ? 'Administrador' : 'Explorador'}</span>`;
     document.getElementById('followers').textContent = 'Activa';
     setupProfileEditor(usuario);
-    renderProfileReservations(usuario.id);
+    await renderProfileReservations(usuario.id);
 
     try {
       const saved = await sigturApiFetch('/api/guardados');
@@ -1096,14 +1307,19 @@ async function setupProfilePage() {
       document.getElementById('total-count').textContent = savedPlaces.length;
       document.getElementById('following').textContent = savedPlaces.filter(item => item.entidad_tipo === 'place').length;
       renderProfileGrid(savedPlaces);
-    } catch {
-      // El perfil sigue siendo válido aunque falte la migración de interacciones.
-      renderProfileGrid([]);
+    } catch (error) {
+      const grid = document.getElementById('content-grid');
+      if (grid) grid.innerHTML = `<p class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar tus lugares guardados. Intentá nuevamente.')}</p>`;
     }
     setupMessaging();
-  } catch {
-    sigturClearSession();
-    window.location.href = 'login.html';
+  } catch (error) {
+    profilePage.setAttribute('aria-busy', 'false');
+    if (!sigturGetSession()?.token) {
+      window.location.replace('login.html');
+    } else {
+      const title = document.getElementById('profile-title');
+      if (title) title.textContent = error.message || 'No se pudo cargar el perfil. Intentá nuevamente.';
+    }
     return;
   }
 
@@ -1152,7 +1368,7 @@ function setupProfileEditor(initialUser) {
       submit.disabled = true; status.textContent = 'Guardando cambios...';
       const result = await sigturApiFetch('/api/auth/me', { method: 'PATCH', body: JSON.stringify({ ...values, avatar_url: avatarUrl }) });
       const session = sigturGetSession();
-      sigturSaveSession({ ...session, usuario: result.usuario });
+      sigturSaveSession({ ...session, usuario: result.usuario }, true);
       initialUser = result.usuario; avatarUrl = result.usuario.avatar_url || '';
       const initials = (result.usuario.nombre || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
       renderProfileIdentity(result.usuario, initials);
@@ -1181,8 +1397,17 @@ async function setupMessaging() {
   const attachmentStatus = document.getElementById('dm-attachment-status');
   const attachmentPreview = document.getElementById('dm-attachment-preview');
   const activeContactLabel = document.getElementById('dm-active-contact');
+  const cleanupFilesButton = document.getElementById('dm-cleanup-files');
   const textSendButton = form?.querySelector('.dm-send-text');
   if (!contactSelect || !thread || !form) return;
+
+  cleanupFilesButton?.addEventListener('click', async () => {
+    if (!window.confirm('Se eliminarán de tu almacenamiento los archivos y audios sin uso que tengan más de 30 días. ¿Continuar?')) return;
+    cleanupFilesButton.disabled = true;
+    try { const removed = await sigturApiFetch('/api/mensajes/archivos-antiguos', { method: 'DELETE' }); status.textContent = `Limpieza terminada: ${removed.audio} audios y ${removed.attachments} adjuntos eliminados.`; }
+    catch (error) { status.textContent = error.message || 'No se pudo limpiar el almacenamiento.'; }
+    finally { cleanupFilesButton.disabled = false; }
+  });
 
   let contacts = [];
   let conversations = [];
@@ -1290,6 +1515,19 @@ async function setupMessaging() {
     if (attachmentInput) attachmentInput.value = '';
     renderPendingAttachments();
   };
+  const addPendingAttachments = files => {
+    const chosen = [...files];
+    const remaining = maxAttachments - pendingAttachments.length;
+    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
+    const accepted = valid.slice(0, Math.max(remaining, 0));
+    pendingAttachments.push(...accepted);
+    renderPendingAttachments();
+    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
+      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
+    } else if (accepted.length < chosen.length) {
+      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+    }
+  };
 
   const currentUserId = () => sigturGetSession()?.usuario?.id;
   const setComposerEnabled = enabled => {
@@ -1317,9 +1555,7 @@ async function setupMessaging() {
     const payload = event?.data || (event?.key === 'sigtur-mensajes-sync' ? JSON.parse(event.newValue || 'null') : null);
     if (!payload || !payload.ts) return;
     await loadConversations();
-    if (activeId) {
-      await loadThread(activeId);
-    }
+    if (activeId) await loadThread(activeId, { refreshConversations: false });
   };
   const nameOf = user => `${user.nombre || 'Usuario'}${user.apellido ? ` ${user.apellido}` : ''}`;
   const initialsOf = user => {
@@ -1334,17 +1570,28 @@ async function setupMessaging() {
   const renderConversations = () => {
     if (!contactList) return;
     const term = (contactSearch?.value || '').trim().toLowerCase();
+    const matchesTerm = (user, preview = '') => {
+      const hayTexto = [nameOf(user), user.correo || '', preview].filter(Boolean).join(' ').toLowerCase();
+      return !term || hayTexto.includes(term);
+    };
     const visible = conversations.filter((item) => {
       const user = item.usuario || {};
-      const hayTexto = [nameOf(user), user.correo || '', item.last_message?.contenido || '']
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return !term || hayTexto.includes(term);
+      return matchesTerm(user, item.last_message?.contenido || '');
     });
+    const conversationIds = new Set(conversations.map(item => item.usuario_id));
+    if (term) {
+      contacts.filter(user => !conversationIds.has(user.id) && matchesTerm(user))
+        .forEach(user => visible.push({ usuario_id: user.id, usuario: user, isNew: true }));
+    }
+    const activeContact = contacts.find(user => user.id === activeId);
+    if (activeContact && !conversationIds.has(activeId) && !visible.some(item => item.usuario_id === activeId)) {
+      visible.unshift({ usuario_id: activeId, usuario: activeContact, isNew: true });
+    }
 
     if (!visible.length) {
-      contactList.innerHTML = '<p class="dm-empty">No hay conversaciones para mostrar.</p>';
+      contactList.innerHTML = term
+        ? '<p class="dm-empty">No encontramos usuarios ni conversaciones con ese nombre.</p>'
+        : '<p class="dm-empty">Todavía no hay conversaciones. Buscá un usuario para iniciar una.</p>';
       return;
     }
 
@@ -1355,7 +1602,7 @@ async function setupMessaging() {
         ? '🎙 Mensaje de voz'
         : item.last_message?.tipo === 'archivo'
           ? '📎 Archivo adjunto'
-        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : 'No hay mensajes todavía.';
+        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : item.isNew ? 'Iniciar chat · se entrega al reconectar' : 'No hay mensajes todavía.';
       const unread = Number(item.unread_count || 0);
       const active = item.usuario_id === activeId ? 'is-active' : '';
       return `
@@ -1384,12 +1631,12 @@ async function setupMessaging() {
     }
   };
 
-  const loadThread = async (userId) => {
+  const loadThread = async (userId, { scrollToBottom = false, refreshConversations = true } = {}) => {
     if (!userId) return;
-    if (activeId && activeId !== userId && mediaRecorder?.state === 'recording') {
-      status.textContent = 'Detené o terminá la grabación antes de cambiar de conversación.';
-      return;
-    }
+    if (activeId && activeId !== userId && mediaRecorder?.state === 'recording') { status.textContent = 'Detené la grabación antes de cambiar de conversación.'; return; }
+    if (activeId && activeId !== userId && (recordedAudio || pendingAttachments.length) && !window.confirm('Tenés una grabación o archivos sin enviar. Si cambiás de conversación, se descartarán. ¿Continuar?')) return;
+    const conversationChanged = activeId !== userId;
+    const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
     if (activeId !== userId) {
       resetAudioPreview();
       clearPendingAttachments();
@@ -1403,6 +1650,7 @@ async function setupMessaging() {
     try {
       const result = await sigturApiFetch(`/api/mensajes?usuario_id=${encodeURIComponent(userId)}`);
       const items = Array.isArray(result) ? result : result.data || [];
+      if (activeId !== userId) return;
       thread.innerHTML = (items || []).map((item) => {
         const isOutgoing = item.remitente_id === currentUserId();
         const stateText = isOutgoing ? (item.leido ? '✓✓ Leído' : '✓ Enviado') : '';
@@ -1413,18 +1661,31 @@ async function setupMessaging() {
           <article class="dm-bubble ${isOutgoing ? 'outgoing' : 'incoming'} ${item.tipo === 'audio' ? 'dm-bubble-audio' : ''}" data-message-id="${escapeText(item.id)}">
             ${content}
             <time>${new Date(item.created_at).toLocaleString('es-UY')} ${stateText ? `· ${escapeText(stateText)}` : ''}</time>
+            ${isOutgoing ? '<button type="button" data-delete-message>Eliminar mensaje</button>' : ''}
           </article>
         `;
       }).join('') || '<p class="dm-empty">No hay mensajes todavía.</p>';
-      thread.scrollTop = thread.scrollHeight;
+      if (scrollToBottom || conversationChanged || wasNearBottom) thread.scrollTop = thread.scrollHeight;
       status.textContent = '';
-      await sigturApiFetch('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: userId }) });
-      notifyMessagingSync(userId);
-      await loadConversations();
+      if (items.some(item => item.destinatario_id === currentUserId() && !item.leido)) {
+        await sigturApiFetch('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: userId }) });
+        notifyMessagingSync(userId);
+      }
+      if (refreshConversations) await loadConversations();
     } catch (error) {
       status.textContent = error.message || 'No se pudo abrir la conversación.';
     }
   };
+
+  thread.addEventListener('click', async event => {
+    const button = event.target.closest('[data-delete-message]');
+    if (!button) return;
+    const bubble = button.closest('[data-message-id]');
+    if (!bubble || !window.confirm('¿Eliminar este mensaje y sus archivos adjuntos?')) return;
+    button.disabled = true;
+    try { await sigturApiFetch(`/api/mensajes/${encodeURIComponent(bubble.dataset.messageId)}`, { method: 'DELETE' }); await loadThread(activeId); }
+    catch (error) { button.disabled = false; status.textContent = error.message || 'No se pudo eliminar el mensaje.'; }
+  });
 
 
 const refreshActiveThread = async () => {
@@ -1433,7 +1694,7 @@ const refreshActiveThread = async () => {
 
   refreshing = true;
   try {
-    await loadThread(activeId);
+    await loadThread(activeId, { refreshConversations: false });
   } finally {
     refreshing = false;
   }
@@ -1442,12 +1703,18 @@ const refreshActiveThread = async () => {
 const refreshMessaging = async () => {
   if (document.hidden) return;
 
-  // Actualiza la lista para detectar conversaciones nuevas.
-  await loadConversations();
+  // La lista de conversaciones cambia con menor frecuencia que el hilo activo.
+  const now = Date.now();
+  if (now - lastConversationRefresh >= 60000) {
+    lastConversationRefresh = now;
+    await loadConversations();
+  }
 
   // Si hay una conversación abierta, actualiza sus mensajes.
   await refreshActiveThread();
 };
+
+let lastConversationRefresh = Date.now();
 
 
   try {
@@ -1481,17 +1748,38 @@ const refreshMessaging = async () => {
   attachmentButton?.addEventListener('click', () => attachmentInput?.click());
   attachmentInput?.addEventListener('change', () => {
     const chosen = [...(attachmentInput.files || [])];
-    const remaining = maxAttachments - pendingAttachments.length;
-    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
-    const accepted = valid.slice(0, Math.max(remaining, 0));
-    pendingAttachments.push(...accepted);
     attachmentInput.value = '';
-    renderPendingAttachments();
-    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
-      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
-    } else if (accepted.length < chosen.length) {
-      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+    addPendingAttachments(chosen);
+  });
+  message?.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
+    event.preventDefault();
+    if (textSendButton && !textSendButton.disabled) form.requestSubmit();
+  });
+  message?.addEventListener('paste', event => {
+    const files = [...(event.clipboardData?.items || [])]
+      .filter(item => item.kind === 'file')
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+    if (!files.length) return;
+    event.preventDefault();
+    addPendingAttachments(files);
+  });
+  form.addEventListener('dragover', event => {
+    if ([...(event.dataTransfer?.items || [])].some(item => item.kind === 'file')) {
+      event.preventDefault();
+      form.classList.add('is-drop-target');
     }
+  });
+  form.addEventListener('dragleave', event => {
+    if (!form.contains(event.relatedTarget)) form.classList.remove('is-drop-target');
+  });
+  form.addEventListener('drop', event => {
+    form.classList.remove('is-drop-target');
+    const files = [...(event.dataTransfer?.files || [])];
+    if (!files.length) return;
+    event.preventDefault();
+    addPendingAttachments(files);
   });
 
   if ('BroadcastChannel' in window) {
@@ -1503,11 +1791,11 @@ const refreshMessaging = async () => {
       handleMessagingSync(event);
     }
   });
- 
+
 
 window.addEventListener('focus', refreshMessaging);
 
-const refreshTimer = window.setInterval(refreshMessaging, 4000);
+const refreshTimer = window.setInterval(refreshMessaging, 15000);
 
 document.addEventListener('visibilitychange', refreshMessaging);
 
@@ -1621,10 +1909,9 @@ document.addEventListener('visibilitychange', refreshMessaging);
         }),
       });
       resetAudioPreview();
-      status.textContent = 'Mensaje de voz enviado.';
+      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
       notifyMessagingSync(recipientId);
-      await loadThread(recipientId);
-      await loadConversations();
+      await loadThread(recipientId, { scrollToBottom: true });
     } catch (error) {
       status.textContent = error.message || 'No se pudo enviar el audio.';
       if (audioSendButton) audioSendButton.disabled = false;
@@ -1633,7 +1920,8 @@ document.addEventListener('visibilitychange', refreshMessaging);
     }
   });
 
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', event => {
+  if (recordedAudio || pendingAttachments.length || mediaRecorder?.state === 'recording') { event.preventDefault(); event.returnValue = ''; return; }
   window.clearInterval(refreshTimer);
   window.clearInterval(recordingTimer);
   recordingStream?.getTracks().forEach(track => track.stop());
@@ -1689,10 +1977,9 @@ window.addEventListener('beforeunload', () => {
       });
       message.value = '';
       clearPendingAttachments();
-      status.textContent = 'Mensaje enviado.';
+      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
       notifyMessagingSync(recipientId);
-      await loadThread(recipientId);
-      await loadConversations();
+      await loadThread(recipientId, { scrollToBottom: true });
     } catch (error) {
       status.textContent = error.message || 'No se pudo enviar el mensaje.';
     } finally {
@@ -1709,6 +1996,32 @@ function escapeText(value) {
   return element.innerHTML;
 }
 
+function setupFavoriteButtons() {
+  document.querySelectorAll('.prop-heart, .lugar-action-link.guardar').forEach(button => {
+    const card = button.closest('.prop-card') || button.closest('.lugar-actions')?.parentElement?.parentElement || button.parentElement;
+    const title = card.querySelector('.prop-name, h3, h4')?.textContent.trim() || button.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || card.querySelector('img')?.alt?.trim() || 'Lugar turístico';
+    const entityId = button.dataset.entityId || title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    button.dataset.entityId = entityId;
+    button.setAttribute('aria-pressed', 'false');
+    const sync = async () => {
+      try { const state = await sigturApiFetch(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(entityId)}`); button.setAttribute('aria-pressed', String(Boolean(state.saved))); button.classList.toggle('liked', Boolean(state.saved)); }
+      catch { button.setAttribute('aria-pressed', 'false'); }
+    };
+    sync();
+    button.addEventListener('click', async event => {
+      event.preventDefault();
+      if (!sigturGetSession()?.token) { window.location.assign('login.html'); return; }
+      const active = button.getAttribute('aria-pressed') !== 'true'; button.disabled = true;
+      try {
+        await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'place', entidad_id: entityId, activo: active, metadata: { nombre: title } }) });
+        button.setAttribute('aria-pressed', String(active)); button.classList.toggle('liked', active);
+        button.setAttribute('aria-label', active ? `Quitar ${title} de guardados` : `Guardar ${title}`);
+      } catch (error) { window.alert(error.message || 'No se pudo actualizar guardados.'); }
+      finally { button.disabled = false; }
+    });
+  });
+}
+
 function setupTourismPlanning() {
   const cards = document.querySelectorAll('.alojamientos-section .prop-card');
   if (!cards.length) return;
@@ -1719,17 +2032,18 @@ function setupTourismPlanning() {
   const open = card => {
     const name = card.querySelector('.prop-name')?.textContent.trim() || 'Experiencia turística';
     const price = card.querySelector('.prop-price')?.textContent.trim() || 'Consultar tarifa';
-    dialog.innerHTML = `<form method="dialog" class="tourism-plan-widget"><header><div><p>Planificá tu visita</p><h2>${escapeText(name)}</h2></div><button value="cancel" aria-label="Cerrar">×</button></header><div class="tourism-plan-grid"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reservation-slots"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="tourism-plan-summary"><span>Desde</span><strong>${escapeText(price)}</strong></div><footer><button value="cancel" type="submit">Cancelar</button><button value="confirm" type="submit">Solicitar disponibilidad</button></footer><p class="tourism-plan-status" aria-live="polite"></p></form>`;
+    const placeRef = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    dialog.innerHTML = `<form class="tourism-plan-widget"><header><div><p>Planificá tu visita</p><h2>${escapeText(name)}</h2></div><button type="button" data-plan-close aria-label="Cerrar">×</button></header><div class="tourism-plan-grid"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reservation-slots"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="tourism-plan-summary"><span>Desde</span><strong>${escapeText(price)}</strong></div><footer><button type="button" data-plan-close>Cancelar</button><button type="submit">Solicitar disponibilidad</button></footer><p class="tourism-plan-status" aria-live="polite"></p></form>`;
+    dialog.querySelectorAll('[data-plan-close]').forEach(button => button.addEventListener('click', () => dialog.close('cancel')));
+    dialog.querySelector('form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget, status = form.querySelector('.tourism-plan-status'), values = new FormData(form);
+      if (!sigturGetSession()?.token) { window.location.assign('login.html'); return; }
+      const submit = form.querySelector('[type="submit"]'); submit.disabled = true; status.textContent = 'Guardando planificación…';
+      try { await sigturApiFetch('/api/reservas/planes', { method: 'POST', body: JSON.stringify({ place_ref: placeRef, place_name: name, visit_date: values.get('date'), people: Number(values.get('people')), schedule: values.get('schedule') }) }); status.textContent = 'Plan guardado en tu perfil.'; window.setTimeout(() => dialog.close('saved'), 700); }
+      catch (error) { status.textContent = error.message || 'No se pudo guardar el plan.'; submit.disabled = false; }
+    });
     dialog.showModal();
-    dialog.addEventListener('close', () => {
-      if (dialog.returnValue !== 'confirm') return;
-      const values = new FormData(dialog.querySelector('form'));
-      if (!values.get('date')) return;
-      const key = `sigtur-tourism-plans:${sigturGetSession()?.usuario?.id || 'guest'}`;
-      const current = JSON.parse(localStorage.getItem(key) || '[]');
-      current.push({ name, date: values.get('date'), people: values.get('people'), schedule: values.get('schedule'), createdAt: new Date().toISOString() });
-      localStorage.setItem(key, JSON.stringify(current));
-    }, { once: true });
   };
   cards.forEach(card => {
     const info = card.querySelector('.prop-info');
@@ -1803,8 +2117,8 @@ async function hydrateSavedPlaces(savedPlaces = [], userId) {
   const remote = savedPlaces.map(item => item.entidad_tipo === 'place' && (cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)])
     ? { ...item, pin: cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)] }
     : item);
-  const localOnly = Object.values(cachedPins).filter(pin => !remoteIds.has(String(pin.id))).map(pin => ({ entidad_tipo: 'place', entidad_id: pin.id, created_at: pin.createdAt, pin, localOnly: true }));
-  return [...remote, ...localOnly].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  return remote.map(item => ({ ...item, pin: item.metadata || item.pin || cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)] || {} }))
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
 function renderProfileGrid(savedPlaces = []) {
@@ -1822,25 +2136,35 @@ function renderProfileGrid(savedPlaces = []) {
     const action = item.entidad_tipo === 'event' ? 'Ver eventos' : 'Ver en el mapa';
     const tags = Array.isArray(pin.categorias) && pin.categorias.length ? `<p class="profile-card-tags">${pin.categorias.map(tag => `<span>${escapeText(tag)}</span>`).join('')}</p>` : '';
     const image = pin.imagen ? `<img src="${escapeText(pin.imagen)}" alt="" loading="lazy">` : '';
-    return `<article class="profile-card">${image}<div><small class="profile-card-kind">${kind}${item.localOnly ? ' · pendiente de sincronizar' : ''}</small><h3>${escapeText(title)}</h3>${pin.direccion ? `<p>${escapeText(pin.direccion)}</p>` : ''}${tags}<p>Guardado el ${new Date(item.created_at).toLocaleDateString('es-UY')}</p><a href="${href}">${action}</a></div></article>`;
+    return `<article class="profile-card">${image}<div><small class="profile-card-kind">${kind}</small><h3>${escapeText(title)}</h3>${pin.direccion ? `<p>${escapeText(pin.direccion)}</p>` : ''}${tags}<p>Guardado el ${new Date(item.created_at).toLocaleDateString('es-UY')}</p><a href="${href}">${action}</a> <button type="button" data-remove-saved="${escapeText(item.entidad_id)}" data-saved-type="${escapeText(item.entidad_tipo)}">Quitar de guardados</button></div></article>`;
   }).join('');
 }
 
-function renderProfileReservations(userId) {
+async function renderProfileReservations(userId) {
   const list = document.getElementById('reservations-list');
   if (!list) return;
-  let reservations = {};
-  try { reservations = JSON.parse(localStorage.getItem(`sigtur-event-reservations:${userId}`) || localStorage.getItem('sigtur-event-reservations') || '{}'); } catch { /* datos locales inválidos */ }
-  let placeReservations = [];
-  try { placeReservations = JSON.parse(localStorage.getItem(`sigtur-tourism-plans:${userId}`) || '[]'); } catch { /* datos locales inválidos */ }
-  const events = Object.entries(reservations).map(([eventId, reservation]) => ({ type: 'event', id: eventId, ...reservation }));
-  const places = placeReservations.map((reservation, index) => ({ type: 'place', id: `place-${index}`, ...reservation }));
-  const entries = [...events, ...places].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  list.setAttribute('aria-busy', 'true');
+  list.innerHTML = '<p class="ui-list-status is-loading" role="status">Cargando reservas...</p>';
+  let result;
+  try { result = await sigturApiFetch('/api/reservas'); }
+  catch (error) { list.innerHTML = `<p class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar tus reservas.')}</p>`; list.setAttribute('aria-busy', 'false'); return; }
+  const entries = [
+    ...(result.events || []).map(item => ({ ...item, type: 'event', displayName: item.event_title, displayDate: item.created_at, quantity: item.quantity, id: item.id })),
+    ...(result.plans || []).map(item => ({ ...item, type: 'place', displayName: item.place_name, displayDate: item.visit_date, created_at: item.created_at, people: item.people, date: item.visit_date, id: item.id })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   list.innerHTML = entries.length
     ? entries.map(reservation => reservation.type === 'event'
-      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escapeText(reservation.title || 'Evento')}</strong><p>${reservation.quantity || 1} ${Number(reservation.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escapeText(reservation.schedule || 'Horario a coordinar')} · ${new Date(reservation.createdAt).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reservation.id)}">Ver evento</a></article>`
-      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escapeText(reservation.name || 'Experiencia turística')}</strong><p>${escapeText(reservation.date || 'Fecha a coordinar')} · ${reservation.people || 1} ${Number(reservation.people) === 1 ? 'persona' : 'personas'} · ${escapeText(reservation.schedule || 'Horario flexible')}</p></div><a href="turismo.html">Ver turismo</a></article>`).join('')
+      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escapeText(reservation.displayName || 'Evento')}</strong><p>${reservation.quantity} ${Number(reservation.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escapeText(reservation.schedule)} · ${new Date(reservation.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reservation.event_ref)}">Ver evento</a><button type="button" data-cancel-reservation="${reservation.id}" data-reservation-type="eventos">Cancelar</button></article>`
+      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escapeText(reservation.displayName || 'Experiencia turística')}</strong><p>${escapeText(reservation.date)} · ${reservation.people} ${Number(reservation.people) === 1 ? 'persona' : 'personas'} · ${escapeText(reservation.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reservation="${reservation.id}" data-reservation-type="planes">Cancelar</button></article>`).join('')
     : '<p class="profile-empty">Todavía no tenés reservas ni visitas planificadas.</p>';
+  list.setAttribute('aria-busy', 'false');
+  list.onclick = async event => {
+    const cancel = event.target.closest('[data-cancel-reservation]');
+    if (!cancel || !window.confirm('¿Cancelar esta reserva o planificación?')) return;
+    cancel.disabled = true;
+    try { await sigturApiFetch(`/api/reservas/${cancel.dataset.reservationType}/${encodeURIComponent(cancel.dataset.cancelReservation)}`, { method: 'DELETE' }); await renderProfileReservations(userId); }
+    catch (error) { cancel.disabled = false; window.alert(error.message || 'No se pudo cancelar.'); }
+  };
 }
 
 function setupEventAdminShortcut() {
@@ -1870,7 +2194,11 @@ async function setupEventInteractions() {
       kids: '<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/>',
       time: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       price: '<path d="M20 13 13 20l-9-9V4h7l9 9Z"/><circle cx="8" cy="8" r="1"/>',
-      comment: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9.5.5 0 0 1 .5.5v6.4a.5.5 0 0 1-.5.5 2.5 2.5 0 0 0-2.5 2.5v1.5a2.5 2.5 0 0 0 2.5 2.5 .5.5 0 0 1 .5.5v6.4a8.4 8.4 0 0 1-3.8-.9 8.5 8.5 0 0 1-4.7-7.6 8.4 8.4 0 0 1 .9-3.8L3 3l5.7 1.9a8.4 8.4 0 0 1 3.8-.9 8.5 8.5 0 0 1 7.6 4.7 8.4 8.4 0 0 1 .9 3.8.5.5 0 0 1-.5.5h-6.4a.5.5 0 0 1-.5-.5 2.5 2.5 0 0 0-2.5-2.5H9.5a2.5 2.5 0 0 0-2.5 2.5v1.5a2.5 2.5 0 0 0 2.5 2.5h6.4a.5.5 0 0 1 .5.5v6.4a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 0 0 1 3.8.9 8.5 8.5 0 0 1 4.7 7.6 8.4 8.4 0 0 1-.9 3.8L21 21l-5.7-1.9a8.4 8.4 0 0 1-3.8.9 8.5 8.5 0 0 1-7.6-4.7A8.4 8.4 0 0 1 3 3l5.7-1.9a8.4 8.4 
+      comment: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-.9L3 21l1.9-5.5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 8.5-8.5 8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M8 11h8M8 15h5"/>',
+    };
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.culture}</svg>`;
+  };
+  const categoryIcon = value => {
     const key = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const icon = key.includes('mus') ? 'music' : key.includes('deport') ? 'sports' : key.includes('feria') ? 'fair' : key.includes('gastr') ? 'food' : key.includes('relig') ? 'faith' : key.includes('infant') ? 'kids' : 'culture';
     return eventIcon(icon);
@@ -1923,18 +2251,6 @@ async function setupEventInteractions() {
     return element.innerHTML;
   };
   const slugify = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const reservationKey = () => `sigtur-event-reservations:${sigturGetSession()?.usuario?.id || 'guest'}`;
-  const readReservations = () => {
-    try { return JSON.parse(localStorage.getItem(reservationKey()) || localStorage.getItem('sigtur-event-reservations') || '{}'); } catch { return {}; }
-  };
-  const saveReservation = (eventId, reservation) => {
-    try {
-      const reservations = readReservations();
-      reservations[eventId] = reservation;
-      localStorage.setItem(reservationKey(), JSON.stringify(reservations));
-      return true;
-    } catch { return false; }
-  };
   const getEventData = (row) => {
     const title = row.querySelector('.ticket-title')?.textContent.trim() || 'Evento';
     const date = `${row.querySelector('.day')?.textContent.trim() || ''}-${row.querySelector('.month')?.textContent.trim() || ''}`;
@@ -1990,7 +2306,9 @@ async function setupEventInteractions() {
       const replies = sort(byParent.get(comment.id) || []);
       const media = window.sigturCommentMediaMarkup?.(comment.media_urls) || '';
       const content = comment.contenido ? `<p>${escapeHtml(comment.contenido)}</p>` : '';
-      return `<article class="event-comment ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${escapeHtml(comment.id)}" data-comment-user="${escapeHtml(comment.usuario_id)}"><div class="comment-author">${authorAvatar(comment)}<span><strong>${escapeHtml(authorName(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="event-comment-actions"><button type="button" data-comment-like>♡ Me gusta</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${sigturGetSession()?.usuario?.rol === 'admin' ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escapeHtml(authorName(comment))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${replies.length ? `<div class="event-comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
+      const own = sigturGetSession()?.usuario?.id === comment.usuario_id;
+      const likeState = comment.likeState || { liked: false, likes: 0 };
+      return `<article class="event-comment ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${escapeHtml(comment.id)}" data-comment-user="${escapeHtml(comment.usuario_id)}"><div class="comment-author">${authorAvatar(comment)}<span><strong>${escapeHtml(authorName(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="event-comment-actions"><button type="button" data-comment-like aria-pressed="${likeState.liked}">${likeState.liked ? '♥' : '♡'} Me gusta (${likeState.likes})</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${own ? '<button type="button" data-edit-comment>Editar</button><button type="button" data-delete-own-comment>Eliminar</button>' : ''}${sigturGetSession()?.usuario?.rol === 'admin' && !own ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escapeHtml(authorName(comment))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${replies.length ? `<div class="event-comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
     };
     const roots = sort(byParent.get('root') || []);
     list.innerHTML = roots.length
@@ -2000,16 +2318,29 @@ async function setupEventInteractions() {
   const loadComments = async (panel, eventId) => {
     const status = panel.querySelector('[data-event-panel-status]');
     try {
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-busy', 'true');
+      status.classList.add('ui-list-status', 'is-loading');
+      status.classList.remove('is-error');
       status.textContent = 'Cargando comentarios...';
       const result = await sigturApiFetch(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(eventId)}`);
-      panel._eventComments = result.data || [];
+      panel._eventComments = await Promise.all((result.data || []).map(async comment => {
+        try { return { ...comment, likeState: await sigturApiFetch(`/api/comentarios/${comment.id}/likes`) }; }
+        catch { return { ...comment, likeState: { liked: false, likes: 0 } }; }
+      }));
       renderComments(panel, panel._eventComments);
       status.textContent = '';
+      status.setAttribute('aria-busy', 'false');
+      status.classList.remove('is-loading');
     } catch (error) {
-      status.textContent = error.message || 'No se pudieron cargar los comentarios. Ejecutá migration_interacciones.sql en Supabase.';
+      status.setAttribute('role', 'alert');
+      status.setAttribute('aria-busy', 'false');
+      status.classList.remove('is-loading');
+      status.classList.add('ui-list-status', 'is-error');
+      status.textContent = error.message || 'No se pudieron cargar los comentarios. Revisa database/README.md y aplica las migraciones pendientes con Supabase CLI.';
     }
   };
-  const showLogin = () => { window.location.href = 'login.html'; };
+  const showLogin = () => { window.location.replace('login.html'); };
   const interactionKey = event => `entidad_tipo=event&entidad_id=${encodeURIComponent(event.id)}`;
   const syncSavedButton = async (button, event) => {
     try {
@@ -2078,7 +2409,7 @@ async function setupEventInteractions() {
           if (!sigturGetSession()?.token) { showLogin(); return; }
           saveButton.disabled = true;
           const active = saveButton.getAttribute('aria-pressed') !== 'true';
-          await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, activo: active }) });
+          await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, activo: active, metadata: { nombre: event.title, direccion: event.location, categorias: [event.category] } }) });
           saveButton.setAttribute('aria-pressed', String(active));
           saveButton.textContent = active ? '🔖 Guardado' : '🔖 Guardar';
         } catch (error) { panel.querySelector('[data-event-panel-status]').textContent = error.message || 'No se pudo guardar el evento.'; }
@@ -2121,7 +2452,7 @@ async function setupEventInteractions() {
         reserveButton.disabled = true;
         const quantity = Number(panel.querySelector('[data-reservation-quantity]').value);
         const schedule = panel.querySelector(`input[name="slot-${CSS.escape(event.id)}"]:checked`)?.value || 'Flexible · a coordinar';
-        if (!saveReservation(event.id, { title: event.title, quantity, schedule, createdAt: new Date().toISOString() })) throw new Error('No se pudo guardar la reserva en este navegador.');
+        await sigturApiFetch('/api/reservas/eventos', { method: 'POST', body: JSON.stringify({ event_ref: event.id, event_title: event.title, quantity, schedule }) });
         status.textContent = `Reserva registrada: ${quantity} ${quantity === 1 ? 'lugar' : 'lugares'} · ${schedule}.`;
       } catch (error) {
         status.textContent = error.message || 'No se pudo completar la reserva.';
@@ -2139,6 +2470,18 @@ async function setupEventInteractions() {
           await loadComments(panel, event.id);
           return;
         }
+        if (clickEvent.target.closest('[data-delete-own-comment]')) {
+          if (!window.confirm('¿Eliminar este comentario y sus respuestas?')) return;
+          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'DELETE' });
+          await loadComments(panel, event.id); return;
+        }
+        if (clickEvent.target.closest('[data-edit-comment]')) {
+          const existing = panel._eventComments.find(item => item.id === comment.dataset.commentId)?.contenido || '';
+          const contenido = window.prompt('Editá tu comentario:', existing);
+          if (contenido === null || !contenido.trim()) return;
+          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
+          await loadComments(panel, event.id); return;
+        }
         if (clickEvent.target.closest('[data-comment-reply]')) {
           comment.querySelector('.event-reply-form').hidden = false;
         }
@@ -2151,7 +2494,7 @@ async function setupEventInteractions() {
           const button = clickEvent.target.closest('[data-comment-like]');
           const state = await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}/likes`);
           await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !state.liked }) });
-          button.textContent = state.liked ? '♡ Me gusta' : `♥ Me gusta (${state.likes + 1})`;
+          await loadComments(panel, event.id);
         }
         if (clickEvent.target.closest('[data-comment-message]')) {
           const recipient = comment.dataset.commentUser;
@@ -2198,7 +2541,7 @@ async function setupAdminPage() {
 
   const session = sigturGetSession();
   if (!session?.token) {
-    window.location.href = 'login.html';
+    window.location.replace('login.html');
     return;
   }
 
@@ -2207,14 +2550,20 @@ async function setupAdminPage() {
     await sigturApiFetch('/api/auth/es-admin');
   } catch (error) {
     console.error('No se pudo validar el acceso de administrador:', error);
-    sigturClearSession();
-    window.location.href = 'login.html';
+    if (error.status === 401) {
+      sigturClearSession();
+      window.location.replace('login.html');
+    } else {
+      const message = document.createElement('p');
+      message.className = 'auth-status';
+      message.setAttribute('role', 'status');
+      message.textContent = error.status === 403 ? 'Esta cuenta no tiene permisos de administrador.' : 'No se pudo validar el acceso. Intentá nuevamente.';
+      form.closest('.utility-grid')?.before(message);
+    }
     return;
   }
   form.closest('.utility-grid')?.removeAttribute('hidden');
 
-  const storageKey = 'sigtur-admin-settings';
-  const announcementKey = 'sigtur-admin-announcement';
   const status = document.getElementById('admin-save-status');
   const activity = document.getElementById('admin-activity');
   const announcementForm = document.getElementById('admin-announcement-form');
@@ -2229,27 +2578,13 @@ async function setupAdminPage() {
     maintenanceMode: false
   };
 
-  const readJSON = (key, fallback) => {
-    try {
-      return JSON.parse(localStorage.getItem(key)) || fallback;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const log = (message) => {
-    if (!activity) return;
-    const item = document.createElement('p');
-    item.textContent = `${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${message}`;
-    activity.prepend(item);
-    while (activity.children.length > 4) activity.lastElementChild?.remove();
-  };
+  const log = async (message) => { try { await sigturApiFetch('/api/admin/actividad', { method: 'POST', body: JSON.stringify({ action: 'admin.action', details: { message } }) }); const rows = await sigturApiFetch('/api/admin/actividad?page=1&pageSize=8'); if (activity) activity.innerHTML = (rows.data || []).map(row => `<p>${escapeText(new Date(row.created_at).toLocaleString('es-UY'))} · ${escapeText(row.details?.message || row.action)}</p>`).join(''); } catch { if (activity) activity.textContent = 'No se pudo guardar la actividad.'; } };
 
   const setStatus = (message) => {
     if (!status) return;
     status.textContent = message;
     clearTimeout(setStatus.timer);
-    setStatus.timer = setTimeout(() => { status.textContent = 'Guardado local'; }, 1800);
+    setStatus.timer = setTimeout(() => { status.textContent = 'Listo'; }, 1800);
   };
 
   const applySettings = (settings) => {
@@ -2265,24 +2600,31 @@ async function setupAdminPage() {
   }, {});
 
   const updatePreview = () => {
-    const saved = readJSON(announcementKey, null);
+    const saved = savedAnnouncement;
     if (!preview) return;
     preview.textContent = saved?.title ? `${saved.title}: ${saved.body || 'Sin descripcion'}` : 'Sin aviso publicado.';
   };
 
-  applySettings(readJSON(storageKey, defaults));
+  let savedAnnouncement = null;
+  try {
+    const [settings, notice, metrics] = await Promise.all([sigturApiFetch('/api/admin/configuracion'), sigturApiFetch('/api/admin/aviso'), sigturApiFetch('/api/admin/metricas')]);
+    applySettings({ ...defaults, ...settings });
+    savedAnnouncement = notice.data || null;
+    if (savedAnnouncement && announcementForm) { announcementForm.elements.title.value = savedAnnouncement.title || ''; announcementForm.elements.body.value = savedAnnouncement.body || ''; }
+    Object.entries(metrics).forEach(([key, value]) => { const metric = document.querySelector(`[data-admin-metric="${key}"]`); if (metric) metric.textContent = String(value); });
+  } catch (error) { setStatus(error.message || 'No se pudo cargar la configuración.'); }
   updatePreview();
-  log('Panel abierto');
+  try { const rows = await sigturApiFetch('/api/admin/actividad?page=1&pageSize=8'); if (activity) activity.innerHTML = (rows.data || []).map(row => `<p>${escapeText(new Date(row.created_at).toLocaleString('es-UY'))} · ${escapeText(row.action.replaceAll('.', ' '))}</p>`).join('') || '<p>Sin actividad registrada.</p>'; } catch { if (activity) activity.textContent = 'No se pudo cargar la actividad.'; }
 
-  form.addEventListener('change', (event) => {
+  form.addEventListener('change', async (event) => {
     const settings = collectSettings();
-    localStorage.setItem(storageKey, JSON.stringify(settings));
-    setStatus('Cambios guardados');
+    try { await sigturApiFetch('/api/admin/configuracion', { method: 'PATCH', body: JSON.stringify(settings) }); setStatus('Cambios guardados en el servidor'); await loadPublicSiteSettings(); }
+    catch (error) { event.target.checked = !event.target.checked; setStatus(error.message || 'No se pudieron guardar los ajustes.'); return; }
     const label = event.target?.closest('.settings-item')?.querySelector('strong')?.textContent || 'Ajuste';
-    log(`${label} ${event.target.checked ? 'activado' : 'desactivado'}`);
+    void label;
   });
 
-  announcementForm?.addEventListener('submit', (event) => {
+  announcementForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(announcementForm);
     const announcement = {
@@ -2290,18 +2632,19 @@ async function setupAdminPage() {
       body: String(data.get('body') || '').trim(),
       updatedAt: new Date().toISOString()
     };
-    localStorage.setItem(announcementKey, JSON.stringify(announcement));
+    try { const response = await sigturApiFetch('/api/admin/aviso', { method: 'PUT', body: JSON.stringify(announcement) }); savedAnnouncement = response.data; await loadPublicSiteSettings(); }
+    catch (error) { setStatus(error.message || 'No se pudo guardar el aviso.'); return; }
     updatePreview();
     setStatus('Aviso guardado');
-    log('Aviso del sitio actualizado');
+
   });
 
-  clearBtn?.addEventListener('click', () => {
-    localStorage.removeItem(announcementKey);
+  clearBtn?.addEventListener('click', async () => {
+    try { await sigturApiFetch('/api/admin/aviso', { method: 'DELETE' }); savedAnnouncement = null; await loadPublicSiteSettings(); }
+    catch (error) { setStatus(error.message || 'No se pudo eliminar el aviso.'); return; }
     announcementForm?.reset();
     updatePreview();
     setStatus('Aviso limpiado');
-    log('Aviso eliminado');
   });
 
   // gonza: el export copia el estado actual del admin al portapapeles como JSON.
@@ -2310,7 +2653,7 @@ async function setupAdminPage() {
   exportBtn?.addEventListener('click', async () => {
     const payload = {
       settings: collectSettings(),
-      announcement: readJSON(announcementKey, null),
+      announcement: savedAnnouncement,
       exportedAt: new Date().toISOString()
     };
     const text = JSON.stringify(payload, null, 2);
@@ -2351,17 +2694,20 @@ async function setupAdminPage() {
         ? `<img src="${escapeText(event.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`
         : `<span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`;
       return `<li class="admin-event-item"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin título')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} · ${eventDate}${eventTime}</span><small>${escapeText(event.location || 'Lugar sin especificar')} · ${Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</small></div><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar ${escapeText(event.title || 'evento')}" title="Eliminar evento">Eliminar</button></li>`;
-    }).join('') || '<li class="admin-event-empty">Todavía no hay eventos publicados.</li>';
+    }).join('') || '<li class="admin-event-empty ui-list-status">Todavía no hay eventos publicados.</li>';
     eventsList.querySelectorAll('.admin-event-thumb img').forEach(image => image.addEventListener('error', () => image.remove(), { once: true }));
   };
+  let eventsPage = 1;
   const loadAdminEvents = async () => {
     if (!eventsList) return;
-    eventsList.innerHTML = '<li class="admin-event-empty">Cargando eventos…</li>';
+    eventsList.setAttribute('aria-busy', 'true'); eventsList.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos...</li>;'
     try {
-      const response = await sigturApiFetch('/api/admin/eventos');
-      renderAdminEvents(response.data || []);
+      const query = new URLSearchParams({ page: eventsPage, pageSize: 10, q: document.getElementById('admin-events-search')?.value || '' });
+      const response = await sigturApiFetch(`/api/admin/eventos?${query}`);
+      renderAdminEvents(response.data || []); eventsList.setAttribute('aria-busy', 'false');
+      const label = document.getElementById('admin-events-page'); if (label) label.textContent = `Página ${eventsPage} · ${response.total} eventos`;
     } catch (error) {
-      eventsList.innerHTML = `<li class="admin-event-empty">${escapeText(error.message || 'No se pudieron cargar los eventos.')}</li>`;
+      eventsList.innerHTML = `<li class="admin-event-empty ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los eventos.')}</li>`; eventsList.setAttribute('aria-busy', 'false');
     }
   };
   const updateEventImagePreview = () => {
@@ -2379,6 +2725,8 @@ async function setupAdminPage() {
   eventImageInput?.addEventListener('input', updateEventImagePreview);
   eventImageInput?.addEventListener('change', updateEventImagePreview);
   loadAdminEvents();
+  document.querySelectorAll('[data-admin-page="events"]').forEach(button => button.addEventListener('click', () => { eventsPage = Math.max(1, eventsPage + Number(button.dataset.direction)); loadAdminEvents(); }));
+  document.getElementById('admin-events-search')?.addEventListener('input', () => { eventsPage = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(loadAdminEvents, 250); });
   if (eventMapElement && eventLatitude && eventLongitude && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
     const eventMap = L.map(eventMapElement).setView([-31.383, -57.964], 13);
@@ -2409,16 +2757,51 @@ async function setupAdminPage() {
   const showResourceStatus = (message) => { if (adminStatus) adminStatus.textContent = message; };
   const renderUsers = (users) => {
     if (!usersList) return;
-    usersList.innerHTML = users.map(user => `<li><span>${user.nombre || 'Usuario'} · ${user.correo}</span><button type="button" data-ban-user="${user.id}" data-banned="false">Banear 24 h</button></li>`).join('') || '<li>No hay usuarios.</li>';
+    usersList.innerHTML = users.map(user => `<li><span>${escapeText(user.nombre || 'Usuario')} · ${escapeText(user.correo)}</span><button type="button" data-ban-user="${user.id}" data-banned="${Boolean(user.banned)}">${user.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
   };
-  try {
-    const users = await sigturApiFetch('/api/admin/usuarios');
-    renderUsers(users.data || []);
-  } catch (error) { showResourceStatus(error.message); }
-  try {
-    const comments = await sigturApiFetch('/api/admin/comentarios');
-    if (commentsList) commentsList.innerHTML = (comments.data || []).map(comment => `<li><span>${comment.fijado ? '📌 ' : ''}${escapeText(comment.contenido.slice(0, 120))}</span><span><button type="button" data-pin-comment="${comment.id}" data-pinned="${Boolean(comment.fijado)}">${comment.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comment.id}">Borrar</button></span></li>`).join('') || '<li>No hay comentarios.</li>';
-  } catch (error) { showResourceStatus(error.message); }
+  const pages = { users: 1, comments: 1, support: 1 };
+  const loadUsers = async () => {
+    if (usersList) { usersList.setAttribute('aria-busy', 'true'); usersList.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios...</li>'; }
+    try {
+      const q = new URLSearchParams({ page: pages.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
+      const result = await sigturApiFetch(`/api/admin/usuarios?${q}`);
+      renderUsers(result.data || []);
+      const label = document.getElementById('admin-users-page'); if (label) label.textContent = `Página ${pages.users} · ${result.total} usuarios`;
+    } catch (error) {
+      if (usersList) usersList.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los usuarios.')}</li>`;
+      showResourceStatus(error.message); throw error;
+    } finally { usersList?.setAttribute('aria-busy', 'false'); }
+  };
+  const loadComments = async () => {
+    if (commentsList) { commentsList.setAttribute('aria-busy', 'true'); commentsList.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios...</li>'; }
+    try {
+      const q = new URLSearchParams({ page: pages.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
+      const result = await sigturApiFetch(`/api/admin/comentarios?${q}`);
+      if (commentsList) commentsList.innerHTML = (result.data || []).map(comment => `<li><span>${comment.fijado ? 'Fijado \u00b7 ' : ''}${escapeText(comment.contenido.slice(0, 120))}</span><span><button type="button" data-pin-comment="${comment.id}" data-pinned="${Boolean(comment.fijado)}">${comment.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comment.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
+      const label = document.getElementById('admin-comments-page'); if (label) label.textContent = `Página ${pages.comments} · ${result.total} comentarios`;
+    } catch (error) {
+      if (commentsList) commentsList.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los comentarios.')}</li>`;
+      showResourceStatus(error.message); throw error;
+    } finally { commentsList?.setAttribute('aria-busy', 'false'); }
+  };
+  const loadSupport = async () => {
+    const list = document.getElementById('admin-support-list');
+    if (list) { list.setAttribute('aria-busy', 'true'); list.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas...</li>'; }
+    try {
+      const q = new URLSearchParams({ page: pages.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '' });
+      const result = await sigturApiFetch(`/api/admin/soporte?${q}`);
+      if (list) list.innerHTML = (result.data || []).map(ticket => `<li><span><strong>${escapeText(ticket.topic)}</strong> \u00b7 ${escapeText(ticket.name)} (${escapeText(ticket.email)})<br>${escapeText(ticket.message.slice(0, 160))}<small> \u00b7 ${escapeText(ticket.status)}</small></span><select data-ticket-status="${ticket.id}" aria-label="Estado del ticket"><option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${ticket.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`).join('') || '<li class="ui-list-status">No hay consultas.</li>';
+      const label = document.getElementById('admin-support-page'); if (label) label.textContent = `Página ${pages.support} · ${result.total} consultas`;
+    } catch (error) {
+      if (list) list.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar las consultas.')}</li>`;
+      showResourceStatus(error.message); throw error;
+    } finally { list?.setAttribute('aria-busy', 'false'); }
+  };
+  try { await Promise.all([loadUsers(), loadComments(), loadSupport()]); } catch (error) { showResourceStatus(error.message); }
+  document.querySelectorAll('[data-admin-page]').forEach(button => button.addEventListener('click', async () => { const key = button.dataset.adminPage; pages[key] = Math.max(1, pages[key] + Number(button.dataset.direction)); try { await ({ users: loadUsers, comments: loadComments, support: loadSupport })[key](); } catch (error) { showResourceStatus(error.message); } }));
+  [['admin-users-search','users',loadUsers],['admin-comments-search','comments',loadComments]].forEach(([id,key,loader]) => document.getElementById(id)?.addEventListener('input', () => { pages[key] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => loader().catch(error => showResourceStatus(error.message)), 250); }));
+  document.getElementById('admin-support-status')?.addEventListener('change', () => { pages.support = 1; loadSupport().catch(error => showResourceStatus(error.message)); });
+  document.getElementById('admin-support-list')?.addEventListener('change', async event => { const select = event.target.closest('[data-ticket-status]'); if (!select) return; try { await sigturApiFetch(`/api/admin/soporte/${select.dataset.ticketStatus}`, { method: 'PATCH', body: JSON.stringify({ status: select.value }) }); await loadSupport(); } catch (error) { showResourceStatus(error.message); } });
   eventForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(eventForm);
@@ -2480,67 +2863,45 @@ async function setupAdminPage() {
 }
 
 // ============================================================================
-// setupSupportPage() — toda la lógica de soporte.html
-// Guarda los tickets en localStorage bajo la key "sigtur-support-tickets"
-// y los vuelve a pintar en pantalla cada vez que se crea uno nuevo (ver
-// render() acá abajo). Al no haber backend, estos tickets NO le llegan a
-// nadie de verdad (no hay ningún email ni notificación), quedan viviendo
-// únicamente en el navegador de quien completó el formulario -- el propio
-// FAQ de soporte.html ya avisa esto ("guardado en este navegador").
+// setupSupportPage() — envía las consultas al backend y carga el historial
+// del usuario autenticado desde la API de soporte.
 // ============================================================================
+async function loadPublicSiteSettings() {
+  try {
+    const site = await sigturApiFetch('/api/public/site');
+    let banner = document.getElementById('site-announcement');
+    if (site.announcement?.title && !banner) { banner = document.createElement('aside'); banner.id = 'site-announcement'; banner.className = 'site-announcement'; document.body.prepend(banner); }
+    if (banner) { banner.hidden = !site.announcement?.title; banner.textContent = site.announcement?.title ? `${site.announcement.title}: ${site.announcement.body}` : ''; }
+    if (site.settings?.showSupport === false) document.querySelectorAll('a[href*="soporte.html"]').forEach(link => { link.hidden = true; });
+    let maintenance = document.getElementById('site-maintenance-notice');
+    if (site.settings?.maintenanceMode && !maintenance) { maintenance = document.createElement('aside'); maintenance.id = 'site-maintenance-notice'; maintenance.className = 'site-announcement'; maintenance.textContent = 'Estamos realizando tareas de mantenimiento. Algunas funciones pueden cambiar temporalmente.'; document.body.prepend(maintenance); }
+    if (maintenance) maintenance.hidden = !site.settings?.maintenanceMode;
+  } catch { /* el sitio sigue disponible si el backend temporalmente no responde */ }
+}
+
 function setupSupportPage() {
   const form = document.getElementById('support-form');
   if (!form) return;
 
-  const key = 'sigtur-support-tickets';
   const list = document.getElementById('support-ticket-list');
   const status = document.getElementById('support-status');
 
-  const readTickets = () => {
-    try {
-      return JSON.parse(localStorage.getItem(key)) || [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveTickets = (tickets) => localStorage.setItem(key, JSON.stringify(tickets));
-
-  const render = () => {
-    const tickets = readTickets();
+  const render = tickets => {
     if (!list) return;
-    list.innerHTML = '';
-    if (!tickets.length) {
-      list.innerHTML = '<p class="empty-state">Todavia no hay tickets creados.</p>';
-      return;
-    }
-    // gonza: slice(0, 5) muestra solo los últimos 5 tickets para no llenar la pantalla
-    tickets.slice(0, 5).forEach(ticket => {
-      const item = document.createElement('article');
-      item.className = 'support-ticket';
-      const meta = document.createElement('div');
-      const title = document.createElement('strong');
-      const author = document.createElement('span');
-      const message = document.createElement('p');
-      const date = document.createElement('small');
-      title.textContent = ticket.topic;
-      author.textContent = `${ticket.name} - ${ticket.email}`;
-      message.textContent = ticket.message;
-      date.textContent = new Date(ticket.createdAt).toLocaleString();
-      meta.append(title, author);
-      item.append(meta, message, date);
-      list.appendChild(item);
-    });
+    list.innerHTML = tickets.length ? tickets.map(ticket => `<article class="support-ticket"><div><strong>${escapeText(ticket.topic)}</strong><span>${escapeText(ticket.name)} · ${escapeText(ticket.email)}</span></div><p>${escapeText(ticket.message)}</p><small>${escapeText(new Date(ticket.created_at).toLocaleString('es-UY'))} · ${escapeText(ticket.status)}</small></article>`).join('') : '<p class="empty-state">Todavía no hay tickets.</p>';
   };
-
-  render();
-
-  form.addEventListener('submit', (event) => {
+  const loadMine = async () => {
+    if (!sigturGetSession()?.token || !list) return;
+    list.textContent = 'Cargando tus consultas…';
+    try { const result = await sigturApiFetch('/api/soporte/mios?page=1&pageSize=5'); render(result.data || []); }
+    catch { list.textContent = 'No se pudieron cargar tus consultas.'; }
+  };
+  loadMine();
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(form);
     const ticket = {
       // crypto.randomUUID genera un id único, el fallback es Date.now() para browsers viejos
-      id: window.crypto?.randomUUID ? window.crypto.randomUUID() : String(Date.now()),
       name: String(data.get('name') || '').trim(),
       email: String(data.get('email') || '').trim(),
       topic: String(data.get('topic') || 'General'),
@@ -2551,11 +2912,8 @@ function setupSupportPage() {
       if (status) status.textContent = 'Completa los campos requeridos';
       return;
     }
-    const tickets = readTickets();
-    tickets.unshift(ticket); // unshift agrega al principio (más reciente primero)
-    saveTickets(tickets);
-    form.reset();
-    render();
-    if (status) status.textContent = `Ticket #${ticket.id.slice(0, 6)} creado`;
+    if (status) status.textContent = 'Enviando consulta…';
+    try { const result = await sigturApiFetch('/api/soporte', { method: 'POST', body: JSON.stringify(ticket) }); form.reset(); if (status) status.textContent = `Consulta recibida (${result.data.id.slice(0, 8)}).`; await loadMine(); }
+    catch (error) { if (status) status.textContent = error.message || 'No se pudo enviar la consulta. Intentá nuevamente.'; }
   });
 }

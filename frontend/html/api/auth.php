@@ -85,8 +85,27 @@ if ($action === 'login' && $method === 'POST') {
     [$status, $auth] = supabaseRequest('POST', '/auth/v1/token?grant_type=password', ['email' => $email, 'password' => $password]);
     if ($status < 200 || $status >= 300 || empty($auth['access_token'])) { http_response_code(401); echo json_encode(['error' => 'Correo o contraseña incorrectos.']); exit; }
     [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) $auth['user']['id']), null, $auth['access_token']);
+    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) {
+        http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit;
+    }
     $result = sessionResponse($auth);
-    if ($profileStatus >= 200 && $profileStatus < 300 && !empty($profiles[0])) $result['usuario'] = $profiles[0];
+    $result['usuario'] = $profiles[0];
+    echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
+}
+
+if ($action === 'refresh' && $method === 'POST') {
+    $body = jsonBody();
+    $refreshToken = trim((string) ($body['refreshToken'] ?? $body['refresh_token'] ?? ''));
+    if ($refreshToken === '') { http_response_code(401); echo json_encode(['error' => 'La sesión venció. Inicia sesión nuevamente.']); exit; }
+    [$status, $auth] = supabaseRequest('POST', '/auth/v1/token?grant_type=refresh_token', ['refresh_token' => $refreshToken]);
+    if ($status < 200 || $status >= 300 || empty($auth['access_token'])) {
+        $clientStatus = $status === 400 || $status === 401 ? 401 : 503;
+        http_response_code($clientStatus); echo json_encode(['error' => $clientStatus === 401 ? 'La sesión venció. Inicia sesión nuevamente.' : 'No se pudo renovar la sesión. Intentá nuevamente.']); exit;
+    }
+    [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) ($auth['user']['id'] ?? '')), null, $auth['access_token']);
+    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) { http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
+    $result = sessionResponse($auth);
+    $result['usuario'] = $profiles[0];
     echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
 }
 
@@ -126,7 +145,8 @@ if ($action === 'me' && $method === 'GET') {
     [$status, $user] = supabaseRequest('GET', '/auth/v1/user', null, $token);
     if ($status < 200 || $status >= 300 || empty($user['id'])) { http_response_code(401); echo json_encode(['error' => 'Sesión inválida o vencida.']); exit; }
     [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol,created_at&id=eq.' . rawurlencode((string) $user['id']), null, $token);
-    $profile = $profileStatus >= 200 && $profileStatus < 300 && !empty($profiles[0]) ? $profiles[0] : sessionResponse(['user' => $user])['usuario'];
+    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) { http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
+    $profile = $profiles[0];
     echo json_encode(['usuario' => $profile], JSON_UNESCAPED_UNICODE); exit;
 }
 
@@ -141,6 +161,18 @@ if ($action === 'es-admin' && $method === 'GET') {
 }
 
 if ($action === 'logout' && $method === 'POST') {
+    $token = bearerToken();
+    if ($token !== '') supabaseRequest('POST', '/auth/v1/logout', null, $token);
+    echo json_encode(['ok' => true]); exit;
+}
+
+if ($action === 'password' && $method === 'PATCH') {
+    $token = bearerToken();
+    $password = (string) (jsonBody()['password'] ?? '');
+    if ($token === '') { http_response_code(401); echo json_encode(['error' => 'El enlace de recuperación no es válido.']); exit; }
+    if (strlen($password) < 8 || strlen($password) > 128) { http_response_code(400); echo json_encode(['error' => 'La contraseña debe tener entre 8 y 128 caracteres.']); exit; }
+    [$status, $updated] = supabaseRequest('PUT', '/auth/v1/user', ['password' => $password], $token);
+    if ($status < 200 || $status >= 300) { http_response_code($status === 401 ? 401 : 400); echo json_encode(['error' => 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.']); exit; }
     echo json_encode(['ok' => true]); exit;
 }
 

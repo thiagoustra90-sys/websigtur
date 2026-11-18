@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<!-- 
+<!--
   turismo.php - página de turismo, con secciones de alojamientos, restaurantes y un poco de historia.
 -->
 <html lang="es">
@@ -8,22 +8,22 @@
   <meta charset="UTF-8" />
 
   <!-- esto es OBLIGATORIO para que se vea bien en celu. sin esto, mobile te renderiza
-       la pagina como si fuera desktop y despues hay que hacer zoom con los dedos. nadie
+       la página como si fuera desktop y despues hay que hacer zoom con los dedos. nadie
        quiere eso en 2026 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- 
-    el título dice "Turismo ” SIGTUR Salto" -- esas comillas raras (”) en vez de un guión 
+  <!--
+    el título dice "Turismo ” SIGTUR Salto" -- esas comillas raras (”) en vez de un guión
     normal (-) seguramente es un problema de encoding cuando se copió de otro lado (word? figma?).
     quedó fulero pero funciona, arreglar cuando haya tiempo (o sea, nunca)
     TODO: cambiar por "Turismo - SIGTUR Salto" o "Turismo · SIGTUR Salto"
   -->
   <title>Turismo ” SIGTUR Salto</title>
 
-  <!-- 
+  <!--
     Fuentes: acá NO se usa Google Fonts como en el index (con el preconnect y todo eso),
     se usa un font.css local que debe tener los @font-face con las tipografías que están
-    en la carpeta "fuentes que me apetecen" (sí, ese es el nombre real de la carpeta, no me
+    en la carpeta "fuentes_locales" (sí, ese es el nombre real de la carpeta, no me
     pregunten por qué, googlear "yolo naming conventions")
   -->
   <link rel="stylesheet" href="../css/font.css" />
@@ -34,10 +34,10 @@
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 
-<!-- 
-  la clase "page-turismo" en el body es la que probablemente usa styles.css para 
-  aplicar estilos especificos SOLO de esta página (tipo diferenciar el hero de turismo 
-  del hero de eventos). Convención: page-<nombrepagina>. Fijate en las otras html, 
+<!--
+  la clase "page-turismo" en el body es la que probablemente usa styles.css para
+  aplicar estilos especificos SOLO de esta página (tipo diferenciar el hero de turismo
+  del hero de eventos). Convención: page-<nombrepágina>. Fijate en las otras html,
   seguro tienen la misma onda (page-eventos, page-lugares, etc)
 -->
 <body class="page-turismo">
@@ -46,7 +46,7 @@
      NAVBAR
      ------------------------------------------------------------
      la barra de arriba, se repite CASI igual en todas las páginas
-     (index, eventos, lugares, turismo, soporte...) - no hay un 
+     (index, eventos, lugares, turismo, soporte...) - no hay un
      sistema de "componentes" tipo React acá, esto es HTML puro y duro,
      así que si hay que cambiar algo del navbar HAY QUE CAMBIARLO
      A MANO EN CADA ARCHIVO. sí, es un embole, pero bueno, es lo que hay
@@ -60,12 +60,12 @@
       <img src="../imagenes/turismo/logo-salto.svg" alt="Explora Salto" />
     </a>
 
-    <!-- 
-      buscador de la navbar. el ícono de lupa es un SVG inline (no un <img>), 
-      dibujado a mano con paths. Esto es una lupita con un circulo (la cabeza) 
+    <!--
+      buscador de la navbar. el ícono de lupa es un SVG inline (no un <img>),
+      dibujado a mano con paths. Esto es una lupita con un circulo (la cabeza)
       y una lineita (el mango). Fijate que el placeholder tiene comillas tipográficas
-      dentro del string, medio raro pero bue, es solo un placeholder visual, no hace 
-      nada todavia (no tiene JS enganchado que yo vea)
+      dentro del string, medio raro pero bue, es solo un placeholder visual, no hace
+      nada todavía (no tiene JS enganchado que yo vea)
     -->
     <div class="nav-search">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -74,7 +74,7 @@
       <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
     </div>
 
-    <!-- 
+    <!--
       links de navegación principales. Notar la clase "active" en el link de Turismo:
       esto es HARDCODEADO, o sea, en cada página el link correspondiente tiene "active"
       puesto a mano. No hay JS que detecte "en qué página estoy" y lo marque solo.
@@ -118,9 +118,9 @@
      ALOJAMIENTOS RECOMENDADOS
      ------------------------------------------------------------
      Sección tipo "airbnb" con cards de hoteles/alojamientos.
-     Ojo con el id="alojamientos" -- se usa después en el footer 
-     para el link "Hoteles" (turismo.php#alojamientos) asi que si 
-     lo cambian de nombre, romper ese link tambien hay que arreglarlo.
+     Ojo con el id="alojamientos" -- se usa después en el footer
+     para el link "Hoteles" (turismo.php#alojamientos) asi que si
+     lo cambian de nombre, romper ese link también hay que arreglarlo.
 ============================================================ -->
 <section class="alojamientos-section" id="alojamientos">
   <div class="alojamientos-inner">
@@ -138,10 +138,10 @@
       </div>
     </div>
 
-    <!-- 
+    <!--
       grid de cards. Están 3 hardcodeadas a mano, no hay ningun loop ni JS
       que las genere dinámicamente (esto no tiene backend, es todo estático).
-      Si mañana quieren un 4to alojamiento, hay que copiar y pegar todo el 
+      Si mañana quieren un 4to alojamiento, hay que copiar y pegar todo el
       bloque .prop-card de nuevo y cambiar los datos. re a pico y pala.
     -->
     <div class="cards-grid">
@@ -149,9 +149,9 @@
       <!-- CARD 1: Dayman -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/lugares/363100652.jpg" alt="Dayman, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <img class="prop-img" src="../imagenes/lugares/363100652.jpg" alt="Dayman, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <!-- el botoncito de corazon para "guardar/favorito". Por ahora es solo
-               visual, no tiene onclick ni nada -- fijate en main.js si hay algun 
+               visual, no tiene onclick ni nada -- fijate en main.js si hay algun
                listener que le agrega el "like" con JS (buscar .prop-heart) -->
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -162,21 +162,6 @@
         <div class="prop-info">
           <p class="prop-name">Hotel Daymán</p>
           <p class="prop-address">Avda. Paysandú y Rambla de Circunvalación S/N, Termas del Daymán</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$289 <span>por persona</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <!-- estrellita SVG + numero de rating, todo hardcodeado en 4.91 
-                   en las 3 cards. probablemente eran datos de prueba (mock) 
-                   que nunca se terminaron de variar. -->
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
           <a class="place-map-link" href="mapa.php?q=Hotel%20Daym%C3%A1n">Ver en mapa SIGTUR</a>
         </div>
       </div>
@@ -185,10 +170,10 @@
       <div class="prop-card">
         <div class="prop-media">
           <!-- esta imagen viene de la carpeta de index (../imagenes/index/images.jpg),
-               no de turismo. seguramente reciclaron una imagen generica de "hotel" 
-               que ya estaba subida en otro lado en vez de subir una nueva. funciona 
+               no de turismo. seguramente reciclaron una imagen generica de "hotel"
+               que ya estaba subida en otro lado en vez de subir una nueva. funciona
                igual, pero desprolijo desde lo organizativo -->
-          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Hotel Los Cedros, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Hotel Los Cedros, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -198,31 +183,19 @@
         <div class="prop-info">
           <p class="prop-name">Hotel Los Cedros</p>
           <p class="prop-address">Uruguay 657, 50000 Salto, Departamento de Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$279 <span>por noche</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
           <a class="place-map-link" href="mapa.php?q=Hotel%20Los%20Cedros">Ver en mapa SIGTUR</a>
         </div>
       </div>
 
       <!-- CARD 3: Gran Hotel (OJO: el nombre de archivo de la imagen dice
-           "don pedro.jpg" con espacio en el nombre, y el texto visible dice
+           "don_pedro.jpg" con espacio en el nombre, y el texto visible dice
            "Jose Pedro" -- no coinciden los nombres. no rompe nada porque el
-           navegador banca los espacios en la ruta, pero es un quilombo para 
+           navegador banca los espacios en la ruta, pero es un quilombo para
            mantener. evitar espacios en nombres de archivo, mejor usar guiones:
            don-pedro.jpg -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/index/don%20pedro.jpg" alt="Gran Hotel, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <img class="prop-img" src="../imagenes/index/don_pedro.jpg" alt="Gran Hotel, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -232,18 +205,6 @@
         <div class="prop-info">
           <p class="prop-name">Gran Hotel</p>
           <p class="prop-address">Brasil 891, 50000 Salto, Departamento de Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$289 <span>noche</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
           <a class="place-map-link" href="mapa.php?q=Gran%20Hotel">Ver en mapa SIGTUR</a>
         </div>
       </div>
@@ -256,17 +217,17 @@
 <!-- ============================================================
      HISTORIA TURISTICA
      ------------------------------------------------------------
-     seccion simple: titulo + una rayita ondulada decorativa (svg 
-     con un path curvo) + un parrafo. nada de otro mundo, es la 
+     seccion simple: titulo + una rayita ondulada decorativa (svg
+     con un path curvo) + un parrafo. nada de otro mundo, es la
      típica seccion de "contexto/relleno" para dar onda editorial
-     a la pagina.
+     a la página.
 ============================================================ -->
 <section class="historia-section" id="historia">
   <div class="historia-inner">
     <h2>Historia Turística</h2>
 
     <!-- esta ondita es puramente decorativa (un <path> con una curva bezier).
-         no significa nada, es un elemento de diseño nomas, como un separador 
+         no significa nada, es un elemento de diseño nomas, como un separador
          "con onda" en vez de una linea recta aburrida -->
     <svg class="historia-wave" viewBox="0 0 220 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M2 16 C40 4, 80 22, 110 12 S170 0, 218 14" stroke="#3ecfbb" stroke-width="4" stroke-linecap="round" fill="none"/>
@@ -285,8 +246,8 @@
 <!-- ============================================================
      RESTAURANTES Y SABORES
      ------------------------------------------------------------
-     otra grilla de cards, misma logica que alojamientos pero con 
-     otro layout (restaurant-card en vez de prop-card). Tampoco 
+     otra grilla de cards, misma logica que alojamientos pero con
+     otro layout (restaurant-card en vez de prop-card). Tampoco
      tiene loop, son 3 <article> a mano.
 ============================================================ -->
 <section class="restaurantes-section" id="restaurantes">
@@ -303,13 +264,13 @@
     <div class="restaurant-grid">
 
       <!-- se usa <article> en vez de <div> acá, que es mas correcto semánticamente
-           porque cada card es un "contenido independiente" (un restaurant). 
+           porque cada card es un "contenido independiente" (un restaurant).
            buen uso de HTML semántico, a diferencia de las prop-card de arriba
            que son <div>. inconsistencia menor pero no es grave -->
       <article class="restaurant-card">
         <div class="restaurant-img-placeholder">
-          <img class="restaurant-img" src="../imagenes/turismo/unnamed.jpg" alt="Parrilla en Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
-          <!-- el nombre de archivo "unnamed.jpg" es sospechoso, huele a que alguien 
+          <img class="restaurant-img" src="../imagenes/turismo/unnamed.jpg" alt="Parrilla en Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
+          <!-- el nombre de archivo "unnamed.jpg" es sospechoso, huele a que alguien
                descargó la imagen de internet y nunca la renombró. funciona pero
                en algún momento habria que ponerle un nombre descriptivo -->
           <span class="restaurant-badge">Parrilla</span>
@@ -318,44 +279,32 @@
           <p class="restaurant-name">El Fogón de Mandinga</p>
           <p class="restaurant-desc">Parrilla con asientos al aire libre, chimenea y menú para niños.</p>
           <p class="restaurant-address">Jacarandá, Termas del Daymán · 093 784 334</p>
-          <div class="restaurant-meta">
-            <span>Desde $450</span>
-            <span>4.8 ★</span>
-          </div>
           <a class="place-map-link" href="mapa.php?q=El%20Fog%C3%B3n%20de%20Mandinga">Visitar en mapa SIGTUR</a>
         </div>
       </article>
 
       <article class="restaurant-card">
         <div class="restaurant-img-placeholder">
-          <img class="restaurant-img" src="../imagenes/turismo/carrito-de-comidas.jpg" alt="Comida regional" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <img class="restaurant-img" src="../imagenes/turismo/carrito-de-comidas.jpg" alt="Comida regional" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <span class="restaurant-badge">Regional</span>
         </div>
         <div class="restaurant-info">
           <p class="restaurant-name">El Mago del Sabor</p>
           <p class="restaurant-desc">Opciones regionales con asientos al aire libre, ideal después de las termas.</p>
           <p class="restaurant-address">C. 14, Termas del Daymán · 099 463 336</p>
-          <div class="restaurant-meta">
-            <span>Desde $380</span>
-            <span>4.7 ★</span>
-          </div>
           <a class="place-map-link" href="mapa.php?q=El%20Mago%20del%20Sabor">Visitar en mapa SIGTUR</a>
         </div>
       </article>
 
       <article class="restaurant-card">
         <div class="restaurant-img-placeholder">
-          <img class="restaurant-img" src="../imagenes/turismo/Salto-Coffee-Rollinsville-3.jpg" alt="Cafe y mate" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" />
+          <img class="restaurant-img" src="../imagenes/turismo/Salto-Coffee-Rollinsville-3.jpg" alt="Cafe y mate" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <span class="restaurant-badge">Café</span>
         </div>
         <div class="restaurant-info">
           <p class="restaurant-name">Basalto Coffee Club</p>
           <p class="restaurant-desc">Cafetería de especialidad y opciones para llevar.</p>
           <p class="restaurant-address">Gral. Fructuoso Rivera 690, Salto · 092 234 916</p>
-          <div class="restaurant-meta">
-            <span>Desde $260</span>
-            <span>4.6 ★</span>
-          </div>
           <a class="place-map-link" href="mapa.php?q=Basalto%20Coffee%20Club">Visitar en mapa SIGTUR</a>
         </div>
       </article>
@@ -374,7 +323,7 @@
 <!-- ============================================================
      FOOTER
      ------------------------------------------------------------
-     el pie de página, se repite en TODAS las páginas del sitio 
+     el pie de página, se repite en TODAS las páginas del sitio
      (copy-paste city, de nuevo, no hay templates/includes). tiene:
      1) columnas de links por categoria
      2) una card de "soporte" a la derecha
@@ -390,8 +339,8 @@
         <ul>
           <li><a href="eventos.php">Eventos Destacados</a></li>
           <li><a href="eventos.php">Todos los Eventos</a></li>
-          <!-- ojo: los dos links de arriba van EXACTAMENTE al mismo lugar 
-               (eventos.php), no hay anchors distintos ni filtros. son 
+          <!-- ojo: los dos links de arriba van EXACTAMENTE al mismo lugar
+               (eventos.php), no hay anchors distintos ni filtros. son
                practicamente el mismo link con texto diferente. revisar
                si esto era intencional o quedó a medio hacer -->
           <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
@@ -401,7 +350,7 @@
       <div class="footer-col">
         <h4 class="footer-col-title">TURISMO</h4>
         <ul>
-          <!-- estos si apuntan bien a los ids de esta misma pagina -->
+          <!-- estos si apuntan bien a los ids de esta misma página -->
           <li><a href="turismo.php#alojamientos">Hoteles</a></li>
           <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
           <li><a href="lugares.php">Lugares Turísticos</a></li>
@@ -413,8 +362,8 @@
         <h4 class="footer-col-title">LUGARES</h4>
         <ul>
           <!-- estos anchors (#plaza-artigas, #plaza-33, etc) tienen que existir
-               como id en lugares.php, sino el link no lleva a ningun lado 
-               especifico, solo abre la pagina de arriba -->
+               como id en lugares.php, sino el link no lleva a ningun lado
+               especifico, solo abre la página de arriba -->
           <li><a href="lugares.php#plaza-artigas">Plaza Artigas</a></li>
           <li><a href="lugares.php#plaza-33">Plaza Treinta y Tres</a></li>
           <li><a href="lugares.php#parque-solari">Parque Solari</a></li>
@@ -432,9 +381,9 @@
       </div>
     </div>
 
-    <!-- 
-      card de soporte a la derecha del footer. Es una <aside> porque es 
-      contenido "relacionado pero separado" del resto del footer (correcto 
+    <!--
+      card de soporte a la derecha del footer. Es una <aside> porque es
+      contenido "relacionado pero separado" del resto del footer (correcto
       uso semántico de nuevo, bien ahi). manda directo a soporte.php
     -->
     <aside class="footer-suporte-card">
@@ -450,12 +399,12 @@
 
   <div class="footer-divider"></div>
 
-  <!-- 
-    Redes sociales. Los 4 iconos (instagram, facebook, twitter/x, youtube) 
-    están hechos a mano en SVG con paths complicados -- estos se exportaron directo de Figma (se nota por los nombres de los paths 
-    y los numeros con muchos decimales tipo "11.5821"). no son iconos de una 
+  <!--
+    Redes sociales. Los 4 iconos (instagram, facebook, twitter/x, youtube)
+    están hechos a mano en SVG con paths complicados -- estos se exportaron directo de Figma (se nota por los nombres de los paths
+    y los numeros con muchos decimales tipo "11.5821"). no son iconos de una
     libreria , son dibujos vectoriales pegados tal cual.
-    Todos los href="#" -- osea, ningun link de red social funciona todavia,
+    Todos los href="#" -- osea, ningun link de red social funciona todavía,
     hay que poner las URLs reales cuando las tengan.
   -->
   <div class="footer-socials">
@@ -498,11 +447,11 @@
   </div>
 </footer>
 
-<!-- 
-  el script principal, se carga al final del body (buena práctica, asi el 
-  HTML ya está todo pintado en pantalla antes de que corra JS, y no bloquea 
-  el renderizado). Ver main.js para toda la lógica de: menú responsive, 
-  favoritos (corazones), tabs, formularios, etc. No vimos nada de eso 
+<!--
+  el script principal, se carga al final del body (buena práctica, asi el
+  HTML ya está todo pintado en pantalla antes de que corra JS, y no bloquea
+  el renderizado). Ver main.js para toda la lógica de: menú responsive,
+  favoritos (corazones), tabs, formularios, etc. No vimos nada de eso
   definido inline en esta página asi que seguro está todo centralizado ahi.
 -->
 <script src="../js/api-config.js"></script>

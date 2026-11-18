@@ -4,7 +4,7 @@
 // "Authorization: Bearer <token>", lo valida contra Supabase Auth y cuelga
 // el usuario en req.user para que el controlador lo use.
 // ============================================================================
-import { verificarToken, obtenerPerfil } from "./auth_servicios.js";
+import { verificarToken, obtenerPerfil, asegurarPerfil } from "./auth_servicios.js";
 
 export async function requiereSesion(req, res, next) {
   const header = req.headers.authorization || "";
@@ -20,8 +20,10 @@ export async function requiereSesion(req, res, next) {
   }
 
   req.authUser = authUser;
-  const perfil = await obtenerPerfil(authUser.id);
-  req.user = perfil || { id: authUser.id, correo: authUser.email, rol: "usuario" };
+  const perfil = (await obtenerPerfil(authUser.id)) || (await asegurarPerfil(authUser));
+  if (!perfil)
+    return res.status(503).json({ error: "No se pudo validar el perfil de esta cuenta." });
+  req.user = perfil;
   next();
 }
 
@@ -36,7 +38,9 @@ export async function sesionOpcional(req, res, next) {
     return next();
   }
   const authUser = await verificarToken(token);
-  req.user = authUser ? (await obtenerPerfil(authUser.id)) || { id: authUser.id, correo: authUser.email } : null;
+  req.user = authUser
+    ? (await obtenerPerfil(authUser.id)) || (await asegurarPerfil(authUser))
+    : null;
   next();
 }
 

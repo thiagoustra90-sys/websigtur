@@ -1,24 +1,3 @@
-## Interacciones reutilizables
-
-La migración `database/migration_interacciones.sql` agrega comentarios, likes, guardados y reportes con el contrato común `entidad_tipo` (`company`, `event`, `place`) + `entidad_id`. Ejecutala en Supabase después de `migration_mapa_auth.sql`.
-
-Orden sugerido de implementación:
-
-1. Ejecutar y revisar la migración con RLS.
-2. Probar autenticación y los endpoints `/api/comentarios`, `/api/likes` y `/api/guardados`.
-3. Validar el panel de detalle del mapa con usuario anónimo y autenticado.
-4. Revisar el perfil y los guardados en distintos tipos de entidad.
-5. Agregar moderación administrativa y métricas después de validar el uso real.
-
-Decisiones de producto pendientes:
-
-- Puntaje en comentarios: definir si habrá estrellas/valoración numérica además del texto.
-- Edición: actualmente el backend permite editar y borrar comentarios propios; confirmar si se conserva ese comportamiento y por cuánto tiempo.
-- Guardados: actualmente es una lista única por usuario; definir si luego se necesitan listas o colecciones personalizadas.
-
-### Foro y administración
-
-Después de `migration_mapa_auth.sql`, ejecutá `database/migration_interacciones.sql` para activar respuestas, likes de comentarios y mensajes privados. Para crear el primer administrador, registrá la cuenta normalmente y reemplazá `ADMIN_EMAIL_AQUI` en `database/migration_admin.sql`; luego ejecutá ese archivo en Supabase. El panel admin queda en `admin.php` y sus operaciones se validan también en el backend.
 # SIGTUR – Sistema Inteligente de Gestión Turística
 
 ## Institución
@@ -48,6 +27,10 @@ Convertir a Salto en un referente de turismo inteligente, impulsado por la innov
 
 Desarrollar soluciones tecnológicas que conecten personas, destinos y servicios turísticos, promoviendo un turismo más accesible, eficiente y sostenible.
 
+## Base de datos
+
+Las migraciones obligatorias y su orden se describen en `supabase/MIGRACIONES.md`. Usa Supabase CLI (`supabase db push`) para aplicar el historial versionado; no ejecutes manualmente archivos SQL antiguos de `database/legacy/`. Los datos de desarrollo est?n separados en `database/seeds/desarrollo.sql`.
+
 ## Despliegue y autenticación
 
 En Render, Express sirve la API y el frontend HTML desde el mismo dominio. Copia `backend/.env.example` como referencia para las variables del servicio; nunca publiques `backend/.env` ni pongas claves en JavaScript. Las páginas PHP antiguas siguen siendo para XAMPP y no forman parte del login de Render.
@@ -58,7 +41,7 @@ Si cambias el dominio de Render, actualízalo en esas variables y en `frontend/j
 
 En **Supabase > Authentication > URL Configuration**, configura como **Site URL** `https://websigtur.onrender.com` y permite como redirect URLs `https://websigtur.onrender.com/login.html`, `https://websigtur.onrender.com/api/auth/google/callback` y `http://localhost/**` para desarrollo local. En **Authentication > Providers > Google**, configura las credenciales de Google. En Google Cloud, agrega como URI de redirección autorizada la URL de callback de Supabase que muestra el panel de Supabase, no la URL de Render.
 
-Para que los eventos guarden su horario por separado del precio, ejecuta una vez `database/eventos_horario.sql` en Supabase antes de publicar eventos con horario.
+El horario de eventos forma parte de las migraciones versionadas. Consulta `supabase/MIGRACIONES.md` y aplica el historial con `supabase db push`.
 
 El endpoint `GET /health` comprueba el proceso sin consultar la base de datos. El callback OAuth valida la sesión de Supabase y devuelve al usuario a `login.html`.
 
@@ -70,15 +53,15 @@ El registro y el inicio de sesión pueden seguir usando el proxy de `frontend/ht
 
 Apache puede ejecutar el login sin Node mediante `frontend/html/api/auth.php`. El `.htaccess` transforma `/api/auth/login`, `/api/auth/register`, `/api/auth/me`, `/api/auth/recuperar` y `/api/auth/google` en llamadas PHP del mismo origen.
 
-Completa también `SUPABASE_ANON_KEY` en `backend/.env`, ejecuta en Supabase `database/migration_mapa_auth.sql` y `database/migration_interacciones.sql`, y abre `setup_local.bat`. La segunda migración es necesaria para que aparezcan los usuarios y funcionen los mensajes privados.
+Completa `SUPABASE_ANON_KEY` en `backend/.env`, aplica las migraciones requeridas con `supabase db push` y abre `setup_local.bat`.
 
 ### Imágenes y GIFs en comentarios
 
-Para habilitar adjuntos en los comentarios de eventos y del mapa, ejecuta una vez `database/comentarios_media.sql` en Supabase SQL Editor. Esta migración agrega `media_paths` a `comentarios` y crea/actualiza el bucket público de lectura `comment-media` (JPG, PNG, WebP y GIF, hasta 5 MB por archivo). Las cargas requieren sesión y se procesan desde el backend con `SUPABASE_SERVICE_KEY`; esa clave nunca debe exponerse al frontend. Se permiten hasta 3 imágenes por comentario.
+Los adjuntos de comentarios se habilitan con la migración `20261117000400_comentarios_media.sql`. Sigue el orden de `supabase/MIGRACIONES.md` y aplica los cambios con `supabase db push`. El bucket `comment-media` permite JPG, PNG, WebP y GIF de hasta 5 MB por archivo; se permiten hasta 3 imágenes por comentario.
 
-### Mensajes de voz
+### Mensajes directos, archivos y notas de voz
 
-Para habilitar audios y archivos en mensajes directos, ejecuta `database/mensajes_audio.sql` en Supabase después de `database/interacciones.sql`. Crea los buckets privados `message-audio` y `message-files`; el backend emite enlaces temporales solo a los participantes de la conversación. Las notas de voz requieren permiso de micrófono y HTTPS o `localhost`, duran hasta 2 minutos y pesan hasta 10 MB. Se pueden adjuntar hasta 3 archivos por mensaje (JPG, PNG, WebP, GIF o PDF), de hasta 10 MB cada uno.
+La migración `20261117000500_mensajes_audio.sql` habilita los buckets privados `message-audio` y `message-files`; el backend emite enlaces temporales solo a los participantes. Los mensajes permanecen disponibles aunque el destinatario está desconectado; no se envían notificaciones push. En el chat se puede enviar con Enter (Shift+Enter agrega una línea), pegar o arrastrar imágenes y GIF, además de seleccionarlos desde el dispositivo. Se permiten hasta 3 archivos por mensaje (JPG, PNG, WebP, GIF o PDF), de hasta 10 MB cada uno. Las notas de voz requieren permiso de micrófono y HTTPS o `localhost`, duran hasta 2 minutos y pesan hasta 10 MB.
 
 ## Configuración por entorno
 

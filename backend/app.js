@@ -6,16 +6,19 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
-import authRutas from "./rutas/auth rutas.js";
-import mapaRutas from "./rutas/rutas mapa.js";
-import companiasRutas from "./rutas/rutas companias.js";
-import eventosRutas from "./rutas/rutas eventos.js";
+import authRutas from "./rutas/auth_rutas.js";
+import mapaRutas from "./rutas/rutas_mapa.js";
+import companiasRutas from "./rutas/rutas_companias.js";
+import eventosRutas from "./rutas/rutas_eventos.js";
 import interaccionesRutas, {
   likesRouter,
   guardadosRouter,
   mensajesRouter,
-} from "./rutas/rutas interacciones.js";
-import adminRutas from "./rutas/rutas admin.js";
+} from "./rutas/rutas_interacciones.js";
+import adminRutas from "./rutas/rutas_admin.js";
+import soporteRutas from "./rutas/rutas_soporte.js";
+import publicasRutas from "./rutas/rutas_publicas.js";
+import reservasRutas from "./rutas/rutas_reservas.js";
 import { errorMiddleware } from "./servicios/errores.js";
 import { validarConfiguracionInicio } from "./servicios/configuracion.js";
 
@@ -24,6 +27,7 @@ const __dirname = path.dirname(__filename);
 
 const frontendDir = path.resolve(__dirname, "../frontend");
 const htmlDir = path.join(frontendDir, "html");
+const app = express();
 
 app.disable("x-powered-by");
 app.use((req, res, next) => {
@@ -39,7 +43,7 @@ app.use((req, res, next) => {
           path: req.originalUrl,
           status: res.statusCode,
           durationMs: Math.round(elapsedMs),
-        })
+        }),
       );
     }
   });
@@ -49,7 +53,7 @@ app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: false,
-  })
+  }),
 );
 
 const production = process.env.NODE_ENV === "production";
@@ -57,7 +61,7 @@ const allowedOrigins = new Set(
   (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_ORIGIN || "")
     .split(",")
     .map((origin) => origin.trim().replace(/\/$/, ""))
-    .filter(Boolean)
+    .filter(Boolean),
 );
 
 if (!production) {
@@ -69,14 +73,11 @@ if (!production) {
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin.replace(/\/$/, "")))
-        return callback(null, true);
-      return callback(
-        Object.assign(new Error("Origin no permitido."), { status: 403 })
-      );
+      if (!origin || allowedOrigins.has(origin.replace(/\/$/, ""))) return callback(null, true);
+      return callback(Object.assign(new Error("Origin no permitido."), { status: 403 }));
     },
     credentials: false,
-  })
+  }),
 );
 app.use(express.json({ limit: "2mb", strict: true }));
 app.use(express.urlencoded({ extended: false, limit: "2mb" }));
@@ -107,6 +108,8 @@ app.use("/api/auth/refresh", authLimiter);
 app.use("/api/auth/recuperar", authLimiter);
 app.use("/api/admin", apiLimiter);
 app.use("/api/mensajes", apiLimiter);
+app.use("/api/soporte", apiLimiter);
+app.use("/api/reservas", apiLimiter);
 
 // Evitar que se intenten abrir páginas PHP antiguas.
 app.use((req, res, next) => {
@@ -129,6 +132,9 @@ app.get("/ready", (req, res) => {
 
 // Rutas de la API.
 app.use("/api/auth", authRutas);
+app.use("/api/soporte", soporteRutas);
+app.use("/api/reservas", reservasRutas);
+app.use("/api/public", publicasRutas);
 app.use("/mapa", mapaRutas);
 app.use("/api/mapa", mapaRutas);
 app.use("/api/companias", companiasRutas);
@@ -150,8 +156,6 @@ app.use((req, res) => {
 app.use(errorMiddleware);
 
 validarConfiguracionInicio();
-
-const app = express();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {

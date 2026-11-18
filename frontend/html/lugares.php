@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- mismo problema de las comillas raras (”) que en turismo.php, se ve que 
-       viene de la misma fuente/plantilla de titulos. patrón repetido = bug 
+  <!-- mismo problema de las comillas raras (”) que en turismo.php, se ve que
+       viene de la misma fuente/plantilla de titulos. patrón repetido = bug
        sistemático, no aislado. si se arregla en un lado, arreglar en TODOS -->
   <title>Lugares ” SIGTUR Salto</title>
 
@@ -16,17 +16,17 @@
 <!-- page-lugares, siguiendo la misma convención que vimos en turismo -->
 <body class="page-lugares">
 
-<!-- 
+<!--
      NAVBAR
-   
-     misma navbar que en todas las paginas, copiada y pegada.
-     unica diferencia real con turismo.php: el logo apunta a 
+
+     misma navbar que en todas las páginas, copiada y pegada.
+     unica diferencia real con turismo.php: el logo apunta a
      ../imagenes/lugares/logo-salto.svg en vez de .../turismo/logo-salto.svg
      -- son el MISMO archivo SVG duplicado en dos carpetas distintas
-     (revisamos el árbol de carpetas: existe logo-salto.svg en 
-     imagenes/lugares/, imagenes/turismo/ Y imagenes/index/). 
-     literal 3 copias del mismo logo. se podria tener 1 sola copia en, 
-     ej, imagenes/comun/logo-salto.svg y listo, ahorra espacio y evita 
+     (revisamos el árbol de carpetas: existe logo-salto.svg en
+     imagenes/lugares/, imagenes/turismo/ Y imagenes/index/).
+     literal 3 copias del mismo logo. se podria tener 1 sola copia en,
+     ej, imagenes/comun/logo-salto.svg y listo, ahorra espacio y evita
      que si actualizan el logo se olviden de una copia
  -->
 <header>
@@ -42,7 +42,7 @@
       <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
     </div>
 
-    <!-- acá "active" está en Lugares, tal cual toca en esta pagina -->
+    <!-- acá "active" está en Lugares, tal cual toca en esta página -->
     <div class="nav-links">
       <a href="eventos.php">Eventos</a>
       <a href="turismo.php">Turismo</a>
@@ -52,7 +52,7 @@
 </header>
 
 
-<!-- 
+<!--
      HERO
 -->
 <section class="hero">
@@ -67,42 +67,42 @@
 </section>
 
 
-<!-- 
-     LISTA DE LUGARES    
+<!--
+     LISTA DE LUGARES
      Esta es la sección mas "cargada" de contenido real de todo el sitio.
-     Cada lugar es un .lugar-card con: foto, texto descriptivo (bastante 
-     completo, parece sacado de wikipedia o de una guía turística real, 
+     Cada lugar es un .lugar-card con: foto, texto descriptivo (bastante
+     completo, parece sacado de wikipedia o de una guía turística real,
      buen laburo de investigación ahi), tags (chips con iconito + texto),
-     badges de color (categoria) y 3 botones de accion al final 
-     (guardar / cómo llegar / ver detalles). 
-     
-     Dato copado: los links de "cómo llegar" y "ver detalles" van 
-     DIRECTO a Google Maps con la direccion armada en la URL 
-     (google.com/maps/dir/?api=1&destination=...). Eso es re piola, 
-     porque no dependen de tener una API Key de Google Maps ni nada 
-     pago, es solo un link con parametros. mismo truco para las 4 
+     badges de color (categoria) y 3 botones de accion al final
+     (guardar / cómo llegar / ver detalles).
+
+     Dato copado: los links de "cómo llegar" y "ver detalles" van
+     DIRECTO a Google Maps con la direccion armada en la URL
+     (google.com/maps/dir/?api=1&destination=...). Eso es re piola,
+     porque no dependen de tener una API Key de Google Maps ni nada
+     pago, es solo un link con parametros. mismo truco para las 4
      tarjetas de acá abajo.
  -->
 <section class="lugares-section">
   <div class="lugares-inner">
     <div class="lugares-list">
 
-      <!-- 
-        Plaza Artigas 
-        el id="plaza-artigas" es clave: el footer de ESTA MISMA pagina 
-        y el footer de turismo.php (y probablemente eventos.php) 
+      <!--
+        Plaza Artigas
+        el id="plaza-artigas" es clave: el footer de ESTA MISMA página
+        y el footer de turismo.php (y probablemente eventos.php)
         tienen un link "Plaza Artigas" que apunta acá con #plaza-artigas.
-        Si cambian este id, se rompen esos links en TODOS los archivos 
+        Si cambian este id, se rompen esos links en TODOS los archivos
         donde esté copiado el footer (o sea, en todos).
       -->
       <div class="lugar-card" id="plaza-artigas">
         <div class="lugar-img">
-          <img src="../imagenes/turismo/plaza_artigas_01.jpg.webp" alt="Plaza Artigas" />
+          <img src="../imagenes/turismo/plaza_artigas_01.jpg.webp" alt="Plaza Artigas" loading="lazy" decoding="async" />
           <!-- fijate el nombre del archivo: "plaza_artigas_01.jpg.webp".
-               tiene DOS extensiones (.jpg.webp). esto pasa cuando 
-               convertís una imagen de jpg a webp con alguna herramienta 
-               online y no borra la extension vieja, solo la agrega. 
-               funciona perfecto igual (el navegador lee la ultima 
+               tiene DOS extensiones (.jpg.webp). esto pasa cuando
+               convertís una imagen de jpg a webp con alguna herramienta
+               online y no borra la extension vieja, solo la agrega.
+               funciona perfecto igual (el navegador lee la ultima
                extension, .webp), pero es un poco cochino. -->
         </div>
         <div class="lugar-info">
@@ -114,15 +114,15 @@
             Destaca por su majestuoso monumento ecuestre al prócer José Gervasio Artigas, flanqueado por las figuras de un gaucho y un ciudadano, obra del escultor Edmundo Prati.
           </p>
 
-          <!-- 
-            tags: son como "caracteristicas" del lugar, cada una con su 
-            propio icono SVG (ubicacion, ojo/vista, accesibilidad...).
-            OJO: estos mismos 3 iconos (location-pin, ojo, accesibilidad) 
-            se repiten pegados a mano en CADA tarjeta de este archivo. 
-            son practicamente copy-paste del mismo SVG una y otra vez. 
-            en un proyecto con un framework (React/Vue) esto seria UN 
-            componente <Tag icon="location"/> reusable. Acá, al ser HTML 
-            puro, hay que aceptar la repetición (o generarla con JS, 
+          <!--
+            tags: son como "caracteristicas" del lugar, cada una con su
+            propio icono SVG (ubicación, ojo/vista, accesibilidad...).
+            OJO: estos mismos 3 iconos (location-pin, ojo, accesibilidad)
+            se repiten pegados a mano en CADA tarjeta de este archivo.
+            son practicamente copy-paste del mismo SVG una y otra vez.
+            en un proyecto con un framework (React/Vue) esto seria UN
+            componente <Tag icon="location"/> reusable. Acá, al ser HTML
+            puro, hay que aceptar la repetición (o generarla con JS,
             que no parece ser el caso)
           -->
           <div class="lugar-tags">
@@ -132,9 +132,7 @@
             </span>
             <span class="lugar-tag">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13" r="3.5"/></svg>
-              Vista Increible
-              <!-- "Increible" sin tilde -- debería ser "Increíble".
-                   pequeño typo, no rompe nada pero un ojo atento lo nota -->
+              Vista Increíble
             </span>
             <span class="lugar-tag">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><circle cx="18" cy="9" r="2.5"/><path d="M21.5 21v-1.5a4 4 0 0 0-3-3.87"/></svg>
@@ -142,12 +140,12 @@
             </span>
           </div>
 
-          <!-- 
-            badges: distinto de los tags de arriba. Estos tienen colores 
-            especificos por categoria (badge-purple = histórico, 
-            badge-blue = imperdible, badge-green = deportes segun vemos 
+          <!--
+            badges: distinto de los tags de arriba. Estos tienen colores
+            especificos por categoria (badge-purple = histórico,
+            badge-blue = imperdible, badge-green = deportes segun vemos
             mas abajo). Es un sistema de "etiquetas de color" tipo Trello.
-            Estos colores DEBEN estar definidos en styles.css 
+            Estos colores DEBEN estar definidos en styles.css
             (buscar .badge-purple, .badge-blue, .badge-green)
           -->
           <div class="lugar-badges">
@@ -156,14 +154,14 @@
           </div>
         </div>
 
-        <!-- 
-          3 acciones por card. La de "Guardar" es la unica que NO sale 
+        <!--
+          3 acciones por card. La de "Guardar" es la unica que NO sale
           de acá (href="#"), las otras dos van afuera del sitio (Maps).
-          target="_blank" + rel="noopener" en los links externos: 
-          ESTO ESTÁ BIEN HECHO. el rel="noopener" es una medida de 
-          seguridad importante cuando abrís un link en pestaña nueva, 
-          evita que la pagina que abrís pueda manipular la pagina 
-          original via window.opener. buena práctica, alguien del 
+          target="_blank" + rel="noopener" en los links externos:
+          ESTO ESTÁ BIEN HECHO. el rel="noopener" es una medida de
+          seguridad importante cuando abrís un link en pestaña nueva,
+          evita que la página que abrís pueda manipular la página
+          original via window.opener. buena práctica, alguien del
           equipo sabia lo que hacia acá.
         -->
         <div class="lugar-actions">
@@ -179,18 +177,18 @@
         </div>
       </div>
 
-      <!-- 
+      <!--
         Costanera Norte
         misma estructura que Plaza Artigas, cambia el contenido.
-        La imagen sale de la carpeta eventos (../imagenes/eventos/whatsapp...) 
-        en vez de turismo o lugares -- otra vez el patrón de "reciclar" 
-        imagenes de otras carpetas en vez de tener todo prolijamente 
-        organizado por seccion. funciona, pero para alguien nuevo en el 
+        La imagen sale de la carpeta eventos (../imagenes/eventos/whatsapp...)
+        en vez de turismo o lugares -- otra vez el patrón de "reciclar"
+        imagenes de otras carpetas en vez de tener todo prolijamente
+        organizado por seccion. funciona, pero para alguien nuevo en el
         proyecto es confuso no saber donde buscar cada imagen
       -->
       <div class="lugar-card" id="costanera-norte">
         <div class="lugar-img">
-          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Costanera Norte" />
+          <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Costanera Norte" loading="lazy" decoding="async" />
         </div>
         <div class="lugar-info">
           <h3>Costanera Norte</h3>
@@ -207,7 +205,7 @@
             </span>
             <span class="lugar-tag">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13" r="3.5"/></svg>
-              Vista Increible
+              Vista Increíble
             </span>
           </div>
           <div class="lugar-badges">
@@ -228,18 +226,18 @@
         </div>
       </div>
 
-      <!-- 
+      <!--
         Parque Solari
-        el texto de esta descripcion tiene un espacio de mas antes de 
-        "Inaugurado" (mirá el salto de linea del original, queda un 
-        espacio pegado). Detalle mínimo de formato en el HTML fuente, 
-        no afecta el render porque HTML colapsa espacios en blanco 
-        consecutivos en uno solo. no hay que arreglarlo, es solo 
+        el texto de esta descripcion tiene un espacio de mas antes de
+        "Inaugurado" (mirá el salto de linea del original, queda un
+        espacio pegado). Detalle mínimo de formato en el HTML fuente,
+        no afecta el render porque HTML colapsa espacios en blanco
+        consecutivos en uno solo. no hay que arreglarlo, es solo
         prolijidad del código fuente
       -->
       <div class="lugar-card" id="parque-solari">
         <div class="lugar-img">
-          <img src="../imagenes/turismo/solari.jpg" alt="Parque Solari" />
+          <img src="../imagenes/turismo/solari.jpg" alt="Parque Solari" loading="lazy" decoding="async" />
         </div>
         <div class="lugar-info">
           <h3>Parque Solari</h3>
@@ -254,13 +252,13 @@
               Accesible
             </span>
           </div>
-          <!-- 
-            OJO ACA: el badge dice "Deportes" (verde) para el Parque 
-            Solari, pero por lo que describe el texto (parque historico, 
-            jardines, lago, esculturas) suena mas a "Histórico" o 
-            "Naturaleza" que a deportes. Puede ser un error de 
-            categorización o puede que el parque SI tenga zona 
-            deportiva y el texto no lo menciona. Vale la pena 
+          <!--
+            OJO ACA: el badge dice "Deportes" (verde) para el Parque
+            Solari, pero por lo que describe el texto (parque historico,
+            jardines, lago, esculturas) suena mas a "Histórico" o
+            "Naturaleza" que a deportes. Puede ser un error de
+            categorización o puede que el parque SI tenga zona
+            deportiva y el texto no lo menciona. Vale la pena
             preguntarle a quien cargó los datos, por las dudas.
           -->
           <div class="lugar-badges">
@@ -283,11 +281,11 @@
       <!-- Plaza Treinta y Tres -->
       <div class="lugar-card" id="plaza-33">
         <div class="lugar-img">
-          <img src="../imagenes/turismo/plaza.png" alt="Plaza Treinta y Tres" />
-          <!-- esta es la unica imagen del bloque que es .png en vez de 
-               .jpg/.webp. no es un problema real (el png tambien anda), 
-               pero suele pesar mas que un webp equivalente. si algun 
-               dia el sitio va lento, convertir esta imagen a webp es 
+          <img src="../imagenes/turismo/plaza.png" alt="Plaza Treinta y Tres" loading="lazy" decoding="async" />
+          <!-- esta es la unica imagen del bloque que es .png en vez de
+               .jpg/.webp. no es un problema real (el png también anda),
+               pero suele pesar mas que un webp equivalente. si algun
+               dia el sitio va lento, convertir esta imagen a webp es
                una victoria fácil de optimizacion -->
         </div>
         <div class="lugar-info">
@@ -325,20 +323,20 @@
 </section>
 
 
-<!-- 
+<!--
      EXPLORA EN EL MAPA
-     banner simple al final de la lista con un botón grandote que 
-     manda a una búsqueda general de Google Maps ("lugares turisticos 
-     Salto Uruguay"), no a un lugar puntual. Es como el "resumen" de 
-     toda la sección de arriba, para el que quiere ver todo junto en 
+     banner simple al final de la lista con un botón grandote que
+     manda a una búsqueda general de Google Maps ("lugares turisticos
+     Salto Uruguay"), no a un lugar puntual. Es como el "resumen" de
+     toda la sección de arriba, para el que quiere ver todo junto en
      el mapa en vez de lugar por lugar.
  -->
 <section class="mapa-section">
   <div class="mapa-left">
     <div class="mapa-icon">
-      <!-- icono de "mapa plegado", el mismo dibujo se repite en el 
-           boton de abajo (btn-ver-mapa). Redundante tenerlo 2 veces 
-           pero visualmente tiene sentido: uno es el icono grande 
+      <!-- icono de "mapa plegado", el mismo dibujo se repite en el
+           boton de abajo (btn-ver-mapa). Redundante tenerlo 2 veces
+           pero visualmente tiene sentido: uno es el icono grande
            decorativo y el otro es el iconito chico dentro del boton -->
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%">
         <path d="M3 6l6-2 6 2 6-2v15l-6 2-6-2-6 2V6z"/><path d="M9 4v15"/><path d="M15 6v15"/>
@@ -356,23 +354,23 @@
 </section>
 
 
-<!-- 
+<!--
      FOOTER
      mismo footer de siempre. PERO ojo con un detalle importante:
-     acá en la columna LUGARES, los links son "#plaza-artigas" a 
-     secas (sin "lugares.php#" adelante), porque ya estamos parados 
-     en esta pagina y los ids existen acá mismo. En cambio en 
-     turismo.php el mismo footer tenia "lugares.php#plaza-artigas" 
-     (con el nombre del archivo adelante) porque ahi SI hace falta 
-     "salir" de la pagina para llegar a esos ids. 
-     
-     Esto significa que el footer NO es 100% idéntico entre paginas, 
-     cambia sutilmente segun en que pagina estás parado. Un detalle 
-     fácil de romper si copian y pegan el footer de una pagina a otra 
-     sin fijarse en estos links relativos. Recomendación para el 
-     futuro: usar siempre la ruta completa (turismo.php#x, 
-     lugares.php#x) en TODOS los footers, asi da lo mismo copiar y 
-     pegar sin pensar. Es un poco mas "repetitivo" pero muchisimo 
+     acá en la columna LUGARES, los links son "#plaza-artigas" a
+     secas (sin "lugares.php#" adelante), porque ya estamos parados
+     en esta página y los ids existen acá mismo. En cambio en
+     turismo.php el mismo footer tenia "lugares.php#plaza-artigas"
+     (con el nombre del archivo adelante) porque ahi SI hace falta
+     "salir" de la página para llegar a esos ids.
+
+     Esto significa que el footer NO es 100% idéntico entre páginas,
+     cambia sutilmente segun en que página estás parado. Un detalle
+     fácil de romper si copian y pegan el footer de una página a otra
+     sin fijarse en estos links relativos. Recomendación para el
+     futuro: usar siempre la ruta completa (turismo.php#x,
+     lugares.php#x) en TODOS los footers, asi da lo mismo copiar y
+     pegar sin pensar. Es un poco mas "repetitivo" pero muchisimo
      menos propenso a errores.
 -->
 <footer class="footer">
@@ -400,8 +398,8 @@
     <div class="footer-col">
       <h4 class="footer-col-title">LUGARES</h4>
       <ul>
-        <!-- ^ ver comentario grande arriba: estos 4 links son 
-             relativos a ESTA pagina (sin "lugares.php" adelante) -->
+        <!-- ^ ver comentario grande arriba: estos 4 links son
+             relativos a ESTA página (sin "lugares.php" adelante) -->
         <li><a href="#plaza-artigas">Plaza Artigas</a></li>
         <li><a href="#plaza-33">Plaza Treinta y Tres</a></li>
         <li><a href="#parque-solari">Parque Solari</a></li>
@@ -431,7 +429,7 @@
   <div class="footer-divider"></div>
 
   <!-- iconos sociales, identicos byte a byte a los de turismo.php.
-       ver esa página para el detalle de cada uno, acá no repito 
+       ver esa página para el detalle de cada uno, acá no repito
        comentario por comentario para no hacer el archivo eterno -->
   <div class="footer-socials">
     <a class="social-icon icon-instagram" href="#" aria-label="Instagram">

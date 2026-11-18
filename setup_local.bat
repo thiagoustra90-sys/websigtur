@@ -78,6 +78,6 @@ echo ========================================
 echo   Abrir Frontend XAMPP
 echo ========================================
 start "" "http://localhost/sigtur2026-premiere-main%%20(1)/sigtur2026-premiere-main/frontend/html/index.php"
-echo Para mensajes: inicia sesion y confirma que migration_interacciones.sql ya fue ejecutada en Supabase.
+echo Para mensajes: inicia sesion y confirma que las migraciones de Supabase ya estan aplicadas (ver database/README.md).
 echo No cierres la ventana SIGTUR Backend mientras presentes.
 endlocal

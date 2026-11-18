@@ -24,7 +24,7 @@
 <body class="page-home">
   <!-- la clase page-home la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->
 
-<!-- 
+<!--
      NAVBAR — fuera del hero para que siempre quede arriba
      (ver el fix de z-index / stacking context de arriba)
 -->
@@ -54,7 +54,7 @@
      y no lo encuentran en ninguna página, es por eso, está armado 100% por JS -->
 
 
-<!-- 
+<!--
      HERO — la parte grande de arriba con el título y el clima
 -->
 <header class="hero">
@@ -76,12 +76,7 @@
       <a href="mapa.html" class="btn-glass">Ver mapa</a>
     </div>
 
-    <!--
-      Widget de clima. Arranca con placeholders ("--") y lo llena
-      setupHomeWeather() en main.js pegándole a la API gratuita de
-      open-meteo (sin key, ideal para un prototipo como este).
-      Si falla el fetch, se queda en placeholders y ya, no rompe nada.
-    -->
+
     <aside class="weather-widget" aria-label="Clima actual en Salto">
       <div class="weather-orb" data-weather-icon aria-hidden="true">--</div>
       <div class="weather-main">
@@ -101,7 +96,7 @@
 </header>
 
 
-<!-- 
+<!--
     Barra de Funciones.
     (tres cajitas: Eventos / Turismo / Lugares, cada una linkea
     conceptualmente a su sección pero no son <a>, son solo texto)
@@ -111,7 +106,7 @@
 
     <div class="feature-item">
       <div class="feature-icon">
-        <img src="../imagenes/index/calendaradd0.svg" alt="Eventos" />
+        <img src="../imagenes/index/calendaradd0.svg" alt="Eventos" loading="lazy" decoding="async" />
       </div>
       <h3 class="feature-title">Eventos</h3>
       <p class="feature-desc">
@@ -122,7 +117,7 @@
 
     <div class="feature-item">
       <div class="feature-icon">
-        <img src="../imagenes/index/Union.png" alt="Turismo" />
+        <img src="../imagenes/index/Union.png" alt="Turismo" loading="lazy" decoding="async" />
       </div>
       <h3 class="feature-title">Turismo</h3>
       <p class="feature-desc">
@@ -133,7 +128,7 @@
 
     <div class="feature-item">
       <div class="feature-icon">
-        <img src="../imagenes/index/Vector(1).svg" alt="Lugares" />
+        <img src="../imagenes/index/Vector(1).svg" alt="Lugares" loading="lazy" decoding="async" />
       </div>
       <h3 class="feature-title">Lugares</h3>
       <p class="feature-desc">
@@ -146,7 +141,7 @@
 </section>
 
 
-<!-- 
+<!--
      EVENTOS (preview en la home, no confundir con eventos.html
      que es la página completa con todos los tickets/filtros)
 -->
@@ -186,16 +181,16 @@
     <div class="carousel">
       <div class="carousel-track">
         <div class="carousel-slide">
-          <img src="../imagenes/turismo/whatsapp-image-2026-04-23-at-12.51.08-pm.jpeg.webp" alt="Evento 1" />
+          <img src="../imagenes/turismo/whatsapp-image-2026-04-23-at-12.51.08-pm.jpeg.webp" alt="Actividades tur?sticas en Salto" loading="lazy" decoding="async" />
         </div>
         <div class="carousel-slide">
-          <img src="../imagenes/turismo/solari.jpg" alt="Evento 2" />
+          <img src="../imagenes/turismo/solari.jpg" alt="Parque Solari" loading="lazy" decoding="async" />
         </div>
         <div class="carousel-slide">
-          <img src="../imagenes/eventos/maxv.jpg" alt="Evento 3" />
+          <img src="../imagenes/eventos/maxv.jpg" alt="Noche de milonga" loading="lazy" decoding="async" />
         </div>
         <div class="carousel-slide">
-          <img src="../imagenes/eventos/porco.jpg" alt="Evento 4" />
+          <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salte?o" loading="lazy" decoding="async" />
         </div>
       </div>
 
@@ -210,9 +205,9 @@
 </section>
 
 
-<!-- 
+<!--
      ALOJAMIENTO — "En donde nos quedamos?"
-     cards de propiedades tipo Airbnb (foto + precio + rating)
+     tarjetas de alojamientos
 -->
 <section class="alojamiento-section" id="alojamiento">
   <div class="alojamiento-inner">
@@ -231,7 +226,7 @@
       <!-- Card 1 -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/index/951-.jpg" alt="Dayman, Salto" />
+          <img class="prop-img" src="../imagenes/index/951-.jpeg" alt="Dayman, Salto" loading="lazy" decoding="async" />
           <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .prop-heart al final del DOMContentLoaded) -->
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -241,25 +236,13 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Dayman, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$289 <span>por persona</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- Card 2 -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Mesias Hotel, Salto" />
+          <img class="prop-img" src="../imagenes/index/images.jpg" alt="Mesias Hotel, Salto" loading="lazy" decoding="async" />
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -268,25 +251,13 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Mesias Hotel, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$279 <span>por noche</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- Card 3 -->
       <div class="prop-card">
         <div class="prop-media">
-          <img class="prop-img" src="../imagenes/index/don pedro.jpg" alt="Jose Pedro, Salto" />
+          <img class="prop-img" src="../imagenes/index/don_pedro.jpg" alt="Jose Pedro, Salto" loading="lazy" decoding="async" />
           <button class="prop-heart" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -295,18 +266,6 @@
         </div>
         <div class="prop-info">
           <p class="prop-name">Jose Pedro, Salto</p>
-          <div class="prop-meta">
-            <div>
-              <div class="prop-price">$289 <span>noche</span></div>
-              <div class="prop-dates">Apr 17-22</div>
-            </div>
-            <div class="prop-right">
-              <div class="prop-rating">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                4.91
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -315,7 +274,7 @@
 </section>
 
 
-<!-- 
+<!--
      GASTRONOMÍA LOCAL
      ojo con el id: dice id="lugares" pero esta sección es de
      comida, no de lugares turísticos. quedó así de alguna
@@ -336,7 +295,7 @@
     <div class="food-grid">
       <div class="food-card">
         <div class="food-card-bg">
-          <img class="food-card-img" src="../imagenes/index/asado.jpg" alt="Parrillada de asado criollo" />
+          <img class="food-card-img" src="../imagenes/index/asado.jpg" alt="Parrillada de asado criollo" loading="lazy" decoding="async" />
         </div>
         <div class="food-card-label">
           <span class="food-card-btn">Asado criollo</span>
@@ -345,7 +304,7 @@
       </div>
       <div class="food-card">
         <div class="food-card-bg">
-          <img class="food-card-img" src="../imagenes/index/empanadas_uruguayas_11992_1200.jpg" alt="Empanadas uruguayas" />
+          <img class="food-card-img" src="../imagenes/index/empanadas_uruguayas_11992_1200.jpg" alt="Empanadas uruguayas" loading="lazy" decoding="async" />
         </div>
         <div class="food-card-label">
           <span class="food-card-btn">Empanadas</span>
@@ -354,7 +313,7 @@
       </div>
       <div class="food-card">
         <div class="food-card-bg">
-          <img class="food-card-img" src="../imagenes/index/Mate-blog.jpg" alt="Mate uruguayo" />
+          <img class="food-card-img" src="../imagenes/index/Mate-blog.jpg" alt="Mate uruguayo" loading="lazy" decoding="async" />
         </div>
         <div class="food-card-label">
           <span class="food-card-btn">Cultura del mate</span>
@@ -366,7 +325,7 @@
 </section>
 
 
-<!-- 
+<!--
      FOOTER
      Este footer se repite IDÉNTICO en index / eventos / turismo /
      lugares (copy-paste manual, no hay includes en HTML plano).
@@ -477,8 +436,8 @@
     <span class="footer-copy">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
     <div class="footer-legal">
       <!-- estos 3 links son placeholders, todavía no hay páginas de términos/privacidad/bases -->
-      <a href="#">Términos y Condiciones</a>
-      <a href="#">Políticas de Privacidad</a>
+      <a href="terminos.html">Términos y Condiciones</a>
+      <a href="privacidad.html">Políticas de Privacidad</a>
       <a href="#">Bases Legales</a>
     </div>
   </div>
@@ -489,4 +448,3 @@
 <script src="../js/main.js"></script>
 </body>
 </html>
-

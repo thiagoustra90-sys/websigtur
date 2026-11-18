@@ -27,7 +27,7 @@ export function errorMiddleware(error, req, res, next) {
     return res.status(400).json({
       error: "Los datos enviados no son válidos.",
       code: "VALIDATION_ERROR",
-      details: error.issues.map(issue => ({
+      details: error.issues.map((issue) => ({
         field: issue.path.join(".") || "body",
         message: issue.message,
       })),
@@ -47,23 +47,25 @@ export function errorMiddleware(error, req, res, next) {
 
   const status = Number.isInteger(error.status)
     ? error.status
-    : error.code === "PGRST205" ? 503 : 500;
+    : error.code === "PGRST205"
+      ? 503
+      : 500;
 
   if (status >= 500) {
-    console.error(JSON.stringify({
-      level: "error",
-      timestamp: new Date().toISOString(),
-      method: req.method,
-      path: req.originalUrl,
-      code: error.code || "INTERNAL_ERROR",
-      message: error.message,
-    }));
+    console.error(
+      JSON.stringify({
+        level: "error",
+        timestamp: new Date().toISOString(),
+        method: req.method,
+        path: req.originalUrl,
+        code: error.code || "INTERNAL_ERROR",
+        message: error.message,
+      }),
+    );
   }
 
   res.status(status).json({
-    error: status >= 500
-      ? "Ocurrió un error interno. Intentá nuevamente."
-      : error.message,
+    error: status >= 500 ? "Ocurrió un error interno. Intentá nuevamente." : error.message,
     code: error.code || (status === 503 ? "SERVICE_UNAVAILABLE" : "HTTP_ERROR"),
     ...(error.details ? { details: error.details } : {}),
   });

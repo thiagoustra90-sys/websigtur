@@ -3,35 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuracion Admin - SIGTUR Salto</title>
+  <title>Configuración Admin - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
   <link rel="stylesheet" href="../css/styles.css?v=20261113-visual-system" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 
-<!-- 
-  page-admin. OJO: esta página no tiene ninguna protección real, o sea,
-  cualquiera que escriba "admin.html" en la barra de direcciones entra
-  derechito acá, sin login ni verificación de ningún tipo. No hay
-  redirect tipo "si no estás logueado como admin, andate a login.html".
-  Para un prototipo está bien (probablemente es intencional, para que
-  se pueda mostrar la pantalla fácil en una demo), pero si esto se
-  convierte en un sitio de verdad, ESTO ES LO PRIMERO que hay que
-  arreglar antes de publicarlo: cualquier visitante puede tocar los
-  switches de "modo mantenimiento" o "publicar eventos destacados"
-  ahora mismo. Ver la nota de soporte.html sobre que el login guarda
-  todo en localStorage nomás -- ni siquiera hay un login "real" del
-  otro lado para chequear contra esto.
--->
+
 <body class="page-admin">
 
-<!-- 
-  Navbar simplificada: mismo logo y links de siempre, pero SIN 
-  buscador funcional con la misma lógica de turismo (achica el header 
-  a lo esencial porque esta pantalla es mas "utilitaria" que las 
-  páginas de contenido). El aria-label del logo dice "Abrir menu" en 
-  vez de "Inicio" como en otras páginas -- pequeña inconsistencia de 
-  texto (en index.html decía aria-label="Inicio"), no rompe nada pero 
+<!--
+  Navbar simplificada: mismo logo y links de siempre, pero SIN
+  buscador funcional con la misma lógica de turismo (achica el header
+  a lo esencial porque esta pantalla es mas "utilitaria" que las
+  páginas de contenido). El aria-label del logo dice "Abrir menu" en
+  vez de "Inicio" como en otras páginas -- pequeña inconsistencia de
+  texto (en index.html decía aria-label="Inicio"), no rompe nada pero
   vale la pena unificarlo
 -->
 <header>
@@ -47,13 +34,13 @@
       <input type="text" placeholder='"Que queres descubrir hoy en Salto?"' />
     </div>
 
-    <!-- 
-      curioso: acá NINGÚN link tiene class="active", ni siquiera algo 
-      relacionado a "Admin" (que ni existe como opción en este menú). 
-      Tiene sentido porque Admin no es una de las 3 secciones 
-      principales (Eventos/Turismo/Lugares), es más una pantalla 
-      "aparte" a la que se llega por otro lado (el menú circular del 
-      logo que arma buildLogoMenu() en main.js, según vimos comentado 
+    <!--
+      curioso: acá NINGÚN link tiene class="active", ni siquiera algo
+      relacionado a "Admin" (que ni existe como opción en este menú).
+      Tiene sentido porque Admin no es una de las 3 secciones
+      principales (Eventos/Turismo/Lugares), es más una pantalla
+      "aparte" a la que se llega por otro lado (el menú circular del
+      logo que arma buildLogoMenu() en main.js, según vimos comentado
       en index.html)
     -->
     <div class="nav-links">
@@ -64,15 +51,15 @@
   </nav>
 </header>
 
-<!-- 
-  
+<!--
+
   CONTENIDO PRINCIPAL
 
-  ".utility-page" / ".utility-shell" son clases que comparte con 
-  soporte.html -- las dos son "páginas utilitarias" (formularios, 
-  paneles, no contenido turístico), así que reusan el mismo layout 
-  base y solo cambian el contenido de adentro. Buena reutilización 
-  de estilos ahí, a diferencia de otras partes del sitio donde todo 
+  ".utility-page" / ".utility-shell" son clases que comparte con
+  soporte.html -- las dos son "páginas utilitarias" (formularios,
+  paneles, no contenido turístico), así que reusan el mismo layout
+  base y solo cambian el contenido de adentro. Buena reutilización
+  de estilos ahí, a diferencia de otras partes del sitio donde todo
   se hardcodea de nuevo.
  -->
 <main class="utility-page">
@@ -86,42 +73,35 @@
         Volver a inicio
       </a>
     </div>
-    <h1>Configuracion para admins</h1>
+    <h1>Configuración para admins</h1>
     <p>
       Vista simple para ajustar contenido, publicar avisos y revisar el estado
-      general de la pagina sin entrar todavia en una base de datos.
+      general de la página sin entrar todavía en una base de datos.
     </p>
-    <!-- 
-      ^ esta frase "sin entrar todavia en una base de datos" confirma 
-      lo que sospechabamos: todo lo que se guarda acá (switches, 
-      avisos, etc) vive en localStorage del navegador, NO en un 
-      servidor. Si limpian el localStorage o entran desde otra 
-      computadora, no van a ver los mismos datos. Es una limitación 
-      conocida y aceptada del prototipo, no un bug escondido.
-    -->
+
 
     <div class="utility-grid admin-grid">
 
-      <!-- 
-        
+      <!--
+
         PANEL: Ajustes de página
-       
-        4 switches (toggle on/off) para prender/apagar features del 
-        sitio. Cada uno es un <label> que envuelve un checkbox real 
-        (input type=checkbox, class="switch-input") + un span decorativo 
-        (class="switch-control") que es el que se ve como el toggle 
-        visual -- patrón clásico de "checkbox escondido + CSS que 
-        dibuja el interruptor encima" (buscar .switch-input y 
+
+        4 switches (toggle on/off) para prender/apagar features del
+        sitio. Cada uno es un <label> que envuelve un checkbox real
+        (input type=checkbox, class="switch-input") + un span decorativo
+        (class="switch-control") que es el que se ve como el toggle
+        visual -- patrón clásico de "checkbox escondido + CSS que
+        dibuja el interruptor encima" (buscar .switch-input y
         .switch-control en styles.css para ver el truco de CSS).
-        Esto es full accesible: sigue siendo un checkbox real por 
-        debajo, funciona con teclado y con lectores de pantalla, 
+        Esto es full accesible: sigue siendo un checkbox real por
+        debajo, funciona con teclado y con lectores de pantalla,
         no es solo un div con onclick.
       -->
       <section class="admin-panel">
         <div class="panel-heading">
-          <h2>Ajustes de pagina</h2>
-          <!-- este span probablemente lo actualiza main.js cuando 
-               guarda cambios (algo tipo "Guardando..." -> "Guardado 
+          <h2>Ajustes de página</h2>
+          <!-- este span probablemente lo actualiza main.js cuando
+               guarda cambios (algo tipo "Guardando..." -> "Guardado
                local" con un setTimeout, es un patrón común) -->
           <span class="status-pill" id="admin-save-status">Guardado local</span>
         </div>
@@ -129,7 +109,7 @@
           <label class="settings-item">
             <div>
               <strong>Publicar eventos destacados</strong>
-              <span>Permite mostrar eventos nuevos en la pagina principal.</span>
+              <span>Permite mostrar eventos nuevos en la página principal.</span>
             </div>
             <input class="switch-input" type="checkbox" name="featuredEvents" checked />
             <span class="switch-control" aria-hidden="true"></span>
@@ -155,8 +135,8 @@
               <strong>Modo mantenimiento</strong>
               <span>Muestra una advertencia interna para evitar publicar cambios incompletos.</span>
             </div>
-            <!-- este es el único switch que arranca DESAPAGADO (sin 
-                 "checked") de los 4 -- tiene sentido, el modo 
+            <!-- este es el único switch que arranca DESAPAGADO (sin
+                 "checked") de los 4 -- tiene sentido, el modo
                  mantenimiento no debería estar prendido por defecto -->
             <input class="switch-input" type="checkbox" name="maintenanceMode" />
             <span class="switch-control" aria-hidden="true"></span>
@@ -164,40 +144,40 @@
         </form>
       </section>
 
-      <!-- 
-        
+      <!--
+
         PANEL: Resumen (metricas)
-        
-        4 numeritos tipo "dashboard". Los data-admin-metric="..." son 
-        ganchos para que main.js los actualice dinámicamente (aunque 
-        acá vienen con valores hardcodeados de partida: 12, 8, 3, 2). 
-        No hay ningún cálculo real detrás -- no cuenta cuántos 
-        .event-card hay en eventos.html ni nada por el estilo, son 
-        numeros de mentira puestos a mano para que la pantalla no se 
-        vea vacía. Si en algún momento quieren que sean reales, hay 
-        que armar algún tipo de "fuente de datos" compartida (un JSON, 
-        un backend, algo) de la que main.js pueda leer los conteos 
+
+        4 numeritos tipo "dashboard". Los data-admin-metric="..." son
+        ganchos para que main.js los actualice dinámicamente (aunque
+        acá vienen con valores hardcodeados de partida: 12, 8, 3, 2).
+        No hay ningún cálculo real detrás -- no cuenta cuántos
+        .event-card hay en eventos.html ni nada por el estilo, son
+        numeros de mentira puestos a mano para que la pantalla no se
+        vea vacía. Si en algún momento quieren que sean reales, hay
+        que armar algún tipo de "fuente de datos" compartida (un JSON,
+        un backend, algo) de la que main.js pueda leer los conteos
         de verdad.
       -->
       <section class="utility-card">
         <h2>Resumen</h2>
         <div class="metric-grid">
-          <article><span>Eventos activos</span><strong data-admin-metric="events">12</strong></article>
-          <article><span>Lugares publicados</span><strong data-admin-metric="places">8</strong></article>
-          <article><span>Consultas pendientes</span><strong data-admin-metric="tickets">3</strong></article>
-          <article><span>Revision</span><strong data-admin-metric="review">2</strong></article>
+          <article><span>Eventos activos</span><strong data-admin-metric="events">—</strong></article>
+          <article><span>Lugares publicados</span><strong data-admin-metric="places">—</strong></article>
+          <article><span>Consultas pendientes</span><strong data-admin-metric="tickets">—</strong></article>
+          <article><span>Comentarios para revisar</span><strong data-admin-metric="review">—</strong></article>
         </div>
       </section>
 
-      <!-- 
-       
+      <!--
+
         PANEL: Aviso del sitio
-        
-        Formulario para escribir un anuncio corto (tipo "Termas 
-        abiertas este finde") que se guarda y se puede mostrar en 
-        algún lado del sitio (no vimos todavía DÓNDE se muestra ese 
-        aviso en las otras páginas -- puede ser que esta feature esté 
-        a medio conectar, o que se muestre solo dentro de esta misma 
+
+        Formulario para escribir un anuncio corto (tipo "Termas
+        abiertas este finde") que se guarda y se puede mostrar en
+        algún lado del sitio (no vimos todavía DÓNDE se muestra ese
+        aviso en las otras páginas -- puede ser que esta feature esté
+        a medio conectar, o que se muestre solo dentro de esta misma
         pantalla en el <p id="admin-announcement-preview">).
       -->
       <section class="admin-panel">
@@ -215,39 +195,39 @@
             <button class="btn-primary" type="submit">Guardar aviso</button>
             <button class="btn-secondary" type="button" id="admin-clear-announcement">Limpiar</button>
           </div>
-          <!-- este parrafo probablemente se actualiza en vivo con lo 
-               que vas escribiendo arriba (o al guardar), mostrando 
-               una vista previa del aviso. arranca con el texto por 
+          <!-- este parrafo probablemente se actualiza en vivo con lo
+               que vas escribiendo arriba (o al guardar), mostrando
+               una vista previa del aviso. arranca con el texto por
                defecto "Sin aviso publicado." -->
           <p class="form-help" id="admin-announcement-preview">Sin aviso publicado.</p>
         </form>
       </section>
 
-      <!-- 
-      
+      <!--
+
         PANEL: Acciones rápidas
-        
-        3 links directos (Eventos / Lugares / Soporte) + un botón de 
-        "Exportar estado" que NO es un link, es un <button> con JS 
-        atrás (probablemente arma un JSON o similar con la 
-        configuración actual y lo descarga, ver id="admin-export" 
-        en main.js). Los 3 primeros usan la clase "glass-action" 
-        tanto en <a> como en el <button>, mostrando que la clase de 
+
+        3 links directos (Eventos / Lugares / Soporte) + un botón de
+        "Exportar estado" que NO es un link, es un <button> con JS
+        atrás (probablemente arma un JSON o similar con la
+        configuración actual y lo descarga, ver id="admin-export"
+        en main.js). Los 3 primeros usan la clase "glass-action"
+        tanto en <a> como en el <button>, mostrando que la clase de
         estilo no depende del tag HTML, es puramente visual.
       -->
       <section class="utility-card">
-        <h2>Acciones rapidas</h2>
+        <h2>Acciones rápidas</h2>
         <div class="admin-actions">
           <a class="glass-action" href="eventos.html">Revisar eventos</a>
           <a class="glass-action" href="lugares.html">Ver lugares</a>
           <a class="glass-action" href="soporte.html">Abrir soporte</a>
           <button class="glass-action" type="button" id="admin-export">Exportar estado</button>
         </div>
-        <!-- 
-          este div vacío es donde main.js probablemente va agregando 
-          un log de actividad (tipo "Se guardó el aviso a las 14:32", 
-          "Se activó modo mantenimiento", etc), aria-live="polite" de 
-          nuevo para que se anuncie automáticamente a lectores de 
+        <!--
+          este div vacío es donde main.js probablemente va agregando
+          un log de actividad (tipo "Se guardó el aviso a las 14:32",
+          "Se activó modo mantenimiento", etc), aria-live="polite" de
+          nuevo para que se anuncie automáticamente a lectores de
           pantalla apenas se agrega una entrada nueva
         -->
         <div class="activity-list" id="admin-activity" aria-live="polite"></div>
@@ -259,7 +239,7 @@
           <div class="form-row"><label for="admin-event-title">Título</label><input id="admin-event-title" name="title" required></div>
           <div class="form-row"><label for="admin-event-description">Descripción</label><textarea id="admin-event-description" name="description" placeholder="Opcional"></textarea></div>
           <div class="form-row"><label for="admin-event-location">Lugar</label><input id="admin-event-location" name="location" required></div>
-          <!-- El mapa define el punto exacto que usaran los marcadores publicos. -->
+          <!-- El mapa define el punto exacto que usaran los marcadores públicos. -->
           <div class="form-row"><label>Ubicación en el mapa</label><div id="admin-event-map" class="admin-event-map" aria-label="Selector de ubicación del evento"></div><p class="form-help">Hacé clic en el mapa para fijar el punto del evento.</p><div class="admin-event-coordinates"><label for="admin-event-latitude">Latitud<input id="admin-event-latitude" name="latitude" type="number" step="any" min="-90" max="90" required></label><label for="admin-event-longitude">Longitud<input id="admin-event-longitude" name="longitude" type="number" step="any" min="-180" max="180" required></label></div></div>
           <div class="form-row"><label for="admin-event-date-start">Desde</label><input id="admin-event-date-start" name="date_start" type="date" required></div>
           <div class="form-row"><label for="admin-event-date-end">Hasta</label><input id="admin-event-date-end" name="date_end" type="date"></div>
@@ -267,20 +247,30 @@
           <div class="form-row"><label for="admin-event-categories">Categoría principal</label><select id="admin-event-categories" name="category"><option value="cultura">🎭 Cultura</option><option value="musica">♫ Música</option><option value="deportes">⚽ Deportes</option><option value="feria">▦ Feria</option><option value="gastronomia">♨ Gastronomía</option><option value="religiosos">✦ Religiosos</option><option value="infantiles">★ Infantiles</option></select></div>
           <div class="form-row"><label for="admin-event-price">Precio (0 para gratuito)</label><input id="admin-event-price" name="price" type="number" min="0" step="1" value="0"></div>
           <div class="form-row"><label for="admin-event-color">Color del evento</label><input id="admin-event-color" name="color" type="color" value="#16b3a3" title="Elegí el color principal del evento"></div>
-          <div class="form-row"><label for="admin-event-image">Imagen de portada (URL pública)</label><input id="admin-event-image" name="image_url" type="url" placeholder="https://..." autocomplete="url"><div id="admin-event-image-preview" class="admin-event-image-preview" hidden><img alt="Vista previa de portada"><span>Vista previa</span></div></div>
+          <div class="form-row"><label for="admin-event-image">Imagen de portada (URL pública)</label><input id="admin-event-image" name="image_url" type="url" placeholder="https://..." autocomplete="url"><div id="admin-event-image-preview" class="admin-event-image-preview" hidden><img alt="Vista previa de portada" loading="lazy" decoding="async"><span>Vista previa</span></div></div>
           <button class="btn-primary" type="submit">Publicar evento</button>
         </form>
         <h3>Eventos publicados</h3>
+        <label>Buscar eventos <input id="admin-events-search" type="search" placeholder="Título o lugar"></label>
         <ul id="admin-events-list" class="admin-events-list" aria-live="polite"></ul>
+        <nav class="admin-pagination" aria-label="Páginas de eventos"><button type="button" data-admin-page="events" data-direction="-1">Anterior</button><span id="admin-events-page">Página 1</span><button type="button" data-admin-page="events" data-direction="1">Siguiente</button></nav>
       </section>
 
       <section class="admin-panel">
         <h2>Usuarios y moderación</h2>
         <p id="admin-resource-status" class="form-help" aria-live="polite"></p>
+        <label>Buscar usuarios <input id="admin-users-search" type="search" placeholder="Nombre o correo"></label>
         <ul id="admin-users-list" class="admin-users-list"></ul>
+        <nav class="admin-pagination" aria-label="Páginas de usuarios"><button type="button" data-admin-page="users" data-direction="-1">Anterior</button><span id="admin-users-page">Página 1</span><button type="button" data-admin-page="users" data-direction="1">Siguiente</button></nav>
         <h3>Comentarios recientes</h3>
+        <label>Buscar comentarios <input id="admin-comments-search" type="search" placeholder="Texto del comentario"></label>
         <ul id="admin-comments-list" class="admin-users-list"></ul>
-        <p class="form-help">Para convertir una cuenta en administradora, ejecutá <code>database/migration_admin.sql</code> reemplazando el correo.</p>
+        <nav class="admin-pagination" aria-label="Páginas de comentarios"><button type="button" data-admin-page="comments" data-direction="-1">Anterior</button><span id="admin-comments-page">Página 1</span><button type="button" data-admin-page="comments" data-direction="1">Siguiente</button></nav>
+        <h3>Consultas de soporte</h3>
+        <label>Estado <select id="admin-support-status"><option value="">Todos</option><option value="open">Abiertas</option><option value="in_progress">En curso</option><option value="resolved">Resueltas</option></select></label>
+        <ul id="admin-support-list" class="admin-users-list"></ul>
+        <nav class="admin-pagination" aria-label="Páginas de soporte"><button type="button" data-admin-page="support" data-direction="-1">Anterior</button><span id="admin-support-page">Página 1</span><button type="button" data-admin-page="support" data-direction="1">Siguiente</button></nav>
+        <p class="form-help">Los permisos de administración se asignan desde el entorno Supabase protegido del proyecto.</p>
       </section>
     </div>
   </div>
@@ -288,6 +278,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20260915-admin-v5"></script>
+<script src="../js/main.js?v=20261117-auth-session"></script>
 </body>
 </html>
