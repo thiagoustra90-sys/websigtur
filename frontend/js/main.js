@@ -1350,7 +1350,17 @@ function configurarEditorPerfil(usuarioInicial) {
   formulario.sitio_web.value = usuarioInicial.sitio_web || '';
   dibujarVistaPrevia();
   disparador.addEventListener('click', () => { editor.hidden = false; editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-  editor.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { editor.hidden = true; estado.textContent = ''; });
+  editor.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => {
+    formulario.nombre.value = usuarioInicial.nombre || '';
+    formulario.ubicacion.value = usuarioInicial.ubicacion || '';
+    formulario.biografia.value = usuarioInicial.biografia || '';
+    formulario.sitio_web.value = usuarioInicial.sitio_web || '';
+    entrada.value = '';
+    urlAvatar = usuarioInicial.avatar_url || '';
+    dibujarVistaPrevia();
+    editor.hidden = true;
+    estado.textContent = '';
+  });
   entrada.addEventListener('change', () => {
     const archivo = entrada.files?.[0];
     if (!archivo) return;
@@ -1555,7 +1565,7 @@ async function configurarMensajeria() {
     const datosEnviados = evento?.data || (evento?.key === 'sigtur-mensajes-sync' ? JSON.parse(evento.newValue || 'null') : null);
     if (!datosEnviados || !datosEnviados.ts) return;
     await cargarConversaciones();
-    if (activoIdentificador) await cargarHilo(activoIdentificador, { refreshConversations: false });
+    if (activoIdentificador) await cargarHilo(activoIdentificador, { actualizarConversaciones: false });
   };
   const nombreDe = usuario => `${usuario.nombre || 'Usuario'}${usuario.apellido ? ` ${usuario.apellido}` : ''}`;
   const inicialesDe = usuario => {
@@ -1694,7 +1704,7 @@ const actualizarHiloActivo = async () => {
 
   actualizando = true;
   try {
-    await cargarHilo(activoIdentificador, { refreshConversations: false });
+    await cargarHilo(activoIdentificador, { actualizarConversaciones: false });
   } finally {
     actualizando = false;
   }
@@ -1718,7 +1728,7 @@ let ultimaActualizacionConversacion = Date.now();
 
 
   try {
-    estado.textContent = 'Cargando usuarios?';
+    estado.textContent = 'Cargando usuarios…';
     const resultado = await solicitarApiSigtur('/api/mensajes/usuarios');
     contactos = Array.isArray(resultado) ? resultado : resultado.data || [];
     representarContactos();
@@ -2790,7 +2800,7 @@ async function configurarPaginaAdministracion() {
   };
   const paginas = { users: 1, comments: 1, support: 1 };
   const cargarUsuarios = async () => {
-    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios?</li>'; }
+    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios…</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
       const resultado = await solicitarApiSigtur(`/api/admin/usuarios?${q}`);

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi perfil - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261113-messaging" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261118-profile-social" />
 </head>
 <body class="profile-page">
   <main class="profile-wrapper">
@@ -32,6 +32,12 @@
         <div class="profile-editor-actions"><button type="button" data-profile-edit-cancel>Cancelar</button><button type="submit">Guardar cambios</button></div><p class="profile-editor-status" data-profile-editor-status></p>
       </form>
     </section>
+
+    <nav class="profile-tabs" aria-label="Secciones de tu perfil">
+      <a href="#content-title">Guardados</a>
+      <a href="#reservations-title">Mi agenda</a>
+      <a href="#messages-title">Mensajes</a>
+    </nav>
 
     <section class="profile-messages" aria-labelledby="messages-title">
       <div class="profile-section-heading">
@@ -106,6 +112,6 @@
     </footer>
   </main>
   <script src="../js/api-config.js"></script>
-  <script src="../js/main.js?v=20261117-auth-session"></script>
+  <script src="../js/main.js?v=20261118-profile-social"></script>
 </body>
 </html>
