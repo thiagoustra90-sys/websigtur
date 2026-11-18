@@ -2,29 +2,40 @@ import { z } from "zod";
 
 export const correoSchema = z.string().trim().toLowerCase().email().max(254);
 
-export const registerSchema = z
+export const esquemaRegistro = z
   .object({
     nombre: z.string().trim().min(1).max(100),
     apellido: z.string().trim().max(100).optional().default(""),
     correo: correoSchema,
-    password: z.string().min(8).max(128),
+    contrasena: z.string().min(8).max(128).optional(),
+    password: z.string().min(8).max(128).optional(),
   })
-  .strict();
+  .strict()
+  .refine((datos) => datos.contrasena || datos.password, "La contraseña es obligatoria.");
 
-export const loginSchema = z
+export const esquemaInicioSesion = z
   .object({
     correo: correoSchema,
-    password: z.string().min(1).max(128),
+    contrasena: z.string().min(1).max(128).optional(),
+    password: z.string().min(1).max(128).optional(),
   })
-  .strict();
+  .strict()
+  .refine((datos) => datos.contrasena || datos.password, "La contraseña es obligatoria.");
 
-export const refreshSchema = z
+export const actualizacionSesionSchema = z
   .object({
+    tokenActualizacion: z.string().trim().min(20).max(4096).optional(),
     refreshToken: z.string().trim().min(20).max(4096).optional(),
     refresh_token: z.string().trim().min(20).max(4096).optional(),
   })
   .strict()
-  .refine((value) => value.refreshToken || value.refresh_token, "Falta el refresh token.");
+  .refine(
+    (datos) => datos.tokenActualizacion || datos.refreshToken || datos.refresh_token,
+    "Falta el token de actualización de la sesión.",
+  );
+
+// Alias temporal para integraciones que todavía importan el nombre anterior.
+export { actualizacionSesionSchema as refreshSchema };
 
 export const recuperarSchema = z
   .object({
@@ -42,11 +53,20 @@ export const profileSchema = z
   })
   .strict();
 
-export const passwordUpdateSchema = z
+export const esquemaActualizacionContrasena = z
   .object({
-    password: z.string().min(8).max(128),
+    contrasena: z.string().min(8).max(128).optional(),
+    password: z.string().min(8).max(128).optional(),
   })
-  .strict();
+  .strict()
+  .refine((datos) => datos.contrasena || datos.password, "La contraseña es obligatoria.");
+
+// Alias temporales para clientes y módulos con los nombres históricos.
+export {
+  esquemaRegistro as registerSchema,
+  esquemaInicioSesion as loginSchema,
+  esquemaActualizacionContrasena as passwordUpdateSchema,
+};
 
 export const comentarioSchema = z
   .object({

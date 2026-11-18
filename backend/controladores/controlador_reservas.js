@@ -1,44 +1,47 @@
-import * as service from "../servicios/reservas_servicios.js";
+import * as servicio from "../servicios/reservas_servicios.js";
 
-function fail(res, error) {
-  res.status(error.status || 500).json({
-    error: error.status ? error.message : "No se pudo completar la operación de reservas.",
+function gestionarFallo(res, fallo) {
+  res.status(fallo.status || 500).json({
+    error: fallo.status ? fallo.message : "No se pudo completar la operación de reservas.",
   });
 }
-export async function listar(req, res) {
+export async function listarReservas(req, res) {
   try {
-    res.json(await service.listarReservas(req.user.id));
-  } catch (error) {
-    fail(res, error);
+    res.json(await servicio.listarReservas(req.user.id));
+  } catch (fallo) {
+    gestionarFallo(res, fallo);
   }
 }
-export async function plan(req, res) {
+export async function crearPlan(req, res) {
   try {
-    res.status(201).json(await service.crearPlan(req.user.id, req.body));
-  } catch (error) {
-    fail(res, error);
+    res.status(201).json(await servicio.crearPlan(req.user.id, req.body));
+  } catch (fallo) {
+    gestionarFallo(res, fallo);
   }
 }
-export async function evento(req, res) {
+export async function crearReservaEvento(req, res) {
   try {
-    res.status(201).json(await service.crearReservaEvento(req.user.id, req.body));
-  } catch (error) {
-    fail(res, error);
+    res.status(201).json(await servicio.crearReservaEvento(req.user.id, req.body));
+  } catch (fallo) {
+    gestionarFallo(res, fallo);
   }
 }
 export async function cancelarPlan(req, res) {
   try {
-    await service.cancelarReserva(req.user.id, "tourism_plans", req.params.id);
+    await servicio.cancelarReserva(req.user.id, "tourism_plans", req.params.id);
     res.status(204).end();
-  } catch (error) {
-    fail(res, error);
+  } catch (fallo) {
+    gestionarFallo(res, fallo);
   }
 }
 export async function cancelarEvento(req, res) {
   try {
-    await service.cancelarReserva(req.user.id, "event_reservations", req.params.id);
+    await servicio.cancelarReserva(req.user.id, "event_reservations", req.params.id);
     res.status(204).end();
-  } catch (error) {
-    fail(res, error);
+  } catch (fallo) {
+    gestionarFallo(res, fallo);
   }
 }
+
+// Alias temporales para controladores que todavía importan los nombres anteriores.
+export { listarReservas as listar, crearPlan as plan, crearReservaEvento as evento };

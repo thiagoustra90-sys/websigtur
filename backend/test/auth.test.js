@@ -29,7 +29,16 @@ test("rechaza contraseñas débiles y propiedades inesperadas", () => {
 });
 
 test("exige un refresh token válido en cualquiera de los formatos admitidos", () => {
+  assert.equal(refreshSchema.safeParse({ tokenActualizacion: "x".repeat(24) }).success, true);
   assert.equal(refreshSchema.safeParse({ refreshToken: "x".repeat(24) }).success, true);
   assert.equal(refreshSchema.safeParse({ refresh_token: "x".repeat(24) }).success, true);
   assert.equal(refreshSchema.safeParse({}).success, false);
+});
+
+test("acepta temporalmente contrasena y password en registro e inicio de sesión", () => {
+  const base = { nombre: "Ana", apellido: "", correo: "ana@example.com" };
+  assert.equal(registerSchema.safeParse({ ...base, contrasena: "password123" }).success, true);
+  assert.equal(registerSchema.safeParse({ ...base, password: "password123" }).success, true);
+  assert.equal(loginSchema.safeParse({ correo: "ana@example.com", contrasena: "password123" }).success, true);
+  assert.equal(loginSchema.safeParse({ correo: "ana@example.com", password: "password123" }).success, true);
 });

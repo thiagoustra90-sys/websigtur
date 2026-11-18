@@ -19,7 +19,7 @@ import adminRutas from "./rutas/rutas_admin.js";
 import soporteRutas from "./rutas/rutas_soporte.js";
 import publicasRutas from "./rutas/rutas_publicas.js";
 import reservasRutas from "./rutas/rutas_reservas.js";
-import { errorMiddleware } from "./servicios/errores.js";
+import { gestionarErrorHttp } from "./servicios/errores.js";
 import { validarConfiguracionInicio } from "./servicios/configuracion.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -153,7 +153,7 @@ app.use((req, res) => {
   res.status(404).json({ error: "Ruta no encontrada." });
 });
 
-app.use(errorMiddleware);
+app.use(gestionarErrorHttp);
 
 validarConfiguracionInicio();
 

@@ -38,29 +38,29 @@ const MEDIA_TYPES = new Map([
   ],
 ]);
 
-function badRequest(message) {
+function solicitudInvalida(message) {
   return Object.assign(new Error(message), { status: 400 });
 }
 
 export function validarMediaPaths(usuarioId, mediaPaths = []) {
   if (!Array.isArray(mediaPaths) || mediaPaths.length > 3)
-    throw badRequest("Adjuntá hasta 3 imágenes por comentario.");
+    throw solicitudInvalida("Adjuntá hasta 3 imágenes por comentario.");
   const ownerId = String(usuarioId || "");
   if (!/^[0-9a-f-]{36}$/i.test(ownerId))
-    throw badRequest("La sesión no es válida para adjuntar imágenes.");
+    throw solicitudInvalida("La sesión no es válida para adjuntar imágenes.");
   const validPath = new RegExp(`^${ownerId}/[0-9a-f-]{36}\\.(jpg|png|gif|webp)$`, "i");
   if (mediaPaths.some((item) => typeof item !== "string" || !validPath.test(item))) {
-    throw badRequest("Uno de los archivos adjuntos no es válido.");
+    throw solicitudInvalida("Uno de los archivos adjuntos no es válido.");
   }
   return mediaPaths;
 }
 
 export async function subirMediaComentario(usuarioId, contentType, file) {
-  if (!Buffer.isBuffer(file) || !file.length) throw badRequest("Seleccioná una imagen válida.");
-  if (file.length > 5 * 1024 * 1024) throw badRequest("Cada archivo puede pesar como máximo 5 MB.");
+  if (!Buffer.isBuffer(file) || !file.length) throw solicitudInvalida("Seleccioná una imagen válida.");
+  if (file.length > 5 * 1024 * 1024) throw solicitudInvalida("Cada archivo puede pesar como máximo 5 MB.");
   const mediaType = MEDIA_TYPES.get(String(contentType || "").toLowerCase());
   if (!mediaType || !mediaType.matches(file))
-    throw badRequest("Solo se permiten imágenes PNG, JPG, WebP o GIF válidas.");
+    throw solicitudInvalida("Solo se permiten imágenes PNG, JPG, WebP o GIF válidas.");
 
   const path = `${usuarioId}/${randomUUID()}.${mediaType.extension}`;
   const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, {
@@ -122,7 +122,7 @@ export async function crearComentario(usuarioId, entidad, contenido, mediaPaths 
   const text = String(contenido || "").trim();
   const files = validarMediaPaths(usuarioId, mediaPaths);
   if ((!text && !files.length) || text.length > 2000)
-    throw badRequest("Escribí un comentario o adjuntá una imagen (máximo 2000 caracteres).");
+    throw solicitudInvalida("Escribí un comentario o adjuntá una imagen (máximo 2000 caracteres).");
   const { data, error } = await supabase
     .from("comentarios")
     .insert({

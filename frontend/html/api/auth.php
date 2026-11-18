@@ -4,188 +4,220 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-function envValue(string $name): string {
-    $value = getenv($name);
-    if ($value !== false && $value !== '') return trim($value);
-    $envPath = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'backend' . DIRECTORY_SEPARATOR . '.env';
-    if (!is_readable($envPath)) return '';
-    foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) continue;
-        [$key, $envValue] = explode('=', $line, 2);
-        if (trim($key) === $name) return trim($envValue, " \t\"'");
+function agregarAliasJson(array $datos): array {
+    $equivalencias = [
+        'error' => 'fallo', 'success' => 'exito', 'pending' => 'pendiente',
+        'message' => 'mensaje', 'data' => 'datos', 'total' => 'cantidad',
+        'refreshToken' => 'tokenActualizacion', 'expiresAt' => 'venceEn',
+        'name' => 'nombre', 'title' => 'titulo', 'description' => 'descripcion',
+        'location' => 'ubicacion', 'created_at' => 'creado_en',
+        'email' => 'correo', 'password' => 'contrasena', 'user' => 'usuario',
+        'address' => 'direccion', 'image_url' => 'imagen', 'link' => 'enlace',
+        'categories' => 'categorias', 'type' => 'tipo', 'latitude' => 'latitud',
+        'longitude' => 'longitud',
+    ];
+    foreach ($datos as $clave => $valor) {
+        if (is_array($valor)) $datos[$clave] = agregarAliasJson($valor);
+    }
+    foreach ($equivalencias as $nombreAnterior => $nombreNuevo) {
+        if (array_key_exists($nombreAnterior, $datos) && !array_key_exists($nombreNuevo, $datos)) {
+            $datos[$nombreNuevo] = $datos[$nombreAnterior];
+        } elseif (array_key_exists($nombreNuevo, $datos) && !array_key_exists($nombreAnterior, $datos)) {
+            $datos[$nombreAnterior] = $datos[$nombreNuevo];
+        }
+    }
+    return $datos;
+}
+
+function responderJson(array $datos, int $opciones = JSON_UNESCAPED_UNICODE): void {
+    echo json_encode(agregarAliasJson($datos), $opciones);
+}
+
+function leerVariableEntorno(string $nombreVariable): string {
+    $valor = getenv($nombreVariable);
+    if ($valor !== false && $valor !== '') return trim($valor);
+    $rutaEntorno = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'backend' . DIRECTORY_SEPARATOR . '.env';
+    if (!is_readable($rutaEntorno)) return '';
+    foreach (file($rutaEntorno, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $linea) {
+        $linea = trim($linea);
+        if ($linea === '' || str_starts_with($linea, '#') || !str_contains($linea, '=')) continue;
+        [$clave, $valorConfiguracion] = explode('=', $linea, 2);
+        if (trim($clave) === $nombreVariable) return trim($valorConfiguracion, " \t\"'");
     }
     return '';
 }
 
-function jsonBody(): array {
-    $body = json_decode(file_get_contents('php://input'), true);
-    return is_array($body) ? $body : [];
+function leerCuerpoJson(): array {
+    $cuerpo = json_decode(file_get_contents('php://input'), true);
+    return is_array($cuerpo) ? $cuerpo : [];
 }
 
-function supabaseRequest(string $method, string $path, ?array $body = null, ?string $token = null): array {
-    $baseUrl = rtrim(envValue('SUPABASE_URL'), '/');
+function solicitarSupabase(string $metodo, string $ruta, ?array $cuerpo = null, ?string $token = null): array {
+    $urlBase = rtrim(leerVariableEntorno('SUPABASE_URL'), '/');
     // Este proxy se ejecuta en Apache, no en el navegador. Usa la clave del
     // servidor para que el modo XAMPP no dependa de una anon key antigua.
-    $serverKey = envValue('SUPABASE_SERVICE_KEY');
-    if ($baseUrl === '' || $serverKey === '' || str_contains(strtolower($serverKey), 'tu-service')) return [503, ['error' => 'Configura SUPABASE_URL y SUPABASE_SERVICE_KEY en backend/.env.']];
-    $headers = ['apikey: ' . $serverKey, 'Authorization: Bearer ' . ($token ?: $serverKey), 'Accept: application/json', 'Content-Type: application/json'];
-    $curl = curl_init($baseUrl . $path);
-    curl_setopt_array($curl, [
-        CURLOPT_CUSTOMREQUEST => $method, CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 12,
+    $claveServidor = leerVariableEntorno('SUPABASE_SERVICE_KEY');
+    if ($urlBase === '' || $claveServidor === '' || str_contains(strtolower($claveServidor), 'tu-service')) return [503, ['error' => 'Configura SUPABASE_URL y SUPABASE_SERVICE_KEY en backend/.env.']];
+    $encabezados = ['apikey: ' . $claveServidor, 'Authorization: Bearer ' . ($token ?: $claveServidor), 'Accept: application/json', 'Content-Type: application/json'];
+    $conexion = curl_init($urlBase . $ruta);
+    curl_setopt_array($conexion, [
+        CURLOPT_CUSTOMREQUEST => $metodo, CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => $encabezados, CURLOPT_TIMEOUT => 12,
     ]);
-    if ($body !== null) curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body));
-    $response = curl_exec($curl);
-    $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
-    $payload = json_decode($response ?: '', true);
-    return [$status, is_array($payload) ? $payload : []];
+    if ($cuerpo !== null) curl_setopt($conexion, CURLOPT_POSTFIELDS, json_encode($cuerpo));
+    $respuesta = curl_exec($conexion);
+    $estado = (int) curl_getinfo($conexion, CURLINFO_HTTP_CODE);
+    curl_close($conexion);
+    $cargaUtil = json_decode($respuesta ?: '', true);
+    return [$estado, is_array($cargaUtil) ? $cargaUtil : []];
 }
 
-function sessionResponse(array $auth): array {
-    $user = $auth['user'] ?? [];
-    $metadata = $user['user_metadata'] ?? [];
-    $nombre = trim((string) ($metadata['nombre'] ?? $metadata['full_name'] ?? strstr((string) ($user['email'] ?? ''), '@', true) ?: 'Usuario'));
+function crearRespuestaSesion(array $autenticacion): array {
+    $usuario = $autenticacion['user'] ?? [];
+    $metadatos = $usuario['user_metadata'] ?? [];
+    $nombre = trim((string) ($metadatos['nombre'] ?? $metadatos['full_name'] ?? strstr((string) ($usuario['email'] ?? ''), '@', true) ?: 'Usuario'));
     return [
-        'token' => $auth['access_token'] ?? null, 'refreshToken' => $auth['refresh_token'] ?? null,
-        'expiresAt' => $auth['expires_at'] ?? null,
-        'usuario' => ['id' => $user['id'] ?? null, 'nombre' => $nombre, 'correo' => $user['email'] ?? null, 'rol' => 'usuario'],
+        'token' => $autenticacion['access_token'] ?? null,
+        'tokenActualizacion' => $autenticacion['refresh_token'] ?? null,
+        'refreshToken' => $autenticacion['refresh_token'] ?? null,
+        'expiresAt' => $autenticacion['expires_at'] ?? null,
+        'usuario' => ['id' => $usuario['id'] ?? null, 'nombre' => $nombre, 'correo' => $usuario['email'] ?? null, 'rol' => 'usuario'],
     ];
 }
 
-function bearerToken(): string {
-    $header = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
-    if ($header === '' && function_exists('getallheaders')) {
-        $headers = getallheaders();
-        $header = (string) ($headers['Authorization'] ?? $headers['authorization'] ?? '');
+function leerTokenPortador(): string {
+    $encabezado = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+    if ($encabezado === '' && function_exists('getallheaders')) {
+        $encabezados = getallheaders();
+        $encabezado = (string) ($encabezados['Authorization'] ?? $encabezados['authorization'] ?? '');
     }
-    return preg_match('/^Bearer\s+(.+)$/i', $header, $matches) ? trim($matches[1]) : '';
+    return preg_match('/^Bearer\s+(.+)$/i', $encabezado, $coincidencias) ? trim($coincidencias[1]) : '';
 }
 
-$action = trim((string) ($_GET['action'] ?? ''));
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$emailRegex = '/^[^\s@]+@[^\s@]+\.[^\s@]+$/';
+$accion = trim((string) ($_GET['action'] ?? ''));
+$metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$expresionCorreo = '/^[^\s@]+@[^\s@]+\.[^\s@]+$/';
 
-if ($action === 'google' && $method === 'GET') {
-    $redirect = envValue('FRONTEND_URL');
-    if ($redirect === '') { http_response_code(503); echo json_encode(['error' => 'Configura FRONTEND_URL para Google OAuth.']); exit; }
-    $url = rtrim(envValue('SUPABASE_URL'), '/') . '/auth/v1/authorize?' . http_build_query([
-        'provider' => 'google', 'redirect_to' => $redirect, 'flow_type' => 'implicit',
+if ($accion === 'google' && $metodo === 'GET') {
+    $urlRetorno = leerVariableEntorno('FRONTEND_URL');
+    if ($urlRetorno === '') { http_response_code(503); responderJson(['error' => 'Configura FRONTEND_URL para Google OAuth.']); exit; }
+    $urlSolicitud = rtrim(leerVariableEntorno('SUPABASE_URL'), '/') . '/auth/v1/authorize?' . http_build_query([
+        'provider' => 'google', 'redirect_to' => $urlRetorno, 'flow_type' => 'implicit',
     ]);
-    header('Location: ' . $url, true, 302);
+    header('Location: ' . $urlSolicitud, true, 302);
     exit;
 }
 
-if ($action === 'login' && $method === 'POST') {
-    $body = jsonBody();
-    $email = strtolower(trim((string) ($body['correo'] ?? $body['email'] ?? '')));
-    $password = (string) ($body['password'] ?? '');
-    if (!preg_match($emailRegex, $email) || $password === '') { http_response_code(400); echo json_encode(['error' => 'Correo o contraseña inválidos.']); exit; }
-    [$status, $auth] = supabaseRequest('POST', '/auth/v1/token?grant_type=password', ['email' => $email, 'password' => $password]);
-    if ($status < 200 || $status >= 300 || empty($auth['access_token'])) { http_response_code(401); echo json_encode(['error' => 'Correo o contraseña incorrectos.']); exit; }
-    [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) $auth['user']['id']), null, $auth['access_token']);
-    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) {
-        http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit;
+if ($accion === 'login' && $metodo === 'POST') {
+    $cuerpo = leerCuerpoJson();
+    $correo = strtolower(trim((string) ($cuerpo['correo'] ?? $cuerpo['email'] ?? '')));
+    $contrasena = (string) ($cuerpo['contrasena'] ?? $cuerpo['password'] ?? '');
+    if (!preg_match($expresionCorreo, $correo) || $contrasena === '') { http_response_code(400); responderJson(['error' => 'Correo o contraseña inválidos.']); exit; }
+    [$estado, $autenticacion] = solicitarSupabase('POST', '/auth/v1/token?grant_type=password', ['email' => $correo, 'password' => $contrasena]);
+    if ($estado < 200 || $estado >= 300 || empty($autenticacion['access_token'])) { http_response_code(401); responderJson(['error' => 'Correo o contraseña incorrectos.']); exit; }
+    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) $autenticacion['user']['id']), null, $autenticacion['access_token']);
+    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) {
+        http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit;
     }
-    $result = sessionResponse($auth);
-    $result['usuario'] = $profiles[0];
-    echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
+    $resultado = crearRespuestaSesion($autenticacion);
+    $resultado['usuario'] = $perfiles[0];
+    responderJson($resultado, JSON_UNESCAPED_UNICODE); exit;
 }
 
-if ($action === 'refresh' && $method === 'POST') {
-    $body = jsonBody();
-    $refreshToken = trim((string) ($body['refreshToken'] ?? $body['refresh_token'] ?? ''));
-    if ($refreshToken === '') { http_response_code(401); echo json_encode(['error' => 'La sesión venció. Inicia sesión nuevamente.']); exit; }
-    [$status, $auth] = supabaseRequest('POST', '/auth/v1/token?grant_type=refresh_token', ['refresh_token' => $refreshToken]);
-    if ($status < 200 || $status >= 300 || empty($auth['access_token'])) {
-        $clientStatus = $status === 400 || $status === 401 ? 401 : 503;
-        http_response_code($clientStatus); echo json_encode(['error' => $clientStatus === 401 ? 'La sesión venció. Inicia sesión nuevamente.' : 'No se pudo renovar la sesión. Intentá nuevamente.']); exit;
+if ($accion === 'refresh' && $metodo === 'POST') {
+    $cuerpo = leerCuerpoJson();
+    $tokenActualizacion = trim((string) ($cuerpo['tokenActualizacion'] ?? $cuerpo['refreshToken'] ?? $cuerpo['refresh_token'] ?? ''));
+    if ($tokenActualizacion === '') { http_response_code(401); responderJson(['error' => 'La sesión venció. Inicia sesión nuevamente.']); exit; }
+    [$estado, $autenticacion] = solicitarSupabase('POST', '/auth/v1/token?grant_type=refresh_token', ['refresh_token' => $tokenActualizacion]);
+    if ($estado < 200 || $estado >= 300 || empty($autenticacion['access_token'])) {
+        $estadoCliente = $estado === 400 || $estado === 401 ? 401 : 503;
+        http_response_code($estadoCliente); responderJson(['error' => $estadoCliente === 401 ? 'La sesión venció. Inicia sesión nuevamente.' : 'No se pudo renovar la sesión. Intentá nuevamente.']); exit;
     }
-    [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) ($auth['user']['id'] ?? '')), null, $auth['access_token']);
-    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) { http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
-    $result = sessionResponse($auth);
-    $result['usuario'] = $profiles[0];
-    echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
+    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) ($autenticacion['user']['id'] ?? '')), null, $autenticacion['access_token']);
+    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
+    $resultado = crearRespuestaSesion($autenticacion);
+    $resultado['usuario'] = $perfiles[0];
+    responderJson($resultado, JSON_UNESCAPED_UNICODE); exit;
 }
 
-if ($action === 'register' && $method === 'POST') {
-    $body = jsonBody();
-    $nombre = trim((string) ($body['nombre'] ?? ''));
-    $email = strtolower(trim((string) ($body['correo'] ?? $body['email'] ?? '')));
-    $password = (string) ($body['password'] ?? '');
-    if ($nombre === '' || !preg_match($emailRegex, $email) || strlen($password) < 8) { http_response_code(400); echo json_encode(['error' => 'Completa nombre, correo y una contraseña de al menos 8 caracteres.']); exit; }
+if ($accion === 'register' && $metodo === 'POST') {
+    $cuerpo = leerCuerpoJson();
+    $nombre = trim((string) ($cuerpo['nombre'] ?? ''));
+    $correo = strtolower(trim((string) ($cuerpo['correo'] ?? $cuerpo['email'] ?? '')));
+    $contrasena = (string) ($cuerpo['contrasena'] ?? $cuerpo['password'] ?? '');
+    if ($nombre === '' || !preg_match($expresionCorreo, $correo) || strlen($contrasena) < 8) { http_response_code(400); responderJson(['error' => 'Completa nombre, correo y una contraseña de al menos 8 caracteres.']); exit; }
     // El alta espera confirmación por correo; no se inicia sesión automáticamente.
-    [$status, $created] = supabaseRequest('POST', '/auth/v1/admin/users', [
-        'email' => $email, 'password' => $password, 'email_confirm' => false,
+    [$estado, $usuarioCreado] = solicitarSupabase('POST', '/auth/v1/admin/users', [
+        'email' => $correo, 'password' => $contrasena, 'email_confirm' => false,
         'user_metadata' => ['nombre' => $nombre],
     ]);
-    if ($status < 200 || $status >= 300 || empty($created['id'])) {
-        http_response_code($status === 429 ? 429 : 400);
-        echo json_encode(['error' => $created['msg'] ?? $created['message'] ?? $created['error_description'] ?? 'No se pudo crear la cuenta.']);
+    if ($estado < 200 || $estado >= 300 || empty($usuarioCreado['id'])) {
+        http_response_code($estado === 429 ? 429 : 400);
+        responderJson(['error' => $usuarioCreado['msg'] ?? $usuarioCreado['message'] ?? $usuarioCreado['error_description'] ?? 'No se pudo crear la cuenta.']);
         exit;
     }
-    [$profileStatus, $profile] = supabaseRequest('POST', '/rest/v1/usuarios', [
-        'id' => $created['id'], 'nombre' => $nombre, 'correo' => $email, 'rol' => 'usuario'
+    [$estadoPerfil, $perfil] = solicitarSupabase('POST', '/rest/v1/usuarios', [
+        'id' => $usuarioCreado['id'], 'nombre' => $nombre, 'correo' => $correo, 'rol' => 'usuario'
     ]);
-    if ($profileStatus < 200 || $profileStatus >= 300) {
+    if ($estadoPerfil < 200 || $estadoPerfil >= 300) {
         http_response_code(500);
-        echo json_encode(['error' => 'La cuenta se creó, pero no se pudo crear el perfil.']);
+        responderJson(['error' => 'La cuenta se creó, pero no se pudo crear el perfil.']);
         exit;
     }
-    echo json_encode([
+    responderJson([
         'pending' => true,
         'message' => 'Cuenta creada. Revisá tu correo para confirmar la cuenta antes de iniciar sesión.',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-if ($action === 'me' && $method === 'GET') {
-    $token = bearerToken();
-    [$status, $user] = supabaseRequest('GET', '/auth/v1/user', null, $token);
-    if ($status < 200 || $status >= 300 || empty($user['id'])) { http_response_code(401); echo json_encode(['error' => 'Sesión inválida o vencida.']); exit; }
-    [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol,created_at&id=eq.' . rawurlencode((string) $user['id']), null, $token);
-    if ($profileStatus < 200 || $profileStatus >= 300 || empty($profiles[0])) { http_response_code(503); echo json_encode(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
-    $profile = $profiles[0];
-    echo json_encode(['usuario' => $profile], JSON_UNESCAPED_UNICODE); exit;
+if ($accion === 'me' && $metodo === 'GET') {
+    $token = leerTokenPortador();
+    [$estado, $usuario] = solicitarSupabase('GET', '/auth/v1/user', null, $token);
+    if ($estado < 200 || $estado >= 300 || empty($usuario['id'])) { http_response_code(401); responderJson(['error' => 'Sesión inválida o vencida.']); exit; }
+    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol,created_at&id=eq.' . rawurlencode((string) $usuario['id']), null, $token);
+    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
+    $perfil = $perfiles[0];
+    responderJson(['usuario' => $perfil], JSON_UNESCAPED_UNICODE); exit;
 }
 
-if ($action === 'es-admin' && $method === 'GET') {
-    $token = bearerToken();
-    [$status, $user] = supabaseRequest('GET', '/auth/v1/user', null, $token);
-    if ($status < 200 || $status >= 300 || empty($user['id'])) { http_response_code(401); echo json_encode(['error' => 'Sesión inválida o vencida.']); exit; }
-    [$profileStatus, $profiles] = supabaseRequest('GET', '/rest/v1/usuarios?select=nombre,correo,rol&id=eq.' . rawurlencode((string) $user['id']), null, $token);
-    $profile = $profileStatus >= 200 && $profileStatus < 300 && !empty($profiles[0]) ? $profiles[0] : ['rol' => 'usuario'];
-    if (($profile['rol'] ?? 'usuario') !== 'admin') { http_response_code(403); echo json_encode(['error' => 'Necesitás permisos de administrador.']); exit; }
-    echo json_encode(['rol' => 'admin', 'nombre' => $profile['nombre'] ?? $user['email'] ?? 'Admin'], JSON_UNESCAPED_UNICODE); exit;
+if ($accion === 'es-admin' && $metodo === 'GET') {
+    $token = leerTokenPortador();
+    [$estado, $usuario] = solicitarSupabase('GET', '/auth/v1/user', null, $token);
+    if ($estado < 200 || $estado >= 300 || empty($usuario['id'])) { http_response_code(401); responderJson(['error' => 'Sesión inválida o vencida.']); exit; }
+    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=nombre,correo,rol&id=eq.' . rawurlencode((string) $usuario['id']), null, $token);
+    $perfil = $estadoPerfil >= 200 && $estadoPerfil < 300 && !empty($perfiles[0]) ? $perfiles[0] : ['rol' => 'usuario'];
+    if (($perfil['rol'] ?? 'usuario') !== 'admin') { http_response_code(403); responderJson(['error' => 'Necesitás permisos de administrador.']); exit; }
+    responderJson(['rol' => 'admin', 'nombre' => $perfil['nombre'] ?? $usuario['email'] ?? 'Admin'], JSON_UNESCAPED_UNICODE); exit;
 }
 
-if ($action === 'logout' && $method === 'POST') {
-    $token = bearerToken();
-    if ($token !== '') supabaseRequest('POST', '/auth/v1/logout', null, $token);
-    echo json_encode(['ok' => true]); exit;
+if ($accion === 'logout' && $metodo === 'POST') {
+    $token = leerTokenPortador();
+    if ($token !== '') solicitarSupabase('POST', '/auth/v1/logout', null, $token);
+    responderJson(['ok' => true]); exit;
 }
 
-if ($action === 'password' && $method === 'PATCH') {
-    $token = bearerToken();
-    $password = (string) (jsonBody()['password'] ?? '');
-    if ($token === '') { http_response_code(401); echo json_encode(['error' => 'El enlace de recuperación no es válido.']); exit; }
-    if (strlen($password) < 8 || strlen($password) > 128) { http_response_code(400); echo json_encode(['error' => 'La contraseña debe tener entre 8 y 128 caracteres.']); exit; }
-    [$status, $updated] = supabaseRequest('PUT', '/auth/v1/user', ['password' => $password], $token);
-    if ($status < 200 || $status >= 300) { http_response_code($status === 401 ? 401 : 400); echo json_encode(['error' => 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.']); exit; }
-    echo json_encode(['ok' => true]); exit;
+if ($accion === 'password' && $metodo === 'PATCH') {
+    $token = leerTokenPortador();
+    $datos = leerCuerpoJson();
+    $contrasena = (string) ($datos['contrasena'] ?? $datos['password'] ?? '');
+    if ($token === '') { http_response_code(401); responderJson(['error' => 'El enlace de recuperación no es válido.']); exit; }
+    if (strlen($contrasena) < 8 || strlen($contrasena) > 128) { http_response_code(400); responderJson(['error' => 'La contraseña debe tener entre 8 y 128 caracteres.']); exit; }
+    [$estado, $actualizado] = solicitarSupabase('PUT', '/auth/v1/user', ['password' => $contrasena], $token);
+    if ($estado < 200 || $estado >= 300) { http_response_code($estado === 401 ? 401 : 400); responderJson(['error' => 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.']); exit; }
+    responderJson(['ok' => true]); exit;
 }
 
-if ($action === 'recuperar' && $method === 'POST') {
-    $body = jsonBody();
-    $email = strtolower(trim((string) ($body['correo'] ?? $body['email'] ?? '')));
-    if (!preg_match($emailRegex, $email)) { http_response_code(400); echo json_encode(['error' => 'Correo inválido.']); exit; }
-    $redirect = envValue('PASSWORD_RESET_REDIRECT_URL');
-    if ($redirect === '') { http_response_code(503); echo json_encode(['error' => 'Configura PASSWORD_RESET_REDIRECT_URL para recuperar la contraseña.']); exit; }
-    [$status] = supabaseRequest('POST', '/auth/v1/recover', ['email' => $email, 'redirect_to' => $redirect]);
-    if ($status < 200 || $status >= 300) { http_response_code(400); echo json_encode(['error' => 'No se pudo solicitar la recuperación.']); exit; }
-    echo json_encode(['success' => true, 'message' => 'Si el correo existe, recibirás un enlace para cambiar la contraseña.'], JSON_UNESCAPED_UNICODE); exit;
+if ($accion === 'recuperar' && $metodo === 'POST') {
+    $cuerpo = leerCuerpoJson();
+    $correo = strtolower(trim((string) ($cuerpo['correo'] ?? $cuerpo['email'] ?? '')));
+    if (!preg_match($expresionCorreo, $correo)) { http_response_code(400); responderJson(['error' => 'Correo inválido.']); exit; }
+    $urlRetorno = leerVariableEntorno('PASSWORD_RESET_REDIRECT_URL');
+    if ($urlRetorno === '') { http_response_code(503); responderJson(['error' => 'Configura PASSWORD_RESET_REDIRECT_URL para recuperar la contraseña.']); exit; }
+    [$estado] = solicitarSupabase('POST', '/auth/v1/recover', ['email' => $correo, 'redirect_to' => $urlRetorno]);
+    if ($estado < 200 || $estado >= 300) { http_response_code(400); responderJson(['error' => 'No se pudo solicitar la recuperación.']); exit; }
+    responderJson(['success' => true, 'message' => 'Si el correo existe, recibirás un enlace para cambiar la contraseña.'], JSON_UNESCAPED_UNICODE); exit;
 }
 
 http_response_code(404);
-echo json_encode(['error' => 'Ruta de autenticación no encontrada.']);
+responderJson(['error' => 'Ruta de autenticación no encontrada.']);

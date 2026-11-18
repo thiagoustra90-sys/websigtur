@@ -17,28 +17,28 @@ import {
   completarGoogle,
 } from "../servicios/auth_servicios.js";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const expresionCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function register(req, res) {
-  const data = req.validatedBody || req.body || {};
-  const nombre = String(data.nombre || "").trim();
-  const apellido = String(data.apellido || "").trim();
-  const correo = String(data.correo || data.email || "")
+export async function registrar(req, res) {
+  const datos = req.validatedBody || req.body || {};
+  const nombre = String(datos.nombre || "").trim();
+  const apellido = String(datos.apellido || "").trim();
+  const correo = String(datos.correo || datos.email || "")
     .trim()
     .toLowerCase();
-  const password = String(data.password || "");
+  const contrasena = String(datos.contrasena || datos.password || "");
 
   if (!nombre) return res.status(400).json({ error: "El nombre es obligatorio." });
-  if (!emailRegex.test(correo)) return res.status(400).json({ error: "Correo inválido." });
-  if (password.length < 8)
+  if (!expresionCorreo.test(correo)) return res.status(400).json({ error: "Correo inválido." });
+  if (contrasena.length < 8)
     return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
 
   try {
-    const resultado = await registrarUsuario({ nombre, apellido, correo, password });
+    const resultado = await registrarUsuario({ nombre, apellido, correo, contrasena });
     if (resultado.error) return res.status(400).json({ error: resultado.error });
     res.status(201).json(resultado);
-  } catch (error) {
-    console.error("Error al registrar usuario:", error);
+  } catch (fallo) {
+    console.error("Error al registrar usuario:", fallo);
     res.status(500).json({
       error:
         "No se pudo completar el registro. Ejecutá la migración de usuarios en Supabase y volvé a intentar.",
@@ -46,33 +46,35 @@ export async function register(req, res) {
   }
 }
 
-export async function login(req, res) {
-  const data = req.validatedBody || req.body || {};
-  const correo = String(data.correo || "")
+export async function iniciarSesionControlador(req, res) {
+  const datos = req.validatedBody || req.body || {};
+  const correo = String(datos.correo || datos.email || "")
     .trim()
     .toLowerCase();
-  const password = String(data.password || "");
+  const contrasena = String(datos.contrasena || datos.password || "");
 
-  const resultado = await iniciarSesion({ correo, password });
+  const resultado = await iniciarSesion({ correo, contrasena });
   if (resultado.error) return res.status(resultado.status || 401).json({ error: resultado.error });
 
   res.json(resultado);
 }
 
-export async function renovar(req, res) {
-  const data = req.validatedBody || req.body || {};
-  const refreshToken = String(data.refreshToken || data.refresh_token || "");
-  const resultado = await renovarSesion(refreshToken);
+export async function renovarSesionControlador(req, res) {
+  const datos = req.validatedBody || req.body || {};
+  const tokenActualizacion = String(
+    datos.tokenActualizacion || datos.refreshToken || datos.refresh_token || "",
+  );
+  const resultado = await renovarSesion(tokenActualizacion);
   if (resultado.error) return res.status(resultado.status || 401).json({ error: resultado.error });
   res.json(resultado);
 }
 
-export async function logout(req, res) {
+export async function cerrarSesionControlador(req, res) {
   await cerrarSesion(req.user?.id);
   res.json({ ok: true });
 }
 
-export async function me(req, res) {
+export async function obtenerMiPerfil(req, res) {
   const perfil = (await obtenerPerfil(req.user.id)) || (await asegurarPerfil(req.authUser));
   if (!perfil)
     return res.status(503).json({ error: "No se pudo validar el perfil de esta cuenta." });
@@ -82,22 +84,26 @@ export async function me(req, res) {
 export async function actualizarMiContrasena(req, res) {
   try {
     res.json(
-      await actualizarContrasena(req.user.id, (req.validatedBody || req.body || {}).password),
+      await actualizarContrasena(
+        req.user.id,
+        (req.validatedBody || req.body || {}).contrasena ||
+          (req.validatedBody || req.body || {}).password,
+      ),
     );
-  } catch (error) {
+  } catch (fallo) {
     res
-      .status(error.status || 500)
-      .json({ error: error.status ? error.message : "No se pudo actualizar la contraseña." });
+      .status(fallo.status || 500)
+      .json({ error: fallo.status ? fallo.message : "No se pudo actualizar la contraseña." });
   }
 }
 
 export async function actualizarMiPerfil(req, res) {
   try {
     res.json({ usuario: await actualizarPerfil(req.user.id, req.validatedBody || req.body || {}) });
-  } catch (error) {
+  } catch (fallo) {
     res
-      .status(error.status || 500)
-      .json({ error: error.status ? error.message : "No se pudo guardar el perfil." });
+      .status(fallo.status || 500)
+      .json({ error: fallo.status ? fallo.message : "No se pudo guardar el perfil." });
   }
 }
 
@@ -106,8 +112,8 @@ export function esAdmin(req, res) {
 }
 
 export async function recuperar(req, res) {
-  const data = req.validatedBody || req.body || {};
-  const correo = String(data.correo || "")
+  const datos = req.validatedBody || req.body || {};
+  const correo = String(datos.correo || datos.email || "")
     .trim()
     .toLowerCase();
 
@@ -154,12 +160,21 @@ export async function googleCallback(req, res) {
     frontend.searchParams.set("oauth_error", resultado.error);
     return res.redirect(frontend.toString());
   }
-  const callbackParams = new URLSearchParams({
+  const parametrosCallback = new URLSearchParams({
     access_token: resultado.token,
-    refresh_token: resultado.refreshToken || "",
+    refresh_token: resultado.tokenActualizacion || resultado.refreshToken || "",
     expires_at: String(resultado.expiresAt || ""),
     type: "oauth",
   });
-  frontend.hash = callbackParams.toString();
+  frontend.hash = parametrosCallback.toString();
   res.redirect(frontend.toString());
 }
+
+// Alias temporales mientras frontend y XAMPP migran a nombres internos en español.
+export {
+  registrar as register,
+  iniciarSesionControlador as login,
+  renovarSesionControlador as renovar,
+  cerrarSesionControlador as logout,
+  obtenerMiPerfil as me,
+};

@@ -81,21 +81,21 @@ const MESSAGE_FILE_TYPES = new Map([
   ],
 ]);
 
-function badRequest(message) {
+function solicitudInvalida(message) {
   return Object.assign(new Error(message), { status: 400 });
 }
 
 export async function subirAudioMensaje(usuarioId, contentType, file) {
   if (!Buffer.isBuffer(file) || !file.length)
-    throw badRequest("No se recibió una grabación válida.");
-  if (file.length > 10 * 1024 * 1024) throw badRequest("El audio puede pesar como máximo 10 MB.");
+    throw solicitudInvalida("No se recibió una grabación válida.");
+  if (file.length > 10 * 1024 * 1024) throw solicitudInvalida("El audio puede pesar como máximo 10 MB.");
   const mimeType = String(contentType || "")
     .split(";")[0]
     .trim()
     .toLowerCase();
   const audioType = AUDIO_TYPES.get(mimeType);
   if (!audioType || !audioType.matches(file))
-    throw badRequest("El formato de audio no es compatible.");
+    throw solicitudInvalida("El formato de audio no es compatible.");
 
   const path = `${usuarioId}/${randomUUID()}.${audioType.extension}`;
   const { error } = await supabase.storage.from(AUDIO_BUCKET).upload(path, file, {
@@ -108,16 +108,16 @@ export async function subirAudioMensaje(usuarioId, contentType, file) {
 }
 
 export async function subirAdjuntoMensaje(usuarioId, contentType, file) {
-  if (!Buffer.isBuffer(file) || !file.length) throw badRequest("Seleccioná un archivo válido.");
+  if (!Buffer.isBuffer(file) || !file.length) throw solicitudInvalida("Seleccioná un archivo válido.");
   if (file.length > 10 * 1024 * 1024)
-    throw badRequest("Cada archivo puede pesar como máximo 10 MB.");
+    throw solicitudInvalida("Cada archivo puede pesar como máximo 10 MB.");
   const mimeType = String(contentType || "")
     .split(";")[0]
     .trim()
     .toLowerCase();
   const fileType = MESSAGE_FILE_TYPES.get(mimeType);
   if (!fileType || !fileType.matches(file))
-    throw badRequest("Solo se permiten imágenes JPG, PNG, WebP, GIF o archivos PDF válidos.");
+    throw solicitudInvalida("Solo se permiten imágenes JPG, PNG, WebP, GIF o archivos PDF válidos.");
 
   const path = `${usuarioId}/${randomUUID()}.${fileType.extension}`;
   const { error } = await supabase.storage.from(MESSAGE_FILES_BUCKET).upload(path, file, {
@@ -131,11 +131,11 @@ export async function subirAdjuntoMensaje(usuarioId, contentType, file) {
 
 function validarAdjuntosMensaje(usuarioId, attachments = []) {
   if (!Array.isArray(attachments) || attachments.length > 3)
-    throw badRequest("Adjuntá hasta 3 archivos por mensaje.");
+    throw solicitudInvalida("Adjuntá hasta 3 archivos por mensaje.");
   const ownerId = String(usuarioId || "");
-  if (!/^[0-9a-f-]{36}$/i.test(ownerId)) throw badRequest("La sesión no es válida.");
+  if (!/^[0-9a-f-]{36}$/i.test(ownerId)) throw solicitudInvalida("La sesión no es válida.");
   return attachments.map((file) => {
-    if (!file || typeof file !== "object") throw badRequest("Uno de los adjuntos no es válido.");
+    if (!file || typeof file !== "object") throw solicitudInvalida("Uno de los adjuntos no es válido.");
     const mime = String(file.mime || "").toLowerCase();
     const spec = MESSAGE_FILE_TYPES.get(mime);
     const path = String(file.path || "");
@@ -157,7 +157,7 @@ function validarAdjuntosMensaje(usuarioId, attachments = []) {
       size < 1 ||
       size > 10 * 1024 * 1024
     ) {
-      throw badRequest("Uno de los adjuntos no es válido.");
+      throw solicitudInvalida("Uno de los adjuntos no es válido.");
     }
     return { path, name, mime, size };
   });
@@ -240,23 +240,23 @@ export async function estadoLikeComentario(usuarioId, comentarioId) {
 export async function enviarMensaje(remitenteId, destinatarioId, contenido, options = {}) {
   const tipo = options.tipo || "texto";
   if (!destinatarioId || destinatarioId === remitenteId)
-    throw badRequest("Elegí un destinatario válido.");
+    throw solicitudInvalida("Elegí un destinatario válido.");
   const attachments = validarAdjuntosMensaje(remitenteId, options.attachments || []);
 
   if (tipo === "audio") {
     if (attachments.length)
-      throw badRequest("Enviá la nota de voz y los archivos en mensajes separados.");
+      throw solicitudInvalida("Enviá la nota de voz y los archivos en mensajes separados.");
     const audioPath = String(options.audio_path || "");
     const ownerId = String(remitenteId || "");
     if (
       !/^[0-9a-f-]{36}$/i.test(ownerId) ||
       !new RegExp(`^${ownerId}/[0-9a-f-]{36}\\.(webm|ogg|m4a|mp3|wav)$`, "i").test(audioPath)
     ) {
-      throw badRequest("La grabación no pertenece a esta cuenta o no es válida.");
+      throw solicitudInvalida("La grabación no pertenece a esta cuenta o no es válida.");
     }
     const duration = Number(options.duration_seconds);
     if (!Number.isInteger(duration) || duration < 1 || duration > 120)
-      throw badRequest("El audio debe durar entre 1 segundo y 2 minutos.");
+      throw solicitudInvalida("El audio debe durar entre 1 segundo y 2 minutos.");
     const { data, error } = await supabase
       .from("mensajes")
       .insert({
@@ -279,7 +279,7 @@ export async function enviarMensaje(remitenteId, destinatarioId, contenido, opti
     text.length > 5000 ||
     (!text && !attachments.length)
   ) {
-    throw badRequest("Escribí un mensaje o adjuntá un archivo (máximo 5000 caracteres).");
+    throw solicitudInvalida("Escribí un mensaje o adjuntá un archivo (máximo 5000 caracteres).");
   }
   const messageType = text ? "texto" : "archivo";
   const { data, error } = await supabase
@@ -299,13 +299,13 @@ export async function enviarMensaje(remitenteId, destinatarioId, contenido, opti
 
 export async function listarMensajes(usuarioId, otroUsuarioId) {
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidPattern.test(String(usuarioId || ""))) throw badRequest("La sesión no es válida.");
+  if (!uuidPattern.test(String(usuarioId || ""))) throw solicitudInvalida("La sesión no es válida.");
   if (
     otroUsuarioId &&
     (!uuidPattern.test(String(otroUsuarioId)) ||
       String(otroUsuarioId).toLowerCase() === String(usuarioId).toLowerCase())
   ) {
-    throw badRequest("La conversación seleccionada no es válida.");
+    throw solicitudInvalida("La conversación seleccionada no es válida.");
   }
   const filter = otroUsuarioId
     ? `and(remitente_id.eq.${usuarioId},destinatario_id.eq.${otroUsuarioId}),and(remitente_id.eq.${otroUsuarioId},destinatario_id.eq.${usuarioId})`

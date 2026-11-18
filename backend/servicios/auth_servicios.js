@@ -9,32 +9,33 @@ import supabase from "../config/supabase.js";
 // Crea el usuario en Supabase Auth (auth.users) y su fila de perfil en
 // public.usuarios. Si algo falla a mitad de camino, deshace lo creado
 // para no dejar usuarios "fantasma" sin perfil.
-export async function registrarUsuario({ nombre, apellido, correo, password }) {
-  const { data: created, error: authError } = await supabase.auth.admin.createUser({
+export async function registrarUsuario({ nombre, apellido, correo, contrasena, password }) {
+  const contrasenaFinal = contrasena || password;
+  const { data: usuarioCreado, error: errorAutenticacion } = await supabase.auth.admin.createUser({
     email: correo,
-    password,
+    password: contrasenaFinal,
     email_confirm: false,
     user_metadata: { nombre, apellido },
   });
 
-  if (authError) {
+  if (errorAutenticacion) {
     // Supabase devuelve este mensaje cuando el correo ya existe
-    const yaExiste = /already been registered|already exists/i.test(authError.message || "");
-    return { error: yaExiste ? "Ese correo ya está registrado." : authError.message };
+    const yaExiste = /already been registered|already exists/i.test(errorAutenticacion.message || "");
+    return { error: yaExiste ? "Ese correo ya está registrado." : errorAutenticacion.message };
   }
 
-  const userId = created.user.id;
+  const usuarioId = usuarioCreado.user.id;
 
-  const { error: perfilError } = await supabase.from("usuarios").insert({
-    id: userId,
+  const { error: errorPerfil } = await supabase.from("usuarios").insert({
+    id: usuarioId,
     nombre,
     apellido: apellido || null,
     correo,
     rol: "usuario",
   });
 
-  if (perfilError) {
-    await supabase.auth.admin.deleteUser(userId); // rollback
+  if (errorPerfil) {
+    await supabase.auth.admin.deleteUser(usuarioId); // rollback
     return { error: "No se pudo crear el perfil del usuario." };
   }
 
@@ -45,18 +46,18 @@ export async function registrarUsuario({ nombre, apellido, correo, password }) {
   };
 }
 
-export async function asegurarPerfil(user) {
-  const metadata = user.user_metadata || {};
+export async function asegurarPerfil(usuarioAuth) {
+  const metadatos = usuarioAuth.user_metadata || {};
   const nombre = String(
-    metadata.nombre || metadata.full_name || user.email?.split("@")[0] || "Usuario",
+    metadatos.nombre || metadatos.full_name || usuarioAuth.email?.split("@")[0] || "Usuario",
   ).trim();
-  const apellido = String(metadata.apellido || "").trim() || null;
-  const correo = String(user.email || "")
+  const apellido = String(metadatos.apellido || "").trim() || null;
+  const correo = String(usuarioAuth.email || "")
     .trim()
     .toLowerCase();
   const { data: perfil, error } = await supabase
     .from("usuarios")
-    .upsert({ id: user.id, nombre, apellido, correo }, { onConflict: "id" })
+    .upsert({ id: usuarioAuth.id, nombre, apellido, correo }, { onConflict: "id" })
     .select(
       "id, nombre, apellido, correo, rol, avatar_url, biografia, ubicacion, sitio_web, created_at",
     )
@@ -95,63 +96,72 @@ export async function iniciarGoogle() {
 }
 
 export async function completarGoogle(code) {
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error || !data?.user || !data.session)
+  const { data: resultadoAuth, error: fallo } = await supabase.auth.exchangeCodeForSession(code);
+  if (fallo || !resultadoAuth?.user || !resultadoAuth.session)
     return { error: "No se pudo completar el inicio de sesión con Google." };
-  const perfil = await asegurarPerfil(data.user);
+  const perfil = await asegurarPerfil(resultadoAuth.user);
   if (!perfil)
     return {
       error: "Google autenticó la cuenta, pero no se pudo validar el perfil. Intenta nuevamente.",
       status: 503,
     };
+  const sesion = resultadoAuth.session;
   return {
-    token: data.session.access_token,
-    refreshToken: data.session.refresh_token,
-    expiresAt: data.session.expires_at,
+    token: sesion.access_token,
+    tokenActualizacion: sesion.refresh_token,
+    refreshToken: sesion.refresh_token,
+    expiresAt: sesion.expires_at,
     usuario: perfil,
   };
 }
 
-export async function iniciarSesion({ correo, password }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
+export async function iniciarSesion({ correo, contrasena, password }) {
+  const contrasenaFinal = contrasena || password;
+  const { data: resultadoAuth, error: fallo } = await supabase.auth.signInWithPassword({
     email: correo,
-    password,
+    password: contrasenaFinal,
   });
 
-  if (error) {
+  if (fallo) {
     return { error: "Correo o contraseña incorrectos." };
   }
 
-  const perfil = await asegurarPerfil(data.user);
+  const perfil = await asegurarPerfil(resultadoAuth.user);
   if (!perfil)
     return { error: "La cuenta se autenticó, pero no se pudo validar el perfil.", status: 503 };
 
+  const sesion = resultadoAuth.session;
   return {
-    token: data.session.access_token,
-    refreshToken: data.session.refresh_token,
-    expiresAt: data.session.expires_at,
+    token: sesion.access_token,
+    tokenActualizacion: sesion.refresh_token,
+    refreshToken: sesion.refresh_token,
+    expiresAt: sesion.expires_at,
     usuario: perfil,
   };
 }
 
 // Renueva un access token vencido sin pedirle credenciales otra vez al usuario.
 // El refresh token solo viaja al backend, que lo intercambia con Supabase.
-export async function renovarSesion(refreshToken) {
-  if (!refreshToken) return { error: "No hay una sesión que renovar." };
+export async function renovarSesion(tokenActualizacion) {
+  if (!tokenActualizacion) return { error: "No hay una sesión que renovar." };
 
-  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
-  if (error || !data?.session || !data?.user) {
-    const status = error?.status === 429 || error?.status >= 500 ? 503 : 401;
-    return { error: "La sesión venció o no se pudo renovar. Iniciá sesión nuevamente.", status };
+  const { data: resultadoAuth, error: fallo } = await supabase.auth.refreshSession({
+    refresh_token: tokenActualizacion,
+  });
+  if (fallo || !resultadoAuth?.session || !resultadoAuth?.user) {
+    const estado = fallo?.status === 429 || fallo?.status >= 500 ? 503 : 401;
+    return { error: "La sesión venció o no se pudo renovar. Iniciá sesión nuevamente.", status: estado };
   }
 
-  const perfil = await asegurarPerfil(data.user);
+  const perfil = await asegurarPerfil(resultadoAuth.user);
   if (!perfil)
     return { error: "La sesión se renovó, pero no se pudo validar el perfil.", status: 503 };
+  const sesion = resultadoAuth.session;
   return {
-    token: data.session.access_token,
-    refreshToken: data.session.refresh_token,
-    expiresAt: data.session.expires_at,
+    token: sesion.access_token,
+    tokenActualizacion: sesion.refresh_token,
+    refreshToken: sesion.refresh_token,
+    expiresAt: sesion.expires_at,
     usuario: perfil,
   };
 }
@@ -223,8 +233,8 @@ export async function actualizarPerfil(
   return data;
 }
 
-export async function actualizarContrasena(userId, password) {
-  const { error } = await supabase.auth.admin.updateUserById(userId, { password });
+export async function actualizarContrasena(usuarioId, contrasena) {
+  const { error } = await supabase.auth.admin.updateUserById(usuarioId, { password: contrasena });
   if (error)
     throw Object.assign(new Error("No se pudo actualizar la contraseña."), { status: 400 });
   return { ok: true };

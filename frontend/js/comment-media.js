@@ -1,183 +1,183 @@
 (() => {
-  const MAX_FILES = 3;
-  const MAX_BYTES = 5 * 1024 * 1024;
-  const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+  const ARCHIVOS_MAXIMOS = 3;
+  const BYTES_MAXIMOS = 5 * 1024 * 1024;
+  const TIPOS_ACEPTADOS = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+  const escaparHtml = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[char]);
+  })[caracter]);
 
-  async function uploadFile(file) {
-    const request = window.sigturApiFetch || window.sigturInteractionFetch;
-    if (typeof request === 'function') {
-      return request('/api/comentarios/medios', {
+  async function subirArchivo(archivo) {
+    const solicitud = window.sigturApiFetch || window.sigturInteractionFetch;
+    if (typeof solicitud === 'function') {
+      return solicitud('/api/comentarios/medios', {
         method: 'POST',
-        headers: { 'Content-Type': file.type },
-        body: file,
+        headers: { 'Content-Type': archivo.type },
+        body: archivo,
       });
     }
 
-    const apiBase = window.SIGTUR_BACKEND_URL || '';
-    let session = null;
-    try { session = JSON.parse(localStorage.getItem('sigtur-session') || 'null'); } catch { /* no hay sesión local */ }
-    const send = async () => {
-      const response = await fetch(`${apiBase}/api/comentarios/medios`, {
+    const baseApi = window.SIGTUR_BACKEND_URL || '';
+    let sesion = null;
+    try { sesion = JSON.parse(localStorage.getItem('sigtur-session') || 'null'); } catch { /* no hay sesión local */ }
+    const enviar = async () => {
+      const respuesta = await fetch(`${baseApi}/api/comentarios/medios`, {
         method: 'POST',
-        headers: { 'Content-Type': file.type, ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}) },
-        body: file,
+        headers: { 'Content-Type': archivo.type, ...(sesion?.token ? { Authorization: `Bearer ${sesion.token}` } : {}) },
+        body: archivo,
       });
-      const result = await response.json().catch(() => null);
-      if (!response.ok) throw Object.assign(new Error(result?.error || 'No se pudo subir la imagen.'), { status: response.status });
-      return result;
+      const resultado = await respuesta.json().catch(() => null);
+      if (!respuesta.ok) throw Object.assign(new Error(resultado?.error || 'No se pudo subir la imagen.'), { status: respuesta.status });
+      return resultado;
     };
 
     try {
-      return await send();
-    } catch (error) {
-      if (error.status !== 401 || !session?.refreshToken) throw error;
-      const refresh = await fetch(`${apiBase}/api/auth/refresh`, {
+      return await enviar();
+    } catch (fallo) {
+      if (fallo.status !== 401 || !sesion?.refreshToken) throw fallo;
+      const actualizar = await fetch(`${baseApi}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: session.refreshToken }),
+        body: JSON.stringify({ refreshToken: sesion.refreshToken }),
       });
-      const renewed = await refresh.json().catch(() => null);
-      if (!refresh.ok || !renewed?.token) throw error;
-      session = { ...session, ...renewed, usuario: renewed.usuario || session.usuario };
-      localStorage.setItem('sigtur-session', JSON.stringify(session));
-      return send();
+      const renovado = await actualizar.json().catch(() => null);
+      if (!actualizar.ok || !renovado?.token) throw fallo;
+      sesion = { ...sesion, ...renovado, usuario: renovado.usuario || sesion.usuario };
+      localStorage.setItem('sigtur-session', JSON.stringify(sesion));
+      return enviar();
     }
   }
 
-  window.sigturCommentMediaMarkup = mediaUrls => {
-    if (!Array.isArray(mediaUrls)) return '';
-    const attachments = mediaUrls.map((rawUrl, index) => {
+  window.sigturCommentMediaMarkup = urlsMultimedia => {
+    if (!Array.isArray(urlsMultimedia)) return '';
+    const adjuntos = urlsMultimedia.map((urlOriginal, indice) => {
       try {
-        const url = new URL(rawUrl, window.location.href);
+        const url = new URL(urlOriginal, window.location.href);
         if (!['http:', 'https:'].includes(url.protocol)) return '';
-        const safeUrl = escapeHtml(url.href);
-        return `<figure class="comment-attachment"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer"><img src="${safeUrl}" alt="Imagen adjunta al comentario ${index + 1}" loading="lazy"></a></figure>`;
+        const urlSegura = escaparHtml(url.href);
+        return `<figure class="comment-attachment"><a href="${urlSegura}" target="_blank" rel="noopener noreferrer"><img src="${urlSegura}" alt="Imagen adjunta al comentario ${indice + 1}" loading="lazy"></a></figure>`;
       } catch {
         return '';
       }
     }).join('');
-    return attachments ? `<div class="comment-attachments">${attachments}</div>` : '';
+    return adjuntos ? `<div class="comment-attachments">${adjuntos}</div>` : '';
   };
 
-  function enhance(form) {
-    if (form.dataset.mediaReady) return;
-    form.dataset.mediaReady = 'true';
-    form._commentMediaFiles = [];
+  function mejorarFormulario(formulario) {
+    if (formulario.dataset.mediaReady) return;
+    formulario.dataset.mediaReady = 'true';
+    formulario._commentMediaFiles = [];
 
-    const picker = document.createElement('div');
-    picker.className = 'comment-media-controls';
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = [...ACCEPTED_TYPES].join(',');
-    input.multiple = true;
-    input.hidden = true;
-    input.className = 'comment-media-input';
+    const selector = document.createElement('div');
+    selector.className = 'comment-media-controls';
+    const entrada = document.createElement('input');
+    entrada.type = 'file';
+    entrada.accept = [...TIPOS_ACEPTADOS].join(',');
+    entrada.multiple = true;
+    entrada.hidden = true;
+    entrada.className = 'comment-media-input';
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'comment-media-picker';
-    button.textContent = '＋ Adjuntar imágenes o GIF';
-    button.addEventListener('click', () => input.click());
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'comment-media-picker';
+    boton.textContent = '＋ Adjuntar imágenes o GIF';
+    boton.addEventListener('click', () => entrada.click());
 
-    const status = document.createElement('span');
-    status.className = 'comment-media-status';
-    status.setAttribute('aria-live', 'polite');
-    status.textContent = 'Hasta 3 archivos · 5 MB cada uno';
+    const estado = document.createElement('span');
+    estado.className = 'comment-media-status';
+    estado.setAttribute('aria-live', 'polite');
+    estado.textContent = 'Hasta 3 archivos · 5 MB cada uno';
 
-    const preview = document.createElement('div');
-    preview.className = 'comment-media-preview';
-    picker.append(input, button, status, preview);
+    const vistaPrevia = document.createElement('div');
+    vistaPrevia.className = 'comment-media-preview';
+    selector.append(entrada, boton, estado, vistaPrevia);
 
-    const submit = form.querySelector('[type="submit"]');
-    if (submit) form.insertBefore(picker, submit);
-    else form.appendChild(picker);
+    const enviar = formulario.querySelector('[type="submit"]');
+    if (enviar) formulario.insertBefore(selector, enviar);
+    else formulario.appendChild(selector);
 
-    const drawPreview = () => {
-      (form._commentPreviewUrls || []).forEach(URL.revokeObjectURL);
-      form._commentPreviewUrls = [];
-      preview.replaceChildren();
-      form._commentMediaFiles.forEach((file, index) => {
-        const card = document.createElement('span');
-        card.className = 'comment-media-preview-item';
-        const image = document.createElement('img');
-        image.src = URL.createObjectURL(file);
-        form._commentPreviewUrls.push(image.src);
-        image.alt = `Vista previa: ${file.name}`;
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'comment-media-remove';
-        remove.setAttribute('aria-label', `Quitar ${file.name}`);
-        remove.textContent = '×';
-        remove.addEventListener('click', () => {
-          form._commentMediaFiles.splice(index, 1);
-          drawPreview();
+    const dibujarVistaPrevia = () => {
+      (formulario._commentPreviewUrls || []).forEach(URL.revokeObjectURL);
+      formulario._commentPreviewUrls = [];
+      vistaPrevia.replaceChildren();
+      formulario._commentMediaFiles.forEach((archivo, indice) => {
+        const tarjeta = document.createElement('span');
+        tarjeta.className = 'comment-media-preview-item';
+        const imagen = document.createElement('img');
+        imagen.src = URL.createObjectURL(archivo);
+        formulario._commentPreviewUrls.push(imagen.src);
+        imagen.alt = `Vista previa: ${archivo.name}`;
+        const quitar = document.createElement('button');
+        quitar.type = 'button';
+        quitar.className = 'comment-media-remove';
+        quitar.setAttribute('aria-label', `Quitar ${archivo.name}`);
+        quitar.textContent = '×';
+        quitar.addEventListener('click', () => {
+          formulario._commentMediaFiles.splice(indice, 1);
+          dibujarVistaPrevia();
         });
-        card.append(image, remove);
-        preview.appendChild(card);
+        tarjeta.append(imagen, quitar);
+        vistaPrevia.appendChild(tarjeta);
       });
-      status.textContent = form._commentMediaFiles.length
-        ? `${form._commentMediaFiles.length} de ${MAX_FILES} archivos seleccionados`
+      estado.textContent = formulario._commentMediaFiles.length
+        ? `${formulario._commentMediaFiles.length} de ${ARCHIVOS_MAXIMOS} archivos seleccionados`
         : 'Hasta 3 archivos · 5 MB cada uno';
     };
 
-    input.addEventListener('change', () => {
-      const remaining = MAX_FILES - form._commentMediaFiles.length;
-      const chosen = [...input.files];
-      const valid = chosen.filter(file => ACCEPTED_TYPES.has(file.type) && file.size <= MAX_BYTES);
-      const accepted = valid.slice(0, Math.max(remaining, 0));
-      form._commentMediaFiles.push(...accepted);
-      input.value = '';
-      drawPreview();
-      if (chosen.some(file => !ACCEPTED_TYPES.has(file.type) || file.size > MAX_BYTES)) {
-        status.textContent = 'Formato no admitido o archivo mayor a 5 MB.';
-      } else if (accepted.length < chosen.length) {
-        status.textContent = `Podés adjuntar hasta ${MAX_FILES} archivos.`;
+    entrada.addEventListener('change', () => {
+      const restante = ARCHIVOS_MAXIMOS - formulario._commentMediaFiles.length;
+      const elegido = [...entrada.files];
+      const valido = elegido.filter(archivo => TIPOS_ACEPTADOS.has(archivo.type) && archivo.size <= BYTES_MAXIMOS);
+      const aceptado = valido.slice(0, Math.max(restante, 0));
+      formulario._commentMediaFiles.push(...aceptado);
+      entrada.value = '';
+      dibujarVistaPrevia();
+      if (elegido.some(archivo => !TIPOS_ACEPTADOS.has(archivo.type) || archivo.size > BYTES_MAXIMOS)) {
+        estado.textContent = 'Formato no admitido o archivo mayor a 5 MB.';
+      } else if (aceptado.length < elegido.length) {
+        estado.textContent = `Podés adjuntar hasta ${ARCHIVOS_MAXIMOS} archivos.`;
       }
     });
   }
 
-  const observer = new MutationObserver(records => {
-    records.forEach(record => record.addedNodes.forEach(node => {
-      if (!(node instanceof Element)) return;
-      if (node.matches('form[data-comment-media-form]')) enhance(node);
-      node.querySelectorAll?.('form[data-comment-media-form]').forEach(enhance);
+  const observador = new MutationObserver(registros => {
+    registros.forEach(grabacion => grabacion.addedNodes.forEach(nodo => {
+      if (!(nodo instanceof Element)) return;
+      if (nodo.matches('form[data-comment-media-form]')) mejorarFormulario(nodo);
+      nodo.querySelectorAll?.('form[data-comment-media-form]').forEach(mejorarFormulario);
     }));
   });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  document.querySelectorAll('form[data-comment-media-form]').forEach(enhance);
+  observador.observe(document.documentElement, { childList: true, subtree: true });
+  document.querySelectorAll('form[data-comment-media-form]').forEach(mejorarFormulario);
 
-  window.sigturPrepareCommentMedia = async form => {
-    const files = form?._commentMediaFiles || [];
-    if (!files.length) return [];
-    if (files.length > MAX_FILES) throw new Error(`Podés adjuntar hasta ${MAX_FILES} imágenes.`);
+  window.sigturPrepareCommentMedia = async formulario => {
+    const archivos = formulario?._commentMediaFiles || [];
+    if (!archivos.length) return [];
+    if (archivos.length > ARCHIVOS_MAXIMOS) throw new Error(`Podés adjuntar hasta ${ARCHIVOS_MAXIMOS} imágenes.`);
 
-    const paths = [];
-    for (let index = 0; index < files.length; index += 1) {
-      const file = files[index];
-      if (!ACCEPTED_TYPES.has(file.type) || file.size > MAX_BYTES) throw new Error('Adjuntá JPG, PNG, WebP o GIF de hasta 5 MB.');
-      const status = form.querySelector('.comment-media-status');
-      if (status) status.textContent = `Subiendo imagen ${index + 1} de ${files.length}…`;
-      const result = await uploadFile(file);
-      if (!result?.path) throw new Error('No se pudo completar la carga de la imagen.');
-      paths.push(result.path);
+    const rutas = [];
+    for (let indice = 0; indice < archivos.length; indice += 1) {
+      const archivo = archivos[indice];
+      if (!TIPOS_ACEPTADOS.has(archivo.type) || archivo.size > BYTES_MAXIMOS) throw new Error('Adjuntá JPG, PNG, WebP o GIF de hasta 5 MB.');
+      const estado = formulario.querySelector('.comment-media-status');
+      if (estado) estado.textContent = `Subiendo imagen ${indice + 1} de ${archivos.length}…`;
+      const resultado = await subirArchivo(archivo);
+      if (!resultado?.path) throw new Error('No se pudo completar la carga de la imagen.');
+      rutas.push(resultado.path);
     }
-    return paths;
+    return rutas;
   };
 
-  window.sigturClearCommentMedia = form => {
-    if (!form) return;
-    form._commentMediaFiles = [];
-    (form._commentPreviewUrls || []).forEach(URL.revokeObjectURL);
-    form._commentPreviewUrls = [];
-    const input = form.querySelector('.comment-media-input');
-    if (input) input.value = '';
-    const preview = form.querySelector('.comment-media-preview');
-    if (preview) preview.replaceChildren();
-    const status = form.querySelector('.comment-media-status');
-    if (status) status.textContent = 'Hasta 3 archivos · 5 MB cada uno';
+  window.sigturClearCommentMedia = formulario => {
+    if (!formulario) return;
+    formulario._commentMediaFiles = [];
+    (formulario._commentPreviewUrls || []).forEach(URL.revokeObjectURL);
+    formulario._commentPreviewUrls = [];
+    const entrada = formulario.querySelector('.comment-media-input');
+    if (entrada) entrada.value = '';
+    const vistaPrevia = formulario.querySelector('.comment-media-preview');
+    if (vistaPrevia) vistaPrevia.replaceChildren();
+    const estado = formulario.querySelector('.comment-media-status');
+    if (estado) estado.textContent = 'Hasta 3 archivos · 5 MB cada uno';
   };
 })();

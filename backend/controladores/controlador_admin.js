@@ -5,51 +5,51 @@ import {
   listarComentariosAdmin,
 } from "../servicios/foro_servicios.js";
 
-function fail(res, error) {
-  res.status(error.status || (error.code === "PGRST205" ? 503 : 500)).json({
-    error: error.status
-      ? error.message
-      : error.code === "PGRST205"
+function gestionarFallo(res, fallo) {
+  res.status(fallo.status || (fallo.code === "PGRST205" ? 503 : 500)).json({
+    error: fallo.status
+      ? fallo.message
+      : fallo.code === "PGRST205"
         ? "La tabla events no existe en Supabase."
         : "No se pudo completar la operación de administrador.",
   });
 }
 export async function crearEvento(req, res) {
   try {
-    const event = await servicio.crearEvento(req.validatedBody || req.body);
+    const evento = await servicio.crearEvento(req.validatedBody || req.body);
     await servicio.registrarActividad(req.user.id, "event.created", {
-      eventId: event.id,
-      title: event.title,
+      eventId: evento.id,
+      title: evento.title,
     });
-    res.status(201).json(event);
+    res.status(201).json(evento);
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function listarEventos(req, res) {
   try {
     res.json(await servicio.listarEventosAdmin(req.query));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function actualizarEvento(req, res) {
   try {
-    const event = await servicio.actualizarEvento(req.params.id, req.validatedBody || req.body);
+    const evento = await servicio.actualizarEvento(req.params.id, req.validatedBody || req.body);
     await servicio.registrarActividad(req.user.id, "event.updated", {
-      eventId: event.id,
-      title: event.title,
+      eventId: evento.id,
+      title: evento.title,
     });
-    res.json(event);
+    res.json(evento);
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function listarUsuarios(req, res) {
   try {
     res.json(await servicio.listarUsuarios(req.query));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function banearUsuario(req, res) {
@@ -61,7 +61,7 @@ export async function banearUsuario(req, res) {
     });
     res.json(result);
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function eliminarEvento(req, res) {
@@ -70,7 +70,7 @@ export async function eliminarEvento(req, res) {
     await servicio.registrarActividad(req.user.id, "event.deleted", { eventId: req.params.id });
     res.status(204).end();
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function eliminarComentario(req, res) {
@@ -79,14 +79,14 @@ export async function eliminarComentario(req, res) {
     await servicio.registrarActividad(req.user.id, "comment.deleted", { commentId: req.params.id });
     res.status(204).end();
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function listarComentarios(req, res) {
   try {
     res.json({ data: await listarComentariosAdmin(req.query) });
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function fijarComentario(req, res) {
@@ -98,14 +98,14 @@ export async function fijarComentario(req, res) {
     });
     res.json(result);
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function metricas(req, res) {
   try {
     res.json(await servicio.obtenerMetricas());
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function configuracion(req, res) {
@@ -113,7 +113,7 @@ export async function configuracion(req, res) {
     if (req.method === "GET") return res.json(await servicio.leerConfiguracion());
     res.json(await servicio.guardarConfiguracion(req.body, req.user.id));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function aviso(req, res) {
@@ -125,14 +125,14 @@ export async function aviso(req, res) {
     }
     res.json({ data: await servicio.guardarAviso(req.body, req.user.id) });
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function actividad(req, res) {
   try {
     res.json(await servicio.listarActividad(req.query));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function registrarActividad(req, res) {
@@ -141,20 +141,20 @@ export async function registrarActividad(req, res) {
     await servicio.registrarActividad(req.user.id, action, req.body.details || {});
     res.status(201).json({ ok: true });
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function tickets(req, res) {
   try {
     res.json(await servicio.listarTickets(req.query));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }
 export async function estadoTicket(req, res) {
   try {
     res.json(await servicio.cambiarEstadoTicket(req.params.id, req.body.status, req.user.id));
   } catch (error) {
-    fail(res, error);
+    gestionarFallo(res, error);
   }
 }

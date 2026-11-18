@@ -106,3 +106,10 @@ Prueba el servidor en `http://localhost:3000/health`. Para usar XAMPP, ejecuta `
 - Tests: `npm --prefix backend test`
 - Health check: `npm --prefix backend run health`
 - Dependencias: `npm --prefix backend audit --omit=dev`
+
+## Convenciones de c?digo
+
+El idioma, formato de nombres y estrategia de compatibilidad de API est?n definidos en [docs/convenciones_codigo.md](docs/convenciones_codigo.md).
+
+
+El orden de migraci?n segura por m?dulos y sus pruebas de contrato est?n en [docs/migracion_nombres.md](docs/migracion_nombres.md).

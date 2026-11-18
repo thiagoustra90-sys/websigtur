@@ -2,15 +2,15 @@ import { Router } from "express";
 import express from "express";
 import { requiereSesion, sesionOpcional } from "../servicios/verificacion.js";
 import {
-  comentarios,
+  listarComentarios,
   crearComentario,
   subirMediaComentario,
   editarComentario,
   eliminarComentario,
   reportarComentario,
-  estado,
-  like,
-  guardado,
+  obtenerEstadoInteracciones,
+  cambiarLike,
+  cambiarGuardado,
   listarGuardados,
 } from "../controladores/controlador_interacciones.js";
 import {
@@ -30,7 +30,7 @@ import {
 } from "../controladores/controlador_foro.js";
 
 const router = Router();
-router.get("/", comentarios);
+router.get("/", listarComentarios);
 router.get("/foro", listarComentariosForo);
 router.post(
   "/medios",
@@ -46,7 +46,7 @@ router.post("/", requiereSesion, crearComentario);
 router.patch("/:id", requiereSesion, editarComentario);
 router.delete("/:id", requiereSesion, eliminarComentario);
 router.post("/:id/reportar", requiereSesion, reportarComentario);
-router.get("/estado", sesionOpcional, estado);
+router.get("/estado", sesionOpcional, obtenerEstadoInteracciones);
 router.post("/:id/respuestas", requiereSesion, responderComentario);
 router.get("/:id/likes", sesionOpcional, estadoLikeComentario);
 router.post("/:id/likes", requiereSesion, likeComentario);
@@ -81,11 +81,11 @@ mensajesRouter.post(
 mensajesRouter.post("/", requiereSesion, enviarMensaje);
 
 export const likesRouter = Router();
-likesRouter.get("/estado", sesionOpcional, estado);
-likesRouter.post("/", requiereSesion, like);
+likesRouter.get("/estado", sesionOpcional, obtenerEstadoInteracciones);
+likesRouter.post("/", requiereSesion, cambiarLike);
 
 export const guardadosRouter = Router();
 guardadosRouter.get("/", requiereSesion, listarGuardados);
-guardadosRouter.post("/", requiereSesion, guardado);
+guardadosRouter.post("/", requiereSesion, cambiarGuardado);
 
 export default router;

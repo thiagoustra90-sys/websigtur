@@ -1,17 +1,17 @@
 import supabase from "../config/supabase.js";
 
-function badRequest(message) {
+function solicitudInvalida(message) {
   return Object.assign(new Error(message), { status: 400 });
 }
 function requiredText(value, label, max = 180) {
   const text = String(value || "").trim();
-  if (!text || text.length > max) throw badRequest(`${label} es obligatorio.`);
+  if (!text || text.length > max) throw solicitudInvalida(`${label} es obligatorio.`);
   return text;
 }
 function validatePeople(value) {
   const people = Number(value);
   if (!Number.isInteger(people) || people < 1 || people > 20)
-    throw badRequest("La cantidad de personas debe estar entre 1 y 20.");
+    throw solicitudInvalida("La cantidad de personas debe estar entre 1 y 20.");
   return people;
 }
 function validateDate(value) {
@@ -23,7 +23,7 @@ function validateDate(value) {
     parsed.toISOString().slice(0, 10) !== date ||
     date < new Date().toISOString().slice(0, 10)
   )
-    throw badRequest("Elegí una fecha válida a partir de hoy.");
+    throw solicitudInvalida("Elegí una fecha válida a partir de hoy.");
   return date;
 }
 export async function crearPlan(usuarioId, body) {
@@ -76,7 +76,7 @@ export async function listarReservas(usuarioId) {
 }
 export async function cancelarReserva(usuarioId, table, id) {
   if (!["event_reservations", "tourism_plans"].includes(table))
-    throw badRequest("Tipo de reserva inválido.");
+    throw solicitudInvalida("Tipo de reserva inválido.");
   const { data, error } = await supabase
     .from(table)
     .delete()

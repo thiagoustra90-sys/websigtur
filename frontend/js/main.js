@@ -5,140 +5,140 @@
 // si ponés código acá afuera (fuera del DOMContentLoaded) y el HTML
 // todavía no cargó, querySelector va a devolver null y nada va a funcionar.
 document.addEventListener('DOMContentLoaded', () => {
-  const body = document.body;
+  const cuerpo = document.body;
 
   // guardamos el tema en localStorage para que se acuerde entre páginas
-  const savedTheme = localStorage.getItem('sigtur-theme') || 'light';
-  body.classList.toggle('theme-dark', savedTheme === 'dark');
+  const temaGuardado = localStorage.getItem('sigtur-theme') || 'light';
+  cuerpo.classList.toggle('theme-dark', temaGuardado === 'dark');
 
   // el menú del logo no existe en la pantalla de login, así que lo saltamos
-  if (!body.classList.contains('auth-remake')) buildLogoMenu(savedTheme);
+  if (!cuerpo.classList.contains('auth-remake')) crearMenuLogo(temaGuardado);
 
-  setupAuthPage();
-  const oauthStatus = document.getElementById('auth-status');
-  const setAuthStatus = (message, type = 'ok') => {
-    if (!oauthStatus) return;
-    oauthStatus.textContent = message;
-    oauthStatus.dataset.type = type;
-    oauthStatus.hidden = !message;
+  configurarPaginaAutenticacion();
+  const estadoOAuth = document.getElementById('auth-status');
+  const establecerEstadoAutenticacion = (mensaje, tipo = 'ok') => {
+    if (!estadoOAuth) return;
+    estadoOAuth.textContent = mensaje;
+    estadoOAuth.dataset.type = tipo;
+    estadoOAuth.hidden = !mensaje;
   };
-  let cachedAuthToken = false;
-  try { cachedAuthToken = Boolean(JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY) || 'null')?.token); } catch { /* caché inválida */ }
-  if (oauthStatus && cachedAuthToken && !window.location.hash.includes('access_token')) {
-    setAuthStatus('Verificando la sesión guardada...', 'loading');
+  let tokenAutenticacionAlmacenado = false;
+  try { tokenAutenticacionAlmacenado = Boolean(JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION) || 'null')?.token); } catch { /* caché inválida */ }
+  if (estadoOAuth && tokenAutenticacionAlmacenado && !window.location.hash.includes('access_token')) {
+    establecerEstadoAutenticacion('Verificando la sesión guardada...', 'loading');
   }
-  processOAuthCallback(setAuthStatus)
-    .then(() => sigturValidateStoredSession())
+  procesarRetornoOAuth(establecerEstadoAutenticacion)
+    .then(() => validarSesionAlmacenadaSigtur())
     .finally(() => {
-      refreshLogoMenuAccount();
-      setupAdminPage();
-      setupProfilePage();
-      const session = sigturGetSession();
-      if (document.querySelector('.auth-remake') && session?.usuario && (!oauthStatus?.textContent || oauthStatus.dataset.type === 'loading')) {
-        setAuthStatus(`Ya iniciaste sesión como ${session.usuario.nombre}.`, 'ok');
-      } else if (document.querySelector('.auth-remake') && cachedAuthToken && !session?.usuario && oauthStatus?.dataset.type === 'loading') {
-        setAuthStatus('No pudimos verificar la sesión guardada. Iniciá sesión nuevamente.', 'error');
+      actualizarCuentaMenuLogo();
+      configurarPaginaAdministracion();
+      configurarPaginaPerfil();
+      const sesion = obtenerSesionSigtur();
+      if (document.querySelector('.auth-remake') && sesion?.usuario && (!estadoOAuth?.textContent || estadoOAuth.dataset.type === 'loading')) {
+        establecerEstadoAutenticacion(`Ya iniciaste sesión como ${sesion.usuario.nombre}.`, 'ok');
+      } else if (document.querySelector('.auth-remake') && tokenAutenticacionAlmacenado && !sesion?.usuario && estadoOAuth?.dataset.type === 'loading') {
+        establecerEstadoAutenticacion('No pudimos verificar la sesión guardada. Iniciá sesión nuevamente.', 'error');
       }
     });
-  setupSupportPage();
-  loadPublicSiteSettings();
-  setupFooterAccordions();
+  configurarPaginaSoporte();
+  cargarConfiguracionPublica();
+  configurarAcordeonesPie();
 
   // --- HOME (index.html) ---
-  if (body.classList.contains('page-home')) {
-    setupTourismPlanning();
-    setupFoodInfo();
+  if (cuerpo.classList.contains('page-home')) {
+    configurarPlanificacionTuristica();
+    configurarInformacionGastronomica();
 
     // gonza: acá escuchamos el scroll de la ventana. Cuando el usuario
     // baja más de 60px, le agregamos la clase 'scrolled' al navbar para
     // que cambie de estilo (el CSS se encarga del resto).
-    const navbar = document.getElementById('navbar');
-    if (navbar) window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 60));
+    const barraNavegacion = document.getElementById('navbar');
+    if (barraNavegacion) window.addEventListener('scroll', () => barraNavegacion.classList.toggle('scrolled', window.scrollY > 60));
 
     // setupHomeWeather es async (ver abajo), la llamamos sin await
     // porque no necesitamos esperar el clima para que el resto de la página funcione
-    setupHomeWeather();
+    configurarClimaInicio();
 
     // --- CAROUSEL DE EVENTOS (el que está en el medio de la home) ---
-    const track = document.querySelector('.carousel-track');
-    const slides = document.querySelectorAll('.carousel-slide');
+    const pista = document.querySelector('.carousel-track');
+    const diapositivas = document.querySelectorAll('.carousel-slide');
     const dotsEl = document.querySelector('.carousel-dots');
-    const prevBtn = document.querySelector('.carousel-btn.prev');
-    const nextBtn = document.querySelector('.carousel-btn.next');
+    const botonAnterior = document.querySelector('.carousel-btn.prev');
+    const botonSiguiente = document.querySelector('.carousel-btn.next');
 
-    if (track && slides.length && dotsEl) {
-      let current = 0;
-      const total = slides.length;
-      let autoTimer;
-      const carousel = track.closest('.carousel');
-      const stopAuto = () => { clearInterval(autoTimer); autoTimer = null; };
+    if (pista && diapositivas.length && dotsEl) {
+      let actual = 0;
+      const total = diapositivas.length;
+      let temporizadorAutomatico;
+      const carrusel = pista.closest('.carousel');
+      const detenerRotacion = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
 
       // creamos un puntito por cada slide y lo agregamos al DOM
-      slides.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = 'dot' + (i === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', `Mostrar evento ${i + 1}`);
-        dot.setAttribute('aria-controls', 'home-event-carousel');
-        dot.addEventListener('click', () => goTo(i));
-        dotsEl.appendChild(dot);
+      diapositivas.forEach((_, i) => {
+        const punto = document.createElement('button');
+        punto.type = 'button';
+        punto.className = 'dot' + (i === 0 ? ' active' : '');
+        punto.setAttribute('aria-label', `Mostrar evento ${i + 1}`);
+        punto.setAttribute('aria-controls', 'home-event-carousel');
+        punto.addEventListener('click', () => irA(i));
+        dotsEl.appendChild(punto);
       });
-      slides.forEach((slide, i) => {
-        slide.setAttribute('role', 'group');
-        slide.setAttribute('aria-roledescription', 'diapositiva');
-        slide.setAttribute('aria-label', `${i + 1} de ${total}`);
+      diapositivas.forEach((diapositiva, i) => {
+        diapositiva.setAttribute('role', 'group');
+        diapositiva.setAttribute('aria-roledescription', 'diapositiva');
+        diapositiva.setAttribute('aria-label', `${i + 1} de ${total}`);
       });
 
-      function updateDots() {
-        dotsEl.querySelectorAll('.dot').forEach((dot, i) => {
-          dot.classList.toggle('active', i === current);
-          dot.setAttribute('aria-current', String(i === current));
-          slides[i].setAttribute('aria-hidden', String(i !== current));
+      function actualizarPuntos() {
+        dotsEl.querySelectorAll('.dot').forEach((punto, i) => {
+          punto.classList.toggle('active', i === actual);
+          punto.setAttribute('aria-current', String(i === actual));
+          diapositivas[i].setAttribute('aria-hidden', String(i !== actual));
         });
       }
 
       // gonza: el truco del carrusel es mover el track con translateX.
       // si current=1 y cada slide ocupa 100%, movemos -100% → muestra el slide 2
-      function goTo(index) { current = (index + total) % total; track.style.transform = `translateX(-${current * 100}%)`; updateDots(); }
+      function irA(indice) { actual = (indice + total) % total; pista.style.transform = `translateX(-${actual * 100}%)`; actualizarPuntos(); }
 
       // reseteamos el timer automático cada vez que el usuario clickea una flecha
-      function resetAuto() { stopAuto(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) autoTimer = setInterval(() => goTo(current + 1), 4500); }
+      function restablecerRotacion() { detenerRotacion(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) temporizadorAutomatico = setInterval(() => irA(actual + 1), 4500); }
 
-      prevBtn?.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
-      nextBtn?.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
-      carousel?.addEventListener('keydown', event => {
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-          stopAuto();
-          goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
-          event.preventDefault();
+      botonAnterior?.addEventListener('click', () => { irA(actual - 1); restablecerRotacion(); });
+      botonSiguiente?.addEventListener('click', () => { irA(actual + 1); restablecerRotacion(); });
+      carrusel?.addEventListener('keydown', evento => {
+        if (evento.key === 'ArrowLeft' || evento.key === 'ArrowRight') {
+          detenerRotacion();
+          irA(actual + (evento.key === 'ArrowRight' ? 1 : -1));
+          evento.preventDefault();
         }
       });
-      carousel?.addEventListener('focusin', stopAuto);
-      carousel?.addEventListener('mouseenter', stopAuto);
-      carousel?.setAttribute('role', 'region');
-      carousel?.setAttribute('aria-roledescription', 'carrusel');
-      carousel?.setAttribute('aria-label', 'Eventos destacados');
-      track.id = 'home-event-carousel';
-      carousel?.addEventListener('focusout', event => { if (!carousel.contains(event.relatedTarget)) resetAuto(); });
-      resetAuto();
+      carrusel?.addEventListener('focusin', detenerRotacion);
+      carrusel?.addEventListener('mouseenter', detenerRotacion);
+      carrusel?.setAttribute('role', 'region');
+      carrusel?.setAttribute('aria-roledescription', 'carrusel');
+      carrusel?.setAttribute('aria-label', 'Eventos destacados');
+      pista.id = 'home-event-carousel';
+      carrusel?.addEventListener('focusout', evento => { if (!carrusel.contains(evento.relatedTarget)) restablecerRotacion(); });
+      restablecerRotacion();
     }
 
     // --- ANIMACIÓN DE ENTRADA DE LAS CARDS ---
     // gonza: IntersectionObserver es una API del browser que avisa
     // cuando un elemento entra en el viewport. Mucho mejor que calcular
     // posición con scroll, no frena la página.
-    const revealEls = document.querySelectorAll('.feature-item, .prop-card, .food-card, .eventos-left, .carousel');
+    const elementosRevelar = document.querySelectorAll('.feature-item, .prop-card, .food-card, .eventos-left, .carousel');
     if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('revealed');
-            io.unobserve(entry.target); // una vez que apareció, dejamos de observarlo
+      const io = new IntersectionObserver((entradas) => {
+        entradas.forEach(entrada => {
+          if (entrada.isIntersecting) {
+            entrada.target.classList.add('revealed');
+            io.unobserve(entrada.target); // una vez que apareció, dejamos de observarlo
           }
         });
       }, { threshold: 0.12 }); // se activa cuando el 12% del elemento es visible
 
-      revealEls.forEach(el => {
+      elementosRevelar.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(28px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -148,13 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- EVENTOS (eventos.html) ---
-  if (body.classList.contains('page-eventos')) {
-    const featTrack = document.querySelector('.feat-track');
-    const featSlides = Array.from(document.querySelectorAll('.feat-track > .feat-slide:not([aria-hidden="true"]):not(.is-clone)'));
+  if (cuerpo.classList.contains('page-eventos')) {
+    const pistaDestacada = document.querySelector('.feat-track');
+    const diapositivasDestacadas = Array.from(document.querySelectorAll('.feat-track > .feat-slide:not([aria-hidden="true"]):not(.is-clone)'));
     const dotsWrap = document.querySelector('.carousel-section .carousel-dots');
-    const total = featSlides.length;
-    let current = 0;
-    let position = 0;
+    const total = diapositivasDestacadas.length;
+    let actual = 0;
+    let posicion = 0;
 
     // gonza: FIX loop continuo (11/07/2026) — antes el carrusel llegaba al
     // final y se quedaba con un solo card pegadito, se veía feo. La solucion
@@ -162,255 +162,255 @@ document.addEventListener('DOMContentLoaded', () => {
     // siempre hay cards de sobra para llenar la vista, y cuando el auto-scroll
     // pasa por los clones saltamos al principio real SIN transicion (es invisible
     // para el ojo porque el clon es pixel-a-pixel igual al slide real).
-    function visibleCount() {
-      if (!featTrack || !featSlides.length) return 1;
-      const trackWidth = featTrack.parentElement?.getBoundingClientRect().width || featTrack.getBoundingClientRect().width;
-      const slideWidth = featSlides[0].getBoundingClientRect().width || 1;
-      return Math.max(1, Math.min(total, Math.round(trackWidth / slideWidth)));
+    function cantidadVisible() {
+      if (!pistaDestacada || !diapositivasDestacadas.length) return 1;
+      const anchoPista = pistaDestacada.parentElement?.getBoundingClientRect().width || pistaDestacada.getBoundingClientRect().width;
+      const anchoDiapositiva = diapositivasDestacadas[0].getBoundingClientRect().width || 1;
+      return Math.max(1, Math.min(total, Math.round(anchoPista / anchoDiapositiva)));
     }
 
-    function setupClones() {
-      featTrack?.querySelectorAll('.feat-slide.is-clone').forEach(el => el.remove());
-      if (!featTrack || !total) return;
-      const count = visibleCount();
-      for (let i = 0; i < count; i++) {
-        const clone = featSlides[i].cloneNode(true);
-        clone.classList.add('is-clone');
-        clone.setAttribute('aria-hidden', 'true');
-        clone.querySelectorAll('a, button, input').forEach(el => el.setAttribute('tabindex', '-1'));
-        featTrack.appendChild(clone);
+    function configurarClones() {
+      pistaDestacada?.querySelectorAll('.feat-slide.is-clone').forEach(el => el.remove());
+      if (!pistaDestacada || !total) return;
+      const cantidad = cantidadVisible();
+      for (let i = 0; i < cantidad; i++) {
+        const clon = diapositivasDestacadas[i].cloneNode(true);
+        clon.classList.add('is-clone');
+        clon.setAttribute('aria-hidden', 'true');
+        clon.querySelectorAll('a, button, input').forEach(el => el.setAttribute('tabindex', '-1'));
+        pistaDestacada.appendChild(clon);
       }
     }
 
     // gonza: acá calculamos el porcentaje real de cada slide en vez de
     // asumir 33.33%, porque en mobile los slides pueden ser más anchos
-    function slidePercent() {
-      const firstSlide = featTrack?.querySelector('.feat-slide');
-      const trackWidth = featTrack?.getBoundingClientRect().width;
-      return (firstSlide && trackWidth)
-        ? (firstSlide.getBoundingClientRect().width / trackWidth) * 100
+    function porcentajeDiapositiva() {
+      const primeraDiapositiva = pistaDestacada?.querySelector('.feat-slide');
+      const anchoPista = pistaDestacada?.getBoundingClientRect().width;
+      return (primeraDiapositiva && anchoPista)
+        ? (primeraDiapositiva.getBoundingClientRect().width / anchoPista) * 100
         : (100 / 3);
     }
 
-    function render(withTransition) {
-      if (!featTrack) return;
-      if (!withTransition) featTrack.style.transition = 'none';
-      featTrack.style.transform = `translateX(-${position * slidePercent()}%)`;
-      if (!withTransition) {
-        void featTrack.offsetHeight; // fuerza el reflow antes de sacar el "none"
-        featTrack.style.transition = '';
+    function representar(conTransicion) {
+      if (!pistaDestacada) return;
+      if (!conTransicion) pistaDestacada.style.transition = 'none';
+      pistaDestacada.style.transform = `translateX(-${posicion * porcentajeDiapositiva()}%)`;
+      if (!conTransicion) {
+        void pistaDestacada.offsetHeight; // fuerza el reflow antes de sacar el "none"
+        pistaDestacada.style.transition = '';
       }
     }
 
-    function buildDots() {
+    function crearPuntos() {
       if (!dotsWrap || !total) return;
       dotsWrap.innerHTML = '';
       for (let i = 0; i < total; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'c-dot' + (i === 0 ? ' active' : '');
-        btn.setAttribute('aria-label', `Slide ${i + 1}`);
-        const inner = document.createElement('span');
-        inner.className = 'c-dot-inner';
-        inner.style.width = i === 0 ? '18px' : '12px';
-        inner.style.height = i === 0 ? '18px' : '12px';
-        btn.appendChild(inner);
-        btn.addEventListener('click', () => goTo(i));
-        dotsWrap.appendChild(btn);
+        const botonAccion = document.createElement('button');
+        botonAccion.className = 'c-dot' + (i === 0 ? ' active' : '');
+        botonAccion.setAttribute('aria-label', `Slide ${i + 1}`);
+        const interno = document.createElement('span');
+        interno.className = 'c-dot-inner';
+        interno.style.width = i === 0 ? '18px' : '12px';
+        interno.style.height = i === 0 ? '18px' : '12px';
+        botonAccion.appendChild(interno);
+        botonAccion.addEventListener('click', () => irA(i));
+        dotsWrap.appendChild(botonAccion);
       }
     }
 
-    function updateDots() {
-      document.querySelectorAll('.c-dot').forEach((dot, i) => {
-        const inner = dot.querySelector('.c-dot-inner');
-        const active = i === current;
-        dot.classList.toggle('active', active);
-        if (inner) { inner.style.width = active ? '18px' : '12px'; inner.style.height = active ? '18px' : '12px'; }
+    function actualizarPuntos() {
+      document.querySelectorAll('.c-dot').forEach((punto, i) => {
+        const interno = punto.querySelector('.c-dot-inner');
+        const activo = i === actual;
+        punto.classList.toggle('active', activo);
+        if (interno) { interno.style.width = activo ? '18px' : '12px'; interno.style.height = activo ? '18px' : '12px'; }
       });
     }
 
     // avanza un slide (lo usa el autoplay). Si nos pasamos del ultimo slide
     // real seguimos de largo por los clones, y una vez termina la transicion
     // reseteamos la posicion al slide real sin transicion (salto invisible)
-    function next() {
-      if (!featTrack || !total) return;
-      position += 1;
-      current = position % total;
-      render(true);
-      updateDots();
-      if (position >= total) {
-        const onEnd = () => {
-          featTrack.removeEventListener('transitionend', onEnd);
-          position = current;
-          render(false);
+    function siguiente() {
+      if (!pistaDestacada || !total) return;
+      posicion += 1;
+      actual = posicion % total;
+      representar(true);
+      actualizarPuntos();
+      if (posicion >= total) {
+        const alFinalizar = () => {
+          pistaDestacada.removeEventListener('transitionend', alFinalizar);
+          posicion = actual;
+          representar(false);
         };
-        featTrack.addEventListener('transitionend', onEnd);
+        pistaDestacada.addEventListener('transitionend', alFinalizar);
       }
     }
 
     // clic directo en un punto: salto simple, sin pasar por los clones
-    function goTo(index) {
-      if (!featTrack || !total) return;
-      current = (index + total) % total;
-      position = current;
-      render(true);
-      updateDots();
+    function irA(indice) {
+      if (!pistaDestacada || !total) return;
+      actual = (indice + total) % total;
+      posicion = actual;
+      representar(true);
+      actualizarPuntos();
     }
 
-    setupClones();
-    buildDots();
-    render(false);
+    configurarClones();
+    crearPuntos();
+    representar(false);
 
-    let autoTimer = total ? setInterval(next, 4000) : null;
+    let temporizadorAutomatico = total ? setInterval(siguiente, 4000) : null;
 
     // pausamos el auto cuando el mouse está encima, es más cómodo para el usuario
-    const featCarousel = featTrack?.closest('.feat-carousel');
-    const stopFeatureAuto = () => { clearInterval(autoTimer); autoTimer = null; };
-    const startFeatureAuto = () => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !autoTimer) autoTimer = setInterval(next, 4000); };
-    featCarousel?.setAttribute('role', 'region');
-    featCarousel?.setAttribute('aria-roledescription', 'carrusel');
-    featCarousel?.setAttribute('aria-label', 'Eventos destacados');
-    featCarousel?.addEventListener('mouseenter', stopFeatureAuto);
-    featCarousel?.addEventListener('focusin', stopFeatureAuto);
-    featCarousel?.addEventListener('keydown', event => {
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      stopFeatureAuto();
-      goTo(current + (event.key === 'ArrowRight' ? 1 : -1));
-      event.preventDefault();
+    const carruselDestacado = pistaDestacada?.closest('.feat-carousel');
+    const detenerRotacionDestacados = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
+    const iniciarRotacionDestacados = () => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !temporizadorAutomatico) temporizadorAutomatico = setInterval(siguiente, 4000); };
+    carruselDestacado?.setAttribute('role', 'region');
+    carruselDestacado?.setAttribute('aria-roledescription', 'carrusel');
+    carruselDestacado?.setAttribute('aria-label', 'Eventos destacados');
+    carruselDestacado?.addEventListener('mouseenter', detenerRotacionDestacados);
+    carruselDestacado?.addEventListener('focusin', detenerRotacionDestacados);
+    carruselDestacado?.addEventListener('keydown', evento => {
+      if (evento.key !== 'ArrowLeft' && evento.key !== 'ArrowRight') return;
+      detenerRotacionDestacados();
+      irA(actual + (evento.key === 'ArrowRight' ? 1 : -1));
+      evento.preventDefault();
     });
-    featCarousel?.addEventListener('mouseleave', () => { if (!featCarousel.contains(document.activeElement)) startFeatureAuto(); });
-    featCarousel?.addEventListener('focusout', event => { if (!featCarousel.contains(event.relatedTarget)) startFeatureAuto(); });
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) stopFeatureAuto();
+    carruselDestacado?.addEventListener('mouseleave', () => { if (!carruselDestacado.contains(document.activeElement)) iniciarRotacionDestacados(); });
+    carruselDestacado?.addEventListener('focusout', evento => { if (!carruselDestacado.contains(evento.relatedTarget)) iniciarRotacionDestacados(); });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) detenerRotacionDestacados();
 
     // recalculamos los clones si cambia el tamaño de pantalla (mobile <-> desktop)
-    let resizeTimer;
+    let temporizadorRedimension;
     window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        setupClones();
-        position = current;
-        render(false);
+      clearTimeout(temporizadorRedimension);
+      temporizadorRedimension = setTimeout(() => {
+        configurarClones();
+        posicion = actual;
+        representar(false);
       }, 200);
     });
 
     // filtro de categorías: muestra/oculta tickets según data-cat
-    document.querySelectorAll('.category-tabs').forEach(group => {
-      const tabs = group.querySelectorAll('.cat-tab');
-      const section = group.closest('section');
-      const tabListId = group.id || `category-tabs-${Math.random().toString(36).slice(2)}`;
-      group.id = tabListId;
-      group.setAttribute('role', 'tablist');
-      group.setAttribute('aria-label', 'Filtrar eventos por categoría');
-      const list = group.parentElement?.querySelector('.event-tickets');
-      if (list) { list.id ||= `${tabListId}-events`; list.setAttribute('role', 'tabpanel'); list.setAttribute('aria-labelledby', tabs[0]?.id || `${tabListId}-tab-0`); }
-      tabs.forEach((tab, index) => {
+    document.querySelectorAll('.category-tabs').forEach(grupo => {
+      const pestanas = grupo.querySelectorAll('.cat-tab');
+      const seccion = grupo.closest('section');
+      const identificadorListaPestanas = grupo.id || `category-tabs-${Math.random().toString(36).slice(2)}`;
+      grupo.id = identificadorListaPestanas;
+      grupo.setAttribute('role', 'tablist');
+      grupo.setAttribute('aria-label', 'Filtrar eventos por categoría');
+      const lista = grupo.parentElement?.querySelector('.event-tickets');
+      if (lista) { lista.id ||= `${identificadorListaPestanas}-events`; lista.setAttribute('role', 'tabpanel'); lista.setAttribute('aria-labelledby', pestanas[0]?.id || `${identificadorListaPestanas}-tab-0`); }
+      pestanas.forEach((tab, indice) => {
         tab.type = 'button'; tab.setAttribute('role', 'tab');
-        if (!tab.id) tab.id = `${tabListId}-tab-${index}`;
-        tab.setAttribute('aria-controls', list?.id || tabListId);
+        if (!tab.id) tab.id = `${identificadorListaPestanas}-tab-${indice}`;
+        tab.setAttribute('aria-controls', lista?.id || identificadorListaPestanas);
         tab.setAttribute('aria-selected', String(tab.classList.contains('active')));
         tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
       });
-      tabs.forEach(tab => {
+      pestanas.forEach(tab => {
         tab.addEventListener('click', () => {
-          tabs.forEach(item => { item.classList.remove('active'); item.setAttribute('aria-selected', 'false'); item.tabIndex = -1; });
+          pestanas.forEach(elemento => { elemento.classList.remove('active'); elemento.setAttribute('aria-selected', 'false'); elemento.tabIndex = -1; });
           tab.classList.add('active');
           tab.setAttribute('aria-selected', 'true'); tab.tabIndex = 0;
-          if (list) list.setAttribute('aria-labelledby', tab.id);
-          const filter = tab.dataset.cat;
-          section?.querySelectorAll('.ticket-row').forEach(row => {
-            const rowCat = row.dataset.cat || '';
-            const visible = filter === 'todos' || rowCat === filter;
-            row.style.display = visible ? '' : 'none';
-            const panel = row.nextElementSibling;
-            if (!visible && panel?.classList.contains('event-interaction-panel')) panel.hidden = true;
+          if (lista) lista.setAttribute('aria-labelledby', tab.id);
+          const filtro = tab.dataset.cat;
+          seccion?.querySelectorAll('.ticket-row').forEach(fila => {
+            const categoriaFila = fila.dataset.cat || '';
+            const visible = filtro === 'todos' || categoriaFila === filtro;
+            fila.style.display = visible ? '' : 'none';
+            const panelActual = fila.nextElementSibling;
+            if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
           });
         });
       });
-      group.addEventListener('keydown', event => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        const currentIndex = [...tabs].indexOf(document.activeElement);
-        const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (currentIndex + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
-        event.preventDefault(); tabs[nextIndex]?.focus(); tabs[nextIndex]?.click();
+      grupo.addEventListener('keydown', evento => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
+        const indiceActual = [...pestanas].indexOf(document.activeElement);
+        const indiceSiguiente = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestanas.length - 1 : (indiceActual + (evento.key === 'ArrowRight' ? 1 : pestanas.length - 1)) % pestanas.length;
+        evento.preventDefault(); pestanas[indiceSiguiente]?.focus(); pestanas[indiceSiguiente]?.click();
       });
     });
 
     // búsqueda en tiempo real: filtra mientras escribís, sin botón de submit
-    const searchInput = document.querySelector('.search-pill input');
-    searchInput?.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase().trim();
-      document.querySelectorAll('.próximos-section .ticket-row').forEach(row => {
-        const visible = !q || row.textContent.toLowerCase().includes(q);
-        row.style.display = visible ? '' : 'none';
-        const panel = row.nextElementSibling;
-        if (!visible && panel?.classList.contains('event-interaction-panel')) panel.hidden = true;
+    const entradaBusqueda = document.querySelector('.search-pill input');
+    entradaBusqueda?.addEventListener('input', () => {
+      const q = entradaBusqueda.value.toLowerCase().trim();
+      document.querySelectorAll('.próximos-section .ticket-row').forEach(fila => {
+        const visible = !q || fila.textContent.toLowerCase().includes(q);
+        fila.style.display = visible ? '' : 'none';
+        const panelActual = fila.nextElementSibling;
+        if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
       });
     });
 
-    setupEventInteractions();
-    setupEventAdminShortcut();
+    configurarInteraccionesEventos();
+    configurarAccesoRapidoEventosAdmin();
 
   }
 
   // --- TURISMO (turismo.html) ---
-  if (body.classList.contains('page-turismo')) {
-    setupTourismPlanning();
-    setupTourismCuriosity();
+  if (cuerpo.classList.contains('page-turismo')) {
+    configurarPlanificacionTuristica();
+    configurarCuriosidadesTuristicas();
   }
 
   // --- LUGARES (lugares.html) ---
-  if (body.classList.contains('page-lugares')) {
-    setupFavoriteButtons();
+  if (cuerpo.classList.contains('page-lugares')) {
+    configurarBotonesFavoritos();
   }
-  if (body.classList.contains('page-turismo')) setupFavoriteButtons();
-  if (body.classList.contains('page-home')) setupFavoriteButtons();
-  document.getElementById('content-grid')?.addEventListener('click', async event => {
-    const button = event.target.closest('[data-remove-saved]'); if (!button) return;
-    button.disabled = true;
-    try { await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: button.dataset.savedType, entidad_id: button.dataset.removeSaved, activo: false }) }); button.closest('.profile-card')?.remove(); const total = document.getElementById('total-count'), places = document.getElementById('following'); if (total) total.textContent = String(Math.max(0, Number(total.textContent) - 1)); if (places && button.dataset.savedType === 'place') places.textContent = String(Math.max(0, Number(places.textContent) - 1)); }
-    catch (error) { button.disabled = false; window.alert(error.message || 'No se pudo quitar de guardados.'); }
+  if (cuerpo.classList.contains('page-turismo')) configurarBotonesFavoritos();
+  if (cuerpo.classList.contains('page-home')) configurarBotonesFavoritos();
+  document.getElementById('content-grid')?.addEventListener('click', async evento => {
+    const boton = evento.target.closest('[data-remove-saved]'); if (!boton) return;
+    boton.disabled = true;
+    try { await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: boton.dataset.savedType, entidad_id: boton.dataset.removeSaved, activo: false }) }); boton.closest('.profile-card')?.remove(); const total = document.getElementById('total-count'), lugares = document.getElementById('following'); if (total) total.textContent = String(Math.max(0, Number(total.textContent) - 1)); if (lugares && boton.dataset.savedType === 'place') lugares.textContent = String(Math.max(0, Number(lugares.textContent) - 1)); }
+    catch (fallo) { boton.disabled = false; window.alert(fallo.message || 'No se pudo quitar de guardados.'); }
   });
 
-  setupNavbarSearch();
+  configurarBusquedaNavegacion();
 });
 
-function normalizeSearchText(value) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function normalizarTextoBusqueda(valor) {
+  return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
-function getSearchDestination(value) {
-  const normalized = normalizeSearchText(value);
+function obtenerDestinoBusqueda(valor) {
+  const normalized = normalizarTextoBusqueda(valor);
   return /evento|concierto|feria|agenda|musica|deporte/.test(normalized) ? 'eventos.html' :
     /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalized) ? 'turismo.html' :
     /mapa|ubicacion|llegar|ruta/.test(normalized) ? 'mapa.html' : 'lugares.html';
 }
 
-function navigateToSearch(value, destination = getSearchDestination(value)) {
-  const url = new URL(destination, window.location.href);
-  url.searchParams.set('q', value);
+function navegarBusqueda(valor, destino = obtenerDestinoBusqueda(valor)) {
+  const url = new URL(destino, window.location.href);
+  url.searchParams.set('q', valor);
   window.location.assign(url);
 }
 
-function setupNavbarSearch() {
-  const searchInput = document.querySelector('.nav-search input');
-  const query = new URLSearchParams(window.location.search).get('q')?.trim();
+function configurarBusquedaNavegacion() {
+  const entradaBusqueda = document.querySelector('.nav-search input');
+  const consulta = new URLSearchParams(window.location.search).get('q')?.trim();
 
-  const searchBox = searchInput.closest('.nav-search');
-  if (!searchBox) return;
+  const campoBusqueda = entradaBusqueda.closest('.nav-search');
+  if (!campoBusqueda) return;
 
-  const listId = 'navbar-search-suggestions';
-  const suggestionList = document.createElement('div');
-  suggestionList.className = 'nav-search-suggestions';
-  suggestionList.id = listId;
-  suggestionList.setAttribute('role', 'listbox');
-  suggestionList.setAttribute('aria-label', 'Sugerencias de búsqueda');
-  suggestionList.hidden = true;
-  searchBox.appendChild(suggestionList);
+  const identificadorLista = 'navbar-search-suggestions';
+  const sugerenciaLista = document.createElement('div');
+  sugerenciaLista.className = 'nav-search-suggestions';
+  sugerenciaLista.id = identificadorLista;
+  sugerenciaLista.setAttribute('role', 'listbox');
+  sugerenciaLista.setAttribute('aria-label', 'Sugerencias de búsqueda');
+  sugerenciaLista.hidden = true;
+  campoBusqueda.appendChild(sugerenciaLista);
 
-  searchInput.setAttribute('role', 'combobox');
-  searchInput.setAttribute('aria-autocomplete', 'list');
-  searchInput.setAttribute('aria-expanded', 'false');
-  searchInput.setAttribute('aria-controls', listId);
+  entradaBusqueda.setAttribute('role', 'combobox');
+  entradaBusqueda.setAttribute('aria-autocomplete', 'list');
+  entradaBusqueda.setAttribute('aria-expanded', 'false');
+  entradaBusqueda.setAttribute('aria-controls', identificadorLista);
 
-  const suggestions = [
+  const sugerencias = [
     { label: 'Eventos', query: 'Eventos' },
     { label: 'Ferias y actividades', query: 'Ferias' },
     { label: 'Hoteles y alojamientos', query: 'Hoteles' },
@@ -422,206 +422,206 @@ function setupNavbarSearch() {
     { label: 'Parque Solari', query: 'Parque Solari' },
     { label: 'Mapa de Salto', query: 'Mapa' }
   ];
-  document.querySelectorAll('.ticket-row, .lugar-card, .prop-card, .restaurant-card').forEach(item => {
-    const heading = item.querySelector('h2, h3, .restaurant-name, .prop-name');
-    const label = heading?.textContent.trim();
-    if (label && !suggestions.some(suggestion => normalizeSearchText(suggestion.label) === normalizeSearchText(label))) {
-      const destination = item.matches('.ticket-row') ? 'eventos.html' :
-        item.matches('.prop-card, .restaurant-card') ? 'turismo.html' : 'lugares.html';
-      suggestions.push({ label, query: label, destination });
+  document.querySelectorAll('.ticket-row, .lugar-card, .prop-card, .restaurant-card').forEach(elemento => {
+    const encabezado = elemento.querySelector('h2, h3, .restaurant-name, .prop-name');
+    const etiqueta = encabezado?.textContent.trim();
+    if (etiqueta && !sugerencias.some(sugerencia => normalizarTextoBusqueda(sugerencia.label) === normalizarTextoBusqueda(etiqueta))) {
+      const destino = elemento.matches('.ticket-row') ? 'eventos.html' :
+        elemento.matches('.prop-card, .restaurant-card') ? 'turismo.html' : 'lugares.html';
+      sugerencias.push({ label: etiqueta, query: etiqueta, destination: destino });
     }
   });
 
-  let activeIndex = -1;
-  let visibleSuggestions = [];
+  let indiceActivo = -1;
+  let sugerenciasVisibles = [];
 
-  function closeSuggestions() {
-    suggestionList.hidden = true;
-    searchInput.setAttribute('aria-expanded', 'false');
-    searchInput.removeAttribute('aria-activedescendant');
-    activeIndex = -1;
+  function cerrarSugerencias() {
+    sugerenciaLista.hidden = true;
+    entradaBusqueda.setAttribute('aria-expanded', 'false');
+    entradaBusqueda.removeAttribute('aria-activedescendant');
+    indiceActivo = -1;
   }
 
-  function renderSuggestions() {
-    const normalized = normalizeSearchText(searchInput.value);
-    suggestionList.replaceChildren();
-    activeIndex = -1;
+  function representarSugerencias() {
+    const normalized = normalizarTextoBusqueda(entradaBusqueda.value);
+    sugerenciaLista.replaceChildren();
+    indiceActivo = -1;
 
     if (!normalized) {
-      closeSuggestions();
+      cerrarSugerencias();
       return;
     }
 
-    visibleSuggestions = suggestions
-      .filter(suggestion => normalizeSearchText(suggestion.label).includes(normalized))
+    sugerenciasVisibles = sugerencias
+      .filter(sugerencia => normalizarTextoBusqueda(sugerencia.label).includes(normalized))
       .slice(0, 7);
 
-    if (!visibleSuggestions.length) {
-      closeSuggestions();
+    if (!sugerenciasVisibles.length) {
+      cerrarSugerencias();
       return;
     }
 
-    visibleSuggestions.forEach((suggestion, index) => {
-      const option = document.createElement('button');
-      option.type = 'button';
-      option.className = 'nav-search-suggestion';
-      option.id = `${listId}-${index}`;
-      option.setAttribute('role', 'option');
-      option.setAttribute('aria-selected', 'false');
-      option.textContent = suggestion.label;
-      option.addEventListener('pointerdown', event => event.preventDefault());
-      option.addEventListener('click', () => navigateToSearch(suggestion.query, suggestion.destination));
-      suggestionList.appendChild(option);
+    sugerenciasVisibles.forEach((sugerencia, indice) => {
+      const opcion = document.createElement('button');
+      opcion.type = 'button';
+      opcion.className = 'nav-search-suggestion';
+      opcion.id = `${identificadorLista}-${indice}`;
+      opcion.setAttribute('role', 'option');
+      opcion.setAttribute('aria-selected', 'false');
+      opcion.textContent = sugerencia.label;
+      opcion.addEventListener('pointerdown', evento => evento.preventDefault());
+      opcion.addEventListener('click', () => navegarBusqueda(sugerencia.query, sugerencia.destination));
+      sugerenciaLista.appendChild(opcion);
     });
 
-    suggestionList.hidden = false;
-    searchInput.setAttribute('aria-expanded', 'true');
+    sugerenciaLista.hidden = false;
+    entradaBusqueda.setAttribute('aria-expanded', 'true');
   }
 
-  function setActiveSuggestion(index) {
-    if (!visibleSuggestions.length) return;
-    activeIndex = (index + visibleSuggestions.length) % visibleSuggestions.length;
-    suggestionList.querySelectorAll('.nav-search-suggestion').forEach((option, optionIndex) => {
-      const active = optionIndex === activeIndex;
-      option.classList.toggle('is-active', active);
-      option.setAttribute('aria-selected', String(active));
+  function establecerSugerenciaActiva(indice) {
+    if (!sugerenciasVisibles.length) return;
+    indiceActivo = (indice + sugerenciasVisibles.length) % sugerenciasVisibles.length;
+    sugerenciaLista.querySelectorAll('.nav-search-suggestion').forEach((opcion, indiceOpcion) => {
+      const activo = indiceOpcion === indiceActivo;
+      opcion.classList.toggle('is-active', activo);
+      opcion.setAttribute('aria-selected', String(activo));
     });
-    searchInput.setAttribute('aria-activedescendant', `${listId}-${activeIndex}`);
+    entradaBusqueda.setAttribute('aria-activedescendant', `${identificadorLista}-${indiceActivo}`);
   }
 
-  searchInput.addEventListener('input', renderSuggestions);
-  searchInput.addEventListener('keydown', event => {
-    if (event.key === 'ArrowDown' && !suggestionList.hidden) {
-      event.preventDefault();
-      setActiveSuggestion(activeIndex + 1);
-    } else if (event.key === 'ArrowUp' && !suggestionList.hidden) {
-      event.preventDefault();
-      setActiveSuggestion(activeIndex < 0 ? visibleSuggestions.length - 1 : activeIndex - 1);
-    } else if (event.key === 'Escape') {
-      closeSuggestions();
-    } else if (event.key === 'Enter') {
-      const suggestion = activeIndex >= 0 ? visibleSuggestions[activeIndex] : null;
-      const value = suggestion?.query || searchInput.value.trim();
-      if (!value) return;
-      event.preventDefault();
-      navigateToSearch(value, suggestion?.destination);
+  entradaBusqueda.addEventListener('input', representarSugerencias);
+  entradaBusqueda.addEventListener('keydown', evento => {
+    if (evento.key === 'ArrowDown' && !sugerenciaLista.hidden) {
+      evento.preventDefault();
+      establecerSugerenciaActiva(indiceActivo + 1);
+    } else if (evento.key === 'ArrowUp' && !sugerenciaLista.hidden) {
+      evento.preventDefault();
+      establecerSugerenciaActiva(indiceActivo < 0 ? sugerenciasVisibles.length - 1 : indiceActivo - 1);
+    } else if (evento.key === 'Escape') {
+      cerrarSugerencias();
+    } else if (evento.key === 'Enter') {
+      const sugerencia = indiceActivo >= 0 ? sugerenciasVisibles[indiceActivo] : null;
+      const valor = sugerencia?.query || entradaBusqueda.value.trim();
+      if (!valor) return;
+      evento.preventDefault();
+      navegarBusqueda(valor, sugerencia?.destination);
     }
   });
-  searchInput.addEventListener('focus', renderSuggestions);
-  document.addEventListener('pointerdown', event => {
-    if (!searchBox.contains(event.target)) closeSuggestions();
+  entradaBusqueda.addEventListener('focus', representarSugerencias);
+  document.addEventListener('pointerdown', evento => {
+    if (!campoBusqueda.contains(evento.target)) cerrarSugerencias();
   });
 
-  if (!query) return;
+  if (!consulta) return;
 
-  const normalizedQuery = normalizeSearchText(query);
-  const terms = normalizedQuery
+  const consultaNormalizada = normalizarTextoBusqueda(consulta);
+  const terminos = consultaNormalizada
     .replace(/\b(eventos?|conciertos?|ferias?|agenda|musica|deportes?|turismo|turisticos?|alojamientos?|hoteles?|restaurantes?|comida|gastronomia|sabores?|termas?|termal|historia|lugares?|plazas?|parques?|costanera|mapa|ubicacion|llegar|ruta)\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (searchInput) searchInput.value = query;
+  if (entradaBusqueda) entradaBusqueda.value = consulta;
 
-  let items = [];
+  let elementos = [];
   if (document.body.classList.contains('page-eventos')) {
-    const eventSearch = document.querySelector('.search-pill input');
-    if (eventSearch) {
-      eventSearch.value = terms;
-      eventSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    const busquedaEventos = document.querySelector('.search-pill input');
+    if (busquedaEventos) {
+      busquedaEventos.value = terminos;
+      busquedaEventos.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    items = Array.from(document.querySelectorAll('.próximos-section .ticket-row'));
+    elementos = Array.from(document.querySelectorAll('.próximos-section .ticket-row'));
   } else if (document.body.classList.contains('page-lugares')) {
-    items = Array.from(document.querySelectorAll('.lugar-card'));
+    elementos = Array.from(document.querySelectorAll('.lugar-card'));
   } else if (document.body.classList.contains('page-turismo')) {
-    items = Array.from(document.querySelectorAll('.prop-card, .restaurant-card'));
+    elementos = Array.from(document.querySelectorAll('.prop-card, .restaurant-card'));
   }
 
-  if (terms && items.length) {
-    const normalizedTerms = normalizeSearchText(terms);
-    items.forEach(item => {
-      item.style.display = normalizeSearchText(item.textContent).includes(normalizedTerms) ? '' : 'none';
+  if (terminos && elementos.length) {
+    const terminosNormalizados = normalizarTextoBusqueda(terminos);
+    elementos.forEach(elemento => {
+      elemento.style.display = normalizarTextoBusqueda(elemento.textContent).includes(terminosNormalizados) ? '' : 'none';
     });
   }
 
-  const section = /hotel|alojamiento/.test(normalizedQuery) ? '#alojamientos' :
-    /restaurante|comida|gastronomia|sabor/.test(normalizedQuery) ? '#restaurantes' :
-    /historia/.test(normalizedQuery) ? '#historia' : '';
-  if (section) document.querySelector(section)?.scrollIntoView({ behavior: 'smooth' });
+  const seccion = /hotel|alojamiento/.test(consultaNormalizada) ? '#alojamientos' :
+    /restaurante|comida|gastronomia|sabor/.test(consultaNormalizada) ? '#restaurantes' :
+    /historia/.test(consultaNormalizada) ? '#historia' : '';
+  if (seccion) document.querySelector(seccion)?.scrollIntoView({ behavior: 'smooth' });
 }
 
 // gonza: el footer en mobile se convierte en acordeón para no ocupar tanto espacio.
 // cada columna tiene un título clickeable que muestra/oculta la lista de links.
-function setupFooterAccordions() {
-  const footer = document.querySelector('.footer');
-  if (!footer) return;
+function configurarAcordeonesPie() {
+  const piePagina = document.querySelector('.footer');
+  if (!piePagina) return;
 
-  const mobileQuery = window.matchMedia('(max-width: 700px)');
-  const cols = Array.from(footer.querySelectorAll('.footer-col'));
+  const consultaMovil = window.matchMedia('(max-width: 700px)');
+  const columnas = Array.from(piePagina.querySelectorAll('.footer-col'));
 
-  cols.forEach((col, index) => {
-    const title = col.querySelector('.footer-col-title');
-    const list = col.querySelector('ul');
-    if (!title || !list || title.dataset.accordionReady) return;
+  columnas.forEach((columna, indice) => {
+    const titulo = columna.querySelector('.footer-col-title');
+    const lista = columna.querySelector('ul');
+    if (!titulo || !lista || titulo.dataset.accordionReady) return;
 
-    title.dataset.accordionReady = 'true';
-    title.setAttribute('role', 'button');
-    title.setAttribute('tabindex', '0');
-    title.setAttribute('aria-expanded', index === 0 ? 'true' : 'false');
-    col.classList.toggle('is-open', index === 0); // la primera columna arranca abierta
+    titulo.dataset.accordionReady = 'true';
+    titulo.setAttribute('role', 'button');
+    titulo.setAttribute('tabindex', '0');
+    titulo.setAttribute('aria-expanded', indice === 0 ? 'true' : 'false');
+    columna.classList.toggle('is-open', indice === 0); // la primera columna arranca abierta
 
-    const toggle = () => {
-      if (!mobileQuery.matches) return; // en desktop no hace nada, todo visible
-      const isOpen = col.classList.toggle('is-open');
-      title.setAttribute('aria-expanded', String(isOpen));
+    const alternar = () => {
+      if (!consultaMovil.matches) return; // en desktop no hace nada, todo visible
+      const estaAbierto = columna.classList.toggle('is-open');
+      titulo.setAttribute('aria-expanded', String(estaAbierto));
     };
 
-    title.addEventListener('click', toggle);
-    title.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      toggle();
+    titulo.addEventListener('click', alternar);
+    titulo.addEventListener('keydown', (evento) => {
+      if (evento.key !== 'Enter' && evento.key !== ' ') return;
+      evento.preventDefault();
+      alternar();
     });
   });
 
-  const syncFooterMode = () => {
-    cols.forEach((col, index) => {
-      const title = col.querySelector('.footer-col-title');
-      if (mobileQuery.matches) {
-        const isOpen = index === 0 ? true : col.classList.contains('is-open');
-        col.classList.toggle('is-open', isOpen);
-        title?.setAttribute('aria-expanded', String(isOpen));
+  const sincronizarModoPie = () => {
+    columnas.forEach((columna, indice) => {
+      const titulo = columna.querySelector('.footer-col-title');
+      if (consultaMovil.matches) {
+        const estaAbierto = indice === 0 ? true : columna.classList.contains('is-open');
+        columna.classList.toggle('is-open', estaAbierto);
+        titulo?.setAttribute('aria-expanded', String(estaAbierto));
       } else {
-        col.classList.add('is-open');
-        title?.setAttribute('aria-expanded', 'true');
+        columna.classList.add('is-open');
+        titulo?.setAttribute('aria-expanded', 'true');
       }
     });
   };
 
-  syncFooterMode();
-  mobileQuery.addEventListener?.('change', syncFooterMode);
+  sincronizarModoPie();
+  consultaMovil.addEventListener?.('change', sincronizarModoPie);
 }
 
 // gonza: esto inyecta los estilos de la animación de reveal directamente en el <head>.
 // no hace falta un archivo CSS extra para esto, son dos reglas nomás.
-const revealStyle = document.createElement('style');
-revealStyle.textContent = '.revealed { opacity: 1 !important; transform: translateY(0) !important; } @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }';
-document.head.appendChild(revealStyle);
+const estiloRevelar = document.createElement('style');
+estiloRevelar.textContent = '.revealed { opacity: 1 !important; transform: translateY(0) !important; } @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }';
+document.head.appendChild(estiloRevelar);
 
 // el botón de "Cerrar sesión" del menú del logo reusa la pinta de los <a>
 // de .logo-menu, pero es un <button> (no navega a ningún lado), asi que
 // necesita este reset minimo para no verse como un boton de navegador.
-const logoutStyle = document.createElement('style');
-logoutStyle.textContent = '.logo-menu-account { all: unset; display: block; width: 100%; box-sizing: border-box; cursor: pointer; font: inherit; color: inherit; }';
-document.head.appendChild(logoutStyle);
+const estiloCerrarSesion = document.createElement('style');
+estiloCerrarSesion.textContent = '.logo-menu-account { all: unset; display: block; width: 100%; box-sizing: border-box; cursor: pointer; font: inherit; color: inherit; }';
+document.head.appendChild(estiloCerrarSesion);
 
 // menú que aparece al clickear el logo (con links de navegación y toggle de tema)
-function buildLogoMenu(initialTheme) {
-  const logo = document.querySelector('.nav-logo');
-  const navbar = document.querySelector('.navbar');
-  if (!logo || !navbar) return;
+function crearMenuLogo(temaInicial) {
+  const logotipo = document.querySelector('.nav-logo');
+  const barraNavegacion = document.querySelector('.navbar');
+  if (!logotipo || !barraNavegacion) return;
 
-  logo.setAttribute('aria-haspopup', 'menu');
-  logo.setAttribute('aria-expanded', 'false');
+  logotipo.setAttribute('aria-haspopup', 'menu');
+  logotipo.setAttribute('aria-expanded', 'false');
 
   // gonza: creamos el div del menú desde JS en vez de tenerlo en el HTML
   // porque así funciona en todas las páginas sin repetir el markup
@@ -633,84 +633,84 @@ function buildLogoMenu(initialTheme) {
     <span data-menu-account></span>
     <a href="admin.html" role="menuitem">Configuración admin</a>
     <a href="soporte.html" role="menuitem">Soporte</a>
-    <button class="theme-switch" type="button" role="menuitem" aria-pressed="${initialTheme === 'dark'}">
+    <button class="theme-switch" type="button" role="menuitem" aria-pressed="${temaInicial === 'dark'}">
       <span class="theme-orbit" aria-hidden="true">
         <span class="theme-sun"></span>
         <span class="theme-moon"></span>
       </span>
-      <span class="theme-switch-text">${initialTheme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+      <span class="theme-switch-text">${temaInicial === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
     </button>
   `;
-  logo.insertAdjacentElement('afterend', menu);
-  renderLogoMenuAccount(menu);
+  logotipo.insertAdjacentElement('afterend', menu);
+  representarCuentaMenuLogo(menu);
 
-  const themeBtn = menu.querySelector('.theme-switch');
-  const themeText = menu.querySelector('.theme-switch-text');
+  const botonTema = menu.querySelector('.theme-switch');
+  const textoTema = menu.querySelector('.theme-switch-text');
 
-  logo.addEventListener('click', (event) => {
-    event.preventDefault();
-    const open = menu.classList.toggle('open');
-    logo.setAttribute('aria-expanded', String(open));
+  logotipo.addEventListener('click', (evento) => {
+    evento.preventDefault();
+    const abrir = menu.classList.toggle('open');
+    logotipo.setAttribute('aria-expanded', String(abrir));
   });
 
-  themeBtn?.addEventListener('click', () => {
-    const dark = !document.body.classList.contains('theme-dark');
-    document.body.classList.toggle('theme-dark', dark);
+  botonTema?.addEventListener('click', () => {
+    const oscuro = !document.body.classList.contains('theme-dark');
+    document.body.classList.toggle('theme-dark', oscuro);
     // guardamos en localStorage para que se acuerde al recargar o cambiar de página
-    localStorage.setItem('sigtur-theme', dark ? 'dark' : 'light');
-    themeBtn.setAttribute('aria-pressed', String(dark));
-    if (themeText) themeText.textContent = dark ? 'Modo claro' : 'Modo oscuro';
+    localStorage.setItem('sigtur-theme', oscuro ? 'dark' : 'light');
+    botonTema.setAttribute('aria-pressed', String(oscuro));
+    if (textoTema) textoTema.textContent = oscuro ? 'Modo claro' : 'Modo oscuro';
   });
 
   // cerrar el menú si clickeás en cualquier otro lado
-  document.addEventListener('click', (event) => {
-    if (logo.contains(event.target) || menu.contains(event.target)) return;
+  document.addEventListener('click', (evento) => {
+    if (logotipo.contains(evento.target) || menu.contains(evento.target)) return;
     menu.classList.remove('open');
-    logo.setAttribute('aria-expanded', 'false');
+    logotipo.setAttribute('aria-expanded', 'false');
   });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
+  document.addEventListener('keydown', (evento) => {
+    if (evento.key !== 'Escape') return;
     menu.classList.remove('open');
-    logo.setAttribute('aria-expanded', 'false');
+    logotipo.setAttribute('aria-expanded', 'false');
   });
 }
 
-function renderLogoMenuAccount(menu = document.querySelector('.logo-menu')) {
-  const slot = menu?.querySelector('[data-menu-account]');
-  if (!slot) return;
-  const session = sigturGetSession();
-  if (!session?.usuario) {
-    slot.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
+function representarCuentaMenuLogo(menu = document.querySelector('.logo-menu')) {
+  const espacio = menu?.querySelector('[data-menu-account]');
+  if (!espacio) return;
+  const sesion = obtenerSesionSigtur();
+  if (!sesion?.usuario) {
+    espacio.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
     return;
   }
-  slot.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escapeText(session.usuario.nombre || 'Usuario')})</a><button class="logo-menu-account" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
-  slot.querySelector('[data-logout]')?.addEventListener('click', async () => {
-    await sigturLogout();
+  espacio.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escaparTexto(sesion.usuario.nombre || 'Usuario')})</a><button class="logo-menu-account" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
+  espacio.querySelector('[data-logout]')?.addEventListener('click', async () => {
+    await cerrarSesionSigtur();
     window.location.reload();
   });
 }
 
-function refreshLogoMenuAccount() {
-  renderLogoMenuAccount();
+function actualizarCuentaMenuLogo() {
+  representarCuentaMenuLogo();
 }
 
 // gonza: esta función es async porque hace un fetch a una API externa (open-meteo).
 // fetch devuelve una Promise, y con async/await podemos esperar la respuesta
 // sin bloquear el resto de la página. Si algo falla, el catch muestra "--".
 // La API de open-meteo es gratis y no necesita key, re copada para prototipos.
-async function setupHomeWeather() {
-  const widget = document.querySelector('.weather-widget');
-  if (!widget) return;
+async function configurarClimaInicio() {
+  const componente = document.querySelector('.weather-widget');
+  if (!componente) return;
 
-  const tempEl = widget.querySelector('[data-weather-temp]');
-  const descEl = widget.querySelector('[data-weather-desc]');
-  const feelsEl = widget.querySelector('[data-weather-feels]');
-  const windEl = widget.querySelector('[data-weather-wind]');
-  const iconEl = widget.querySelector('[data-weather-icon]');
+  const elementoTemporal = componente.querySelector('[data-weather-temp]');
+  const elementoDescripcion = componente.querySelector('[data-weather-desc]');
+  const elementoSensacion = componente.querySelector('[data-weather-feels]');
+  const elementoViento = componente.querySelector('[data-weather-wind]');
+  const elementoIcono = componente.querySelector('[data-weather-icon]');
 
   // tabla de códigos WMO → descripción + emoji. la API devuelve un número, nosotros lo traducimos
-  const codes = {
+  const codigos = {
     0: ['Soleado', '☀'],
     1: ['Mayormente despejado', '☀'],
     2: ['Parcialmente nuboso', '◐'],
@@ -734,32 +734,32 @@ async function setupHomeWeather() {
   try {
     // gonza: URLSearchParams es la forma prolija de armar query strings,
     // evita tener que concatenar strings a mano con & y =
-    const params = new URLSearchParams({
+    const parametros = new URLSearchParams({
       latitude: '-31.3833',
       longitude: '-57.9667',
       current: 'temperature_2m,apparent_temperature,weather_code,wind_speed_10m',
       timezone: 'America/Montevideo'
     });
 
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
-    if (!response.ok) throw new Error('Weather request failed');
-    const data = await response.json();
-    const current = data.current || {};
-    const [description, icon] = codes[current.weather_code] || ['Clima actual', '◐'];
+    const respuesta = await fetch(`https://api.open-meteo.com/v1/forecast?${parametros.toString()}`);
+    if (!respuesta.ok) throw new Error('Weather request failed');
+    const datos = await respuesta.json();
+    const actual = datos.current || {};
+    const [descripcion, icono] = codigos[actual.weather_code] || ['Clima actual', '◐'];
 
-    if (tempEl) tempEl.innerHTML = `${Math.round(current.temperature_2m)}&deg;`;
-    if (descEl) descEl.textContent = description;
-    if (feelsEl) feelsEl.innerHTML = `${Math.round(current.apparent_temperature)}&deg;`;
-    if (windEl) windEl.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
-    if (iconEl) iconEl.textContent = icon;
-    widget.classList.add('is-ready');
+    if (elementoTemporal) elementoTemporal.innerHTML = `${Math.round(actual.temperature_2m)}&deg;`;
+    if (elementoDescripcion) elementoDescripcion.textContent = descripcion;
+    if (elementoSensacion) elementoSensacion.innerHTML = `${Math.round(actual.apparent_temperature)}&deg;`;
+    if (elementoViento) elementoViento.textContent = `${Math.round(actual.wind_speed_10m)} km/h`;
+    if (elementoIcono) elementoIcono.textContent = icono;
+    componente.classList.add('is-ready');
   } catch {
     // si la API no responde o hay error de red, mostramos placeholders
-    if (tempEl) tempEl.innerHTML = 'Salto';
-    if (descEl) descEl.textContent = 'Clima no disponible';
-    if (feelsEl) feelsEl.textContent = '--';
-    if (windEl) windEl.textContent = '--';
-    if (iconEl) iconEl.textContent = '◐';
+    if (elementoTemporal) elementoTemporal.innerHTML = 'Salto';
+    if (elementoDescripcion) elementoDescripcion.textContent = 'Clima no disponible';
+    if (elementoSensacion) elementoSensacion.textContent = '--';
+    if (elementoViento) elementoViento.textContent = '--';
+    if (elementoIcono) elementoIcono.textContent = '◐';
   }
 }
 
@@ -768,1422 +768,1422 @@ async function setupHomeWeather() {
 // cachea en localStorage bajo 'sigtur-session' solo para no tener que
 // loguearse de nuevo en cada página, pero la fuente de verdad es siempre
 // el backend: el token se manda en el header Authorization de cada fetch.
-const xamppRoot = window.location.pathname.split('/frontend/html/')[0];
-const SIGTUR_IS_LOCAL_HOST = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const SIGTUR_XAMPP_BASE = SIGTUR_IS_LOCAL_HOST && xamppRoot !== window.location.pathname ? `${window.location.origin}${xamppRoot}/frontend/html` : '';
-const SIGTUR_BACKEND_URL = window.SIGTUR_BACKEND_URL || '';
-const SIGTUR_API_BASE = SIGTUR_XAMPP_BASE || SIGTUR_BACKEND_URL;
-const SIGTUR_SESSION_KEY = 'sigtur-session';
-let SIGTUR_VALIDATED_TOKEN = null;
-let SIGTUR_REFRESH_PROMISE = null;
-let SIGTUR_EXPIRY_TIMER = null;
+const raizXampp = window.location.pathname.split('/frontend/html/')[0];
+const SIGTUR_ES_SERVIDOR_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const SIGTUR_BASE_XAMPP = SIGTUR_ES_SERVIDOR_LOCAL && raizXampp !== window.location.pathname ? `${window.location.origin}${raizXampp}/frontend/html` : '';
+const SIGTUR_URL_SERVIDOR = window.SIGTUR_BACKEND_URL || '';
+const SIGTUR_BASE_API = SIGTUR_BASE_XAMPP || SIGTUR_URL_SERVIDOR;
+const SIGTUR_CLAVE_SESION = 'sigtur-session';
+let SIGTUR_TOKEN_VALIDADO = null;
+let SIGTUR_PROMESA_RENOVACION = null;
+let SIGTUR_TEMPORIZADOR_VENCIMIENTO = null;
 
-function sanitizeAuthMessage(message, fallback) {
-  const text = String(message || '').trim().slice(0, 240);
-  if (!text) return fallback;
-  if (/token|refresh_token|access_token|authorization|Bearer|secret|api[_ -]?key/i.test(text)) {
-    return fallback;
+function limpiarMensajeAutenticacion(mensaje, alternativa) {
+  const texto = String(mensaje || '').trim().slice(0, 240);
+  if (!texto) return alternativa;
+  if (/token|refresh_token|access_token|authorization|Bearer|secret|api[_ -]?key/i.test(texto)) {
+    return alternativa;
   }
-  return text;
+  return texto;
 }
 
-function sigturGetSession() {
+function obtenerSesionSigtur() {
   try {
-    const session = JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY)) || null;
-    if (!session?.token) return null;
-    const expiresAt = Number(session.expiresAt || 0);
-    const unexpired = !expiresAt || expiresAt > Math.floor(Date.now() / 1000);
-    return session.token === SIGTUR_VALIDATED_TOKEN && unexpired ? session : { ...session, usuario: null, profileValidated: false };
+    const sesion = JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION)) || null;
+    if (!sesion?.token) return null;
+    const venceEn = Number(sesion.expiresAt || 0);
+    const vigente = !venceEn || venceEn > Math.floor(Date.now() / 1000);
+    return sesion.token === SIGTUR_TOKEN_VALIDADO && vigente ? sesion : { ...sesion, usuario: null, profileValidated: false };
   } catch {
     return null;
   }
 }
 
-function sigturSaveSession(session, profileValidated = false) {
-  if (!session?.token) return sigturClearSession();
-  const currentToken = SIGTUR_VALIDATED_TOKEN;
-  SIGTUR_VALIDATED_TOKEN = profileValidated && session.usuario ? session.token : (currentToken === session.token ? currentToken : null);
-  session = { ...session, profileValidated: Boolean(SIGTUR_VALIDATED_TOKEN === session.token && session.usuario) };
-  localStorage.setItem(SIGTUR_SESSION_KEY, JSON.stringify(session));
-  clearTimeout(SIGTUR_EXPIRY_TIMER);
-  const expiresAt = Number(session.expiresAt || 0);
-  if (session.profileValidated && expiresAt) {
-    SIGTUR_EXPIRY_TIMER = setTimeout(async () => {
-      if (!sigturGetSession()?.refreshToken) {
-        sigturClearSession();
+function guardarSesionSigtur(sesion, perfilValidado = false) {
+  if (!sesion?.token) return limpiarSesionSigtur();
+  const tokenActual = SIGTUR_TOKEN_VALIDADO;
+  SIGTUR_TOKEN_VALIDADO = perfilValidado && sesion.usuario ? sesion.token : (tokenActual === sesion.token ? tokenActual : null);
+  sesion = { ...sesion, profileValidated: Boolean(SIGTUR_TOKEN_VALIDADO === sesion.token && sesion.usuario) };
+  localStorage.setItem(SIGTUR_CLAVE_SESION, JSON.stringify(sesion));
+  clearTimeout(SIGTUR_TEMPORIZADOR_VENCIMIENTO);
+  const venceEn = Number(sesion.expiresAt || 0);
+  if (sesion.profileValidated && venceEn) {
+    SIGTUR_TEMPORIZADOR_VENCIMIENTO = setTimeout(async () => {
+      if (!obtenerSesionSigtur()?.refreshToken) {
+        limpiarSesionSigtur();
         return;
       }
-      const renewed = await sigturRefreshSession();
-      if (!renewed) refreshLogoMenuAccount();
-    }, Math.max(0, expiresAt * 1000 - Date.now()));
+      const renovado = await renovarSesionSigtur();
+      if (!renovado) actualizarCuentaMenuLogo();
+    }, Math.max(0, venceEn * 1000 - Date.now()));
   }
 }
 
-function sigturClearSession() {
-  SIGTUR_VALIDATED_TOKEN = null;
-  localStorage.removeItem(SIGTUR_SESSION_KEY);
-  refreshLogoMenuAccount();
+function limpiarSesionSigtur() {
+  SIGTUR_TOKEN_VALIDADO = null;
+  localStorage.removeItem(SIGTUR_CLAVE_SESION);
+  actualizarCuentaMenuLogo();
 }
 
-async function processOAuthCallback(setStatus) {
-  const queryParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.slice(1));
-  const params = hashParams.has('access_token') || hashParams.has('refresh_token') ? hashParams : queryParams;
-  const oauthError = queryParams.get('oauth_error') || hashParams.get('oauth_error') || hashParams.get('error_description') || hashParams.get('error');
-  const accessToken = params.get('access_token');
-  if (oauthError && !accessToken) {
+async function procesarRetornoOAuth(establecerEstado) {
+  const parametrosConsulta = new URLSearchParams(window.location.search);
+  const parametrosHash = new URLSearchParams(window.location.hash.slice(1));
+  const parametros = parametrosHash.has('access_token') || parametrosHash.has('refresh_token') ? parametrosHash : parametrosConsulta;
+  const errorOAuth = parametrosConsulta.get('oauth_error') || parametrosHash.get('oauth_error') || parametrosHash.get('error_description') || parametrosHash.get('error');
+  const accesoToken = parametros.get('access_token');
+  if (errorOAuth && !accesoToken) {
     window.history.replaceState({}, document.title, window.location.pathname);
     if (!document.getElementById('auth-status') && window.location.pathname === '/') {
-      const loginUrl = new URL('/login.html', window.location.origin);
-      loginUrl.searchParams.set('oauth_error', oauthError);
-      window.location.replace(loginUrl.toString());
+      const urlInicioSesion = new URL('/login.html', window.location.origin);
+      urlInicioSesion.searchParams.set('oauth_error', errorOAuth);
+      window.location.replace(urlInicioSesion.toString());
       return;
     }
-    setStatus(sanitizeAuthMessage(oauthError, 'No se pudo completar el acceso con Google.'), 'error');
+    establecerEstado(limpiarMensajeAutenticacion(errorOAuth, 'No se pudo completar el acceso con Google.'), 'error');
     return;
   }
-  if (!accessToken) return;
+  if (!accesoToken) return;
 
-  const session = {
-    token: accessToken,
-    refreshToken: params.get('refresh_token') || null,
-    expiresAt: Number(params.get('expires_at') || params.get('expires_in')) || null,
+  const sesion = {
+    token: accesoToken,
+    refreshToken: parametros.get('refresh_token') || null,
+    expiresAt: Number(parametros.get('expires_at') || parametros.get('expires_in')) || null,
   };
-  if (session.expiresAt && session.expiresAt < 1000000000) session.expiresAt += Math.floor(Date.now() / 1000);
-  sigturSaveSession(session);
-  const isRecovery = params.get('type') === 'recovery';
+  if (sesion.expiresAt && sesion.expiresAt < 1000000000) sesion.expiresAt += Math.floor(Date.now() / 1000);
+  guardarSesionSigtur(sesion);
+  const esRecuperacion = parametros.get('type') === 'recovery';
   window.history.replaceState({}, document.title, window.location.pathname);
-  setStatus(isRecovery ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
+  establecerEstado(esRecuperacion ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
   try {
-    const result = await sigturApiFetch('/api/auth/me');
-    if (!result?.usuario?.id || !result.usuario.nombre || !result.usuario.correo) throw new Error('Profile validation failed.');
-    sigturSaveSession({ ...sigturGetSession(), usuario: result.usuario }, true);
-    if (isRecovery) {
-      showPasswordResetForm();
-      setStatus('El enlace fue validado. Elige una contrasena nueva.', 'ok');
+    const resultado = await solicitarApiSigtur('/api/auth/me');
+    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('Profile validation failed.');
+    guardarSesionSigtur({ ...obtenerSesionSigtur(), usuario: resultado.usuario }, true);
+    if (esRecuperacion) {
+      mostrarFormularioRestablecerContrasena();
+      establecerEstado('El enlace fue validado. Elige una contrasena nueva.', 'ok');
       return;
     }
-    setStatus(`Bienvenido, ${result.usuario.nombre}.`, 'ok');
+    establecerEstado(`Bienvenido, ${resultado.usuario.nombre}.`, 'ok');
     window.location.replace('index.html');
-  } catch (error) {
-    if (error.status === 401 || error.message === 'Profile validation failed.') sigturClearSession();
-    setStatus(isRecovery ? 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.' : 'No pudimos validar la sesión de Google. Intentá nuevamente.', 'error');
+  } catch (fallo) {
+    if (fallo.status === 401 || fallo.message === 'Profile validation failed.') limpiarSesionSigtur();
+    establecerEstado(esRecuperacion ? 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.' : 'No pudimos validar la sesión de Google. Intentá nuevamente.', 'error');
   }
 }
 
-async function sigturLogout() {
-  try { await sigturApiFetch('/api/auth/logout', { method: 'POST' }); } catch { /* La sesión local también debe limpiarse. */ }
-  sigturClearSession();
+async function cerrarSesionSigtur() {
+  try { await solicitarApiSigtur('/api/auth/logout', { method: 'POST' }); } catch { /* La sesión local también debe limpiarse. */ }
+  limpiarSesionSigtur();
 }
 
-async function logout() {
-  await sigturLogout();
+async function cerrarSesionDesdeInterfaz() {
+  await cerrarSesionSigtur();
   window.location.replace('login.html');
 }
 
-async function sigturRefreshSession() {
-  if (SIGTUR_REFRESH_PROMISE) return SIGTUR_REFRESH_PROMISE;
-  SIGTUR_REFRESH_PROMISE = (async () => {
-    const currentSession = sigturGetSession();
-    if (!currentSession?.refreshToken) return null;
+async function renovarSesionSigtur() {
+  if (SIGTUR_PROMESA_RENOVACION) return SIGTUR_PROMESA_RENOVACION;
+  SIGTUR_PROMESA_RENOVACION = (async () => {
+    const sesionActual = obtenerSesionSigtur();
+    if (!sesionActual?.refreshToken) return null;
     try {
-      const refreshTarget = SIGTUR_XAMPP_BASE
-        ? `${SIGTUR_XAMPP_BASE}/api/auth.php?action=refresh`
-        : `${SIGTUR_BACKEND_URL}/api/auth/refresh`;
-      const response = await fetch(refreshTarget, {
+      const destinoActualizacion = SIGTUR_BASE_XAMPP
+        ? `${SIGTUR_BASE_XAMPP}/api/auth.php?action=refresh`
+        : `${SIGTUR_URL_SERVIDOR}/api/auth/refresh`;
+      const respuesta = await fetch(destinoActualizacion, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: currentSession.refreshToken }),
+        body: JSON.stringify({ refreshToken: sesionActual.refreshToken }),
       });
-      const renewedSession = await response.json().catch(() => null);
-      if (!response.ok || !renewedSession?.token || !renewedSession?.usuario?.id) {
-        let latestSession = null;
-        try { latestSession = JSON.parse(localStorage.getItem(SIGTUR_SESSION_KEY) || 'null'); } catch { /* almacenamiento local inválido */ }
-        if (latestSession?.token && latestSession.refreshToken && latestSession.refreshToken !== currentSession.refreshToken) return sigturGetSession();
-        if (response.status === 400 || response.status === 401) sigturClearSession();
+      const sesionRenovada = await respuesta.json().catch(() => null);
+      if (!respuesta.ok || !sesionRenovada?.token || !sesionRenovada?.usuario?.id) {
+        let sesionMasReciente = null;
+        try { sesionMasReciente = JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION) || 'null'); } catch { /* almacenamiento local inválido */ }
+        if (sesionMasReciente?.token && sesionMasReciente.refreshToken && sesionMasReciente.refreshToken !== sesionActual.refreshToken) return obtenerSesionSigtur();
+        if (respuesta.status === 400 || respuesta.status === 401) limpiarSesionSigtur();
         return null;
       }
-      sigturSaveSession({ ...currentSession, ...renewedSession }, true);
-      return sigturGetSession();
+      guardarSesionSigtur({ ...sesionActual, ...sesionRenovada }, true);
+      return obtenerSesionSigtur();
     } catch {
       return null;
     } finally {
-      SIGTUR_REFRESH_PROMISE = null;
+      SIGTUR_PROMESA_RENOVACION = null;
     }
   })();
-  return SIGTUR_REFRESH_PROMISE;
+  return SIGTUR_PROMESA_RENOVACION;
 }
 
-async function sigturApiFetch(path, options = {}, retriedAfterRefresh = false) {
-  let session = sigturGetSession();
-  const isRefresh = path === '/api/auth/refresh';
-  const isAuthEntry = ['/api/auth/login', '/api/auth/register', '/api/auth/recuperar', '/api/auth/password'].includes(path);
-  if (!retriedAfterRefresh && !isRefresh && !isAuthEntry && session?.token) {
-    const expiresAt = Number(session.expiresAt || 0);
-    if (expiresAt && expiresAt <= Math.floor(Date.now() / 1000) + 30) {
-      const renewed = await sigturRefreshSession();
-      session = renewed || sigturGetSession();
+async function solicitarApiSigtur(ruta, opciones = {}, reintentoTrasRenovacion = false) {
+  let sesion = obtenerSesionSigtur();
+  const esRenovacion = ruta === '/api/auth/refresh';
+  const esEntradaAutenticacion = ['/api/auth/login', '/api/auth/register', '/api/auth/recuperar', '/api/auth/password'].includes(ruta);
+  if (!reintentoTrasRenovacion && !esRenovacion && !esEntradaAutenticacion && sesion?.token) {
+    const venceEn = Number(sesion.expiresAt || 0);
+    if (venceEn && venceEn <= Math.floor(Date.now() / 1000) + 30) {
+      const renovado = await renovarSesionSigtur();
+      sesion = renovado || obtenerSesionSigtur();
     }
   }
 
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (session?.token) headers.Authorization = `Bearer ${session.token}`;
-  const isXamppAuth = SIGTUR_API_BASE.endsWith('/frontend/html') && path.startsWith('/api/auth/');
-  const isProfileUpdate = path === '/api/auth/me' && String(options.method || 'GET').toUpperCase() === 'PATCH';
-  const isPasswordUpdate = path === '/api/auth/password';
-  const isXamppInteraction = SIGTUR_API_BASE.endsWith('/frontend/html') && /^(\/api\/(guardados|likes|comentarios|mensajes|reservas|admin))/.test(path);
-  const isXamppBackendRoute = SIGTUR_API_BASE.endsWith('/frontend/html') && /^\/api\/(eventos|companias|mapa)/.test(path);
-  const target = isXamppAuth && !isProfileUpdate
-    ? `${SIGTUR_API_BASE}/api/auth.php?action=${encodeURIComponent(path.slice('/api/auth/'.length))}`
-    : isXamppInteraction || isXamppBackendRoute || isProfileUpdate || isPasswordUpdate || isRefresh
-      ? `${SIGTUR_BACKEND_URL}${path}`
-      : `${SIGTUR_API_BASE}${path}`;
-  let response;
+  const encabezados = { 'Content-Type': 'application/json', ...(opciones.headers || {}) };
+  if (sesion?.token) encabezados.Authorization = `Bearer ${sesion.token}`;
+  const esAutenticacionXampp = SIGTUR_BASE_API.endsWith('/frontend/html') && ruta.startsWith('/api/auth/');
+  const esActualizacionPerfil = ruta === '/api/auth/me' && String(opciones.method || 'GET').toUpperCase() === 'PATCH';
+  const esActualizacionContrasena = ruta === '/api/auth/password';
+  const esInteraccionXampp = SIGTUR_BASE_API.endsWith('/frontend/html') && /^(\/api\/(guardados|likes|comentarios|mensajes|reservas|admin))/.test(ruta);
+  const esRutaBackendXampp = SIGTUR_BASE_API.endsWith('/frontend/html') && /^\/api\/(eventos|companias|mapa)/.test(ruta);
+  const destino = esAutenticacionXampp && !esActualizacionPerfil
+    ? `${SIGTUR_BASE_API}/api/auth.php?action=${encodeURIComponent(ruta.slice('/api/auth/'.length))}`
+    : esInteraccionXampp || esRutaBackendXampp || esActualizacionPerfil || esActualizacionContrasena || esRenovacion
+      ? `${SIGTUR_URL_SERVIDOR}${ruta}`
+      : `${SIGTUR_BASE_API}${ruta}`;
+  let respuesta;
   try {
-    response = await fetch(target, { ...options, headers });
-  } catch (cause) {
-    console.error(`Error de red al llamar a ${target}`, cause);
+    respuesta = await fetch(destino, { ...opciones, headers: encabezados });
+  } catch (causa) {
+    console.error(`Error de red al llamar a ${destino}`, causa);
     throw new Error('No se pudo conectar al servidor. Verifica la URL publica del backend.');
   }
-  let payload = null;
-  try { payload = await response.json(); } catch { /* Empty response. */ }
+  let datosEnviados = null;
+  try { datosEnviados = await respuesta.json(); } catch { /* Empty response. */ }
 
-  if (response.status === 401 && !retriedAfterRefresh && !isRefresh && session?.refreshToken) {
-    const renewedSession = await sigturRefreshSession();
-    if (renewedSession) return sigturApiFetch(path, options, true);
+  if (respuesta.status === 401 && !reintentoTrasRenovacion && !esRenovacion && sesion?.refreshToken) {
+    const sesionRenovada = await renovarSesionSigtur();
+    if (sesionRenovada) return solicitarApiSigtur(ruta, opciones, true);
   }
-  if (!response.ok) {
-    if (response.status === 401 && session?.token) sigturClearSession();
-    throw Object.assign(new Error(payload?.error || 'Ocurrió un error inesperado. Intentá de nuevo.'), { status: response.status });
+  if (!respuesta.ok) {
+    if (respuesta.status === 401 && sesion?.token) limpiarSesionSigtur();
+    throw Object.assign(new Error(datosEnviados?.error || 'Ocurrió un error inesperado. Intentá de nuevo.'), { status: respuesta.status });
   }
-  return payload;
+  return datosEnviados;
 }
 
-window.sigturApiFetch = sigturApiFetch;
-window.sigturGetSession = sigturGetSession;
+window.sigturApiFetch = solicitarApiSigtur;
+window.sigturGetSession = obtenerSesionSigtur;
 
-async function sigturValidateStoredSession() {
-  const session = sigturGetSession();
-  const expiresAt = Number(session?.expiresAt || 0);
-  if (!session?.token || (session.token === SIGTUR_VALIDATED_TOKEN && (!expiresAt || expiresAt > Math.floor(Date.now() / 1000) + 30))) return;
+async function validarSesionAlmacenadaSigtur() {
+  const sesion = obtenerSesionSigtur();
+  const venceEn = Number(sesion?.expiresAt || 0);
+  if (!sesion?.token || (sesion.token === SIGTUR_TOKEN_VALIDADO && (!venceEn || venceEn > Math.floor(Date.now() / 1000) + 30))) return;
   try {
-    const result = await sigturApiFetch('/api/auth/me');
-    if (!result?.usuario?.id || !result.usuario.nombre || !result.usuario.correo) throw new Error('Profile validation failed.');
-    sigturSaveSession({ ...sigturGetSession(), usuario: result.usuario }, true);
-  } catch (error) {
-    if (error.status === 401 || error.message === 'Profile validation failed.') sigturClearSession();
+    const resultado = await solicitarApiSigtur('/api/auth/me');
+    if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('Profile validation failed.');
+    guardarSesionSigtur({ ...obtenerSesionSigtur(), usuario: resultado.usuario }, true);
+  } catch (fallo) {
+    if (fallo.status === 401 || fallo.message === 'Profile validation failed.') limpiarSesionSigtur();
   }
 }
 
-window.addEventListener('storage', event => {
-  if (event.key !== SIGTUR_SESSION_KEY) return;
-  SIGTUR_VALIDATED_TOKEN = null;
-  if (!event.newValue) {
-    refreshLogoMenuAccount();
-    const authStatus = document.getElementById('auth-status');
-    if (authStatus) { authStatus.hidden = true; authStatus.textContent = ''; }
+window.addEventListener('storage', evento => {
+  if (evento.key !== SIGTUR_CLAVE_SESION) return;
+  SIGTUR_TOKEN_VALIDADO = null;
+  if (!evento.newValue) {
+    actualizarCuentaMenuLogo();
+    const estadoAutenticacion = document.getElementById('auth-status');
+    if (estadoAutenticacion) { estadoAutenticacion.hidden = true; estadoAutenticacion.textContent = ''; }
     if (document.querySelector('.profile-page') || document.getElementById('admin-settings-form')) window.location.reload();
     return;
   }
-  sigturValidateStoredSession().finally(() => {
-    refreshLogoMenuAccount();
-    const session = sigturGetSession();
-    const authStatus = document.getElementById('auth-status');
-    if (authStatus && session?.usuario) {
-      authStatus.textContent = `Ya iniciaste sesión como ${session.usuario.nombre}.`;
-      authStatus.dataset.type = 'ok';
-      authStatus.hidden = false;
+  validarSesionAlmacenadaSigtur().finally(() => {
+    actualizarCuentaMenuLogo();
+    const sesion = obtenerSesionSigtur();
+    const estadoAutenticacion = document.getElementById('auth-status');
+    if (estadoAutenticacion && sesion?.usuario) {
+      estadoAutenticacion.textContent = `Ya iniciaste sesión como ${sesion.usuario.nombre}.`;
+      estadoAutenticacion.dataset.type = 'ok';
+      estadoAutenticacion.hidden = false;
     }
   });
 });
 
-function loginGoogle(button) {
-  if (button) button.disabled = true;
+function iniciarSesionGoogle(boton) {
+  if (boton) boton.disabled = true;
 
-  const url = SIGTUR_XAMPP_BASE
-    ? `${SIGTUR_XAMPP_BASE}/api/auth.php?action=google`
-    : `${SIGTUR_BACKEND_URL}/api/auth/google`;
+  const url = SIGTUR_BASE_XAMPP
+    ? `${SIGTUR_BASE_XAMPP}/api/auth.php?action=google`
+    : `${SIGTUR_URL_SERVIDOR}/api/auth/google`;
 
   window.location.href = url;
 }
 
-function setupAuthPage() {
-  const authPage = document.querySelector('.auth-remake');
-  if (!authPage) return;
+function configurarPaginaAutenticacion() {
+  const paginaAutenticacion = document.querySelector('.auth-remake');
+  if (!paginaAutenticacion) return;
 
-  const tabs = document.querySelectorAll('[data-auth-tab]');
-  const panels = document.querySelectorAll('[data-auth-panel]');
-  const status = document.getElementById('auth-status');
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  const recoveryForm = document.getElementById('recovery-form');
-  const passwordResetForm = document.getElementById('password-reset-form');
+  const pestanas = document.querySelectorAll('[data-auth-tab]');
+  const paneles = document.querySelectorAll('[data-auth-panel]');
+  const estado = document.getElementById('auth-status');
+  const formularioInicioSesion = document.getElementById('login-form');
+  const formularioRegistro = document.getElementById('register-form');
+  const formularioRecuperacion = document.getElementById('recovery-form');
+  const formularioRestablecerContrasena = document.getElementById('password-reset-form');
 
-  const setStatus = (message, type = 'ok') => {
-    if (!status) return;
-    status.textContent = message;
-    status.dataset.type = type;
-    status.hidden = !message;
+  const establecerEstado = (mensaje, tipo = 'ok') => {
+    if (!estado) return;
+    estado.textContent = mensaje;
+    estado.dataset.type = tipo;
+    estado.hidden = !mensaje;
   };
 
-  const setBusy = (form, busy, loadingMessage = '') => {
-    const submitBtn = form?.querySelector('.auth-submit');
-    if (submitBtn) {
-      submitBtn.disabled = busy;
-      submitBtn.dataset.busy = busy ? 'true' : 'false';
-      submitBtn.textContent = busy && loadingMessage ? loadingMessage : submitBtn.dataset.defaultLabel || submitBtn.textContent;
+  const establecerOcupado = (formulario, ocupado, mensajeCarga = '') => {
+    const botonEnviar = formulario?.querySelector('.auth-submit');
+    if (botonEnviar) {
+      botonEnviar.disabled = ocupado;
+      botonEnviar.dataset.busy = ocupado ? 'true' : 'false';
+      botonEnviar.textContent = ocupado && mensajeCarga ? mensajeCarga : botonEnviar.dataset.defaultLabel || botonEnviar.textContent;
     }
-    if (busy && loadingMessage) {
-      setStatus(loadingMessage, 'loading');
+    if (ocupado && mensajeCarga) {
+      establecerEstado(mensajeCarga, 'loading');
     }
   };
 
-  const activateTab = (name) => {
-    recoveryForm?.toggleAttribute('hidden', true);
-    passwordResetForm?.toggleAttribute('hidden', true);
-    passwordResetForm?.classList.remove('active');
-    loginForm?.toggleAttribute('hidden', name !== 'login');
-    registerForm?.toggleAttribute('hidden', name !== 'register');
-    tabs.forEach(tab => tab.removeAttribute('hidden'));
-    tabs.forEach(tab => {
-      const active = tab.dataset.authTab === name;
-      tab.classList.toggle('active', active);
-      tab.setAttribute('aria-selected', String(active));
-      tab.tabIndex = active ? 0 : -1;
+  const activarPestana = (nombre) => {
+    formularioRecuperacion?.toggleAttribute('hidden', true);
+    formularioRestablecerContrasena?.toggleAttribute('hidden', true);
+    formularioRestablecerContrasena?.classList.remove('active');
+    formularioInicioSesion?.toggleAttribute('hidden', nombre !== 'login');
+    formularioRegistro?.toggleAttribute('hidden', nombre !== 'register');
+    pestanas.forEach(tab => tab.removeAttribute('hidden'));
+    pestanas.forEach(tab => {
+      const activo = tab.dataset.authTab === nombre;
+      tab.classList.toggle('active', activo);
+      tab.setAttribute('aria-selected', String(activo));
+      tab.tabIndex = activo ? 0 : -1;
     });
-    panels.forEach(panel => panel.classList.toggle('active', panel.dataset.authPanel === name));
-    setStatus('');
+    paneles.forEach(panelActual => panelActual.classList.toggle('active', panelActual.dataset.authPanel === nombre));
+    establecerEstado('');
   };
 
-  document.querySelectorAll('.auth-submit').forEach(btn => {
-    btn.dataset.defaultLabel = btn.textContent.trim();
+  document.querySelectorAll('.auth-submit').forEach(botonAccion => {
+    botonAccion.dataset.defaultLabel = botonAccion.textContent.trim();
   });
 
-  document.querySelectorAll('[data-password-toggle]').forEach(button => {
-    button.addEventListener('click', () => {
-      const input = document.getElementById(button.dataset.passwordToggle);
-      if (!input) return;
-      const nextType = input.type === 'password' ? 'text' : 'password';
-      input.type = nextType;
-      button.textContent = nextType === 'password' ? 'Mostrar' : 'Ocultar';
-      button.setAttribute('aria-label', nextType === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
-      input.focus();
+  document.querySelectorAll('[data-password-toggle]').forEach(boton => {
+    boton.addEventListener('click', () => {
+      const entrada = document.getElementById(boton.dataset.passwordToggle);
+      if (!entrada) return;
+      const tipoSiguiente = entrada.type === 'password' ? 'text' : 'password';
+      entrada.type = tipoSiguiente;
+      boton.textContent = tipoSiguiente === 'password' ? 'Mostrar' : 'Ocultar';
+      boton.setAttribute('aria-label', tipoSiguiente === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      entrada.focus();
     });
   });
 
   // si ya hay sesión guardada, lo avisamos en vez de mostrar los forms como si nada
-  const existingSession = sigturGetSession();
-  if (existingSession?.usuario) {
-    setStatus(`Ya iniciaste sesión como ${existingSession.usuario.nombre}. Podés cerrar sesión desde el menú del logo.`, 'ok');
+  const sesionExistente = obtenerSesionSigtur();
+  if (sesionExistente?.usuario) {
+    establecerEstado(`Ya iniciaste sesión como ${sesionExistente.usuario.nombre}. Podés cerrar sesión desde el menú del logo.`, 'ok');
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => activateTab(tab.dataset.authTab));
+  pestanas.forEach(tab => {
+    tab.addEventListener('click', () => activarPestana(tab.dataset.authTab));
   });
-      tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-        const target = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
-        event.preventDefault(); tabs[target].focus(); activateTab(tabs[target].dataset.authTab);
+      pestanas.forEach((tab, indice) => tab.addEventListener('keydown', evento => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
+        const destino = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestanas.length - 1 : (indice + (evento.key === 'ArrowRight' ? 1 : pestanas.length - 1)) % pestanas.length;
+        evento.preventDefault(); pestanas[destino].focus(); activarPestana(pestanas[destino].dataset.authTab);
       }));
 
-  registerForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(registerForm);
-    const nombre = String(data.get('name') || '').trim();
-    const correo = String(data.get('email') || '').trim().toLowerCase();
-    const password = String(data.get('password') || '');
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  formularioRegistro?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formularioRegistro);
+    const nombre = String(datos.get('name') || '').trim();
+    const correo = String(datos.get('email') || '').trim().toLowerCase();
+    const contrasena = String(datos.get('password') || '');
+    const expresionCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!nombre) {
-      setStatus('Ingresá tu nombre para continuar.', 'error');
-      registerForm.querySelector('[name="name"]').focus();
+      establecerEstado('Ingresá tu nombre para continuar.', 'error');
+      formularioRegistro.querySelector('[name="name"]').focus();
       return;
     }
 
-    if (!emailRegex.test(correo)) {
-      setStatus('Ingresá un correo válido. Ejemplo: nombre@dominio.com', 'error');
-      registerForm.querySelector('[name="email"]').focus();
+    if (!expresionCorreo.test(correo)) {
+      establecerEstado('Ingresá un correo válido. Ejemplo: nombre@dominio.com', 'error');
+      formularioRegistro.querySelector('[name="email"]').focus();
       return;
     }
 
-    if (password.length < 8) {
-      setStatus('La contraseña debe tener al menos 8 caracteres.', 'error');
-      registerForm.querySelector('[name="password"]').focus();
+    if (contrasena.length < 8) {
+      establecerEstado('La contraseña debe tener al menos 8 caracteres.', 'error');
+      formularioRegistro.querySelector('[name="password"]').focus();
       return;
     }
 
-    setBusy(registerForm, true, 'Creando tu cuenta...');
+    establecerOcupado(formularioRegistro, true, 'Creando tu cuenta...');
     try {
-      const resultado = await sigturApiFetch('/api/auth/register', {
+      const resultado = await solicitarApiSigtur('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ nombre, correo, password })
+        body: JSON.stringify({ nombre, correo, password: contrasena })
       });
       if (resultado.pending) {
-        setStatus(resultado.message || 'Cuenta creada. Revisá tu correo para confirmar la cuenta.', 'ok');
-        registerForm.reset();
-        activateTab('login');
+        establecerEstado(resultado.message || 'Cuenta creada. Revisá tu correo para confirmar la cuenta.', 'ok');
+        formularioRegistro.reset();
+        activarPestana('login');
         return;
       }
-      sigturSaveSession(resultado, true);
-      setStatus(`Cuenta creada. Sesión iniciada como ${resultado.usuario.nombre}.`, 'ok');
-      registerForm.reset();
+      guardarSesionSigtur(resultado, true);
+      establecerEstado(`Cuenta creada. Sesión iniciada como ${resultado.usuario.nombre}.`, 'ok');
+      formularioRegistro.reset();
       window.location.href = 'index.html';
-    } catch (error) {
-      setStatus(sanitizeAuthMessage(error.message, 'No se pudo crear la cuenta. Intentá nuevamente.'), 'error');
+    } catch (fallo) {
+      establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo crear la cuenta. Intentá nuevamente.'), 'error');
     } finally {
-      setBusy(registerForm, false);
+      establecerOcupado(formularioRegistro, false);
     }
   });
 
-  loginForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(loginForm);
-    const correo = String(data.get('user') || '').trim().toLowerCase();
-    const password = String(data.get('password') || '');
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  formularioInicioSesion?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formularioInicioSesion);
+    const correo = String(datos.get('user') || '').trim().toLowerCase();
+    const contrasena = String(datos.get('password') || '');
+    const expresionCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!correo) {
-      setStatus('Ingresá tu correo para continuar.', 'error');
-      loginForm.querySelector('[name="user"]').focus();
+      establecerEstado('Ingresá tu correo para continuar.', 'error');
+      formularioInicioSesion.querySelector('[name="user"]').focus();
       return;
     }
 
-    if (!emailRegex.test(correo) && !correo.includes('@')) {
-      setStatus('El correo o usuario no es válido. Revisá el formato.', 'error');
-      loginForm.querySelector('[name="user"]').focus();
+    if (!expresionCorreo.test(correo) && !correo.includes('@')) {
+      establecerEstado('El correo o usuario no es válido. Revisá el formato.', 'error');
+      formularioInicioSesion.querySelector('[name="user"]').focus();
       return;
     }
 
-    if (!password) {
-      setStatus('Ingresá tu contraseña.', 'error');
-      loginForm.querySelector('[name="password"]').focus();
+    if (!contrasena) {
+      establecerEstado('Ingresá tu contraseña.', 'error');
+      formularioInicioSesion.querySelector('[name="password"]').focus();
       return;
     }
 
-    setBusy(loginForm, true, 'Iniciando sesión...');
+    establecerOcupado(formularioInicioSesion, true, 'Iniciando sesión...');
     try {
-      const resultado = await sigturApiFetch('/api/auth/login', {
+      const resultado = await solicitarApiSigtur('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ correo, password })
+        body: JSON.stringify({ correo, password: contrasena })
       });
-      sigturSaveSession(resultado, true);
-      setStatus(`Bienvenido de nuevo, ${resultado.usuario.nombre}.`, 'ok');
-      loginForm.reset();
+      guardarSesionSigtur(resultado, true);
+      establecerEstado(`Bienvenido de nuevo, ${resultado.usuario.nombre}.`, 'ok');
+      formularioInicioSesion.reset();
       window.location.href = 'index.html';
-    } catch (error) {
-      setStatus(sanitizeAuthMessage(error.message, 'No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.'), 'error');
+    } catch (fallo) {
+      establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.'), 'error');
     } finally {
-      setBusy(loginForm, false);
+      establecerOcupado(formularioInicioSesion, false);
     }
   });
 
   // Google se completa en el backend para no exponer credenciales sensibles.
-  document.querySelectorAll('[data-auth-provider]').forEach(button => {
-    button.addEventListener('click', () => {
-      const provider = button.dataset.authProvider;
-      if (provider === 'Google') {
-        setStatus('Redirigiendo a Google para continuar...', 'loading');
-        loginGoogle(button);
+  document.querySelectorAll('[data-auth-provider]').forEach(boton => {
+    boton.addEventListener('click', () => {
+      const proveedor = boton.dataset.authProvider;
+      if (proveedor === 'Google') {
+        establecerEstado('Redirigiendo a Google para continuar...', 'loading');
+        iniciarSesionGoogle(boton);
         return;
       }
-      setStatus(`La opción de ${provider} aún no está disponible en este entorno. Podés seguir con Google o tu correo.`, 'info');
+      establecerEstado(`La opción de ${proveedor} aún no está disponible en este entorno. Podés seguir con Google o tu correo.`, 'info');
     });
   });
 
-  document.querySelectorAll('[data-auth-message]').forEach(button => {
-    button.addEventListener('click', () => {
-      if (button.dataset.authMessage !== 'recuperar') return setStatus(button.dataset.authMessage, 'info');
-      loginForm?.toggleAttribute('hidden', true);
-      registerForm?.toggleAttribute('hidden', true);
-      recoveryForm?.toggleAttribute('hidden', false);
-      loginForm?.classList.remove('active');
-      registerForm?.classList.remove('active');
-      recoveryForm?.classList.add('active');
-      setStatus('Escribe tu correo y te enviaremos un enlace de recuperación.', 'info');
+  document.querySelectorAll('[data-auth-message]').forEach(boton => {
+    boton.addEventListener('click', () => {
+      if (boton.dataset.authMessage !== 'recuperar') return establecerEstado(boton.dataset.authMessage, 'info');
+      formularioInicioSesion?.toggleAttribute('hidden', true);
+      formularioRegistro?.toggleAttribute('hidden', true);
+      formularioRecuperacion?.toggleAttribute('hidden', false);
+      formularioInicioSesion?.classList.remove('active');
+      formularioRegistro?.classList.remove('active');
+      formularioRecuperacion?.classList.add('active');
+      establecerEstado('Escribe tu correo y te enviaremos un enlace de recuperación.', 'info');
     });
   });
 
-  recoveryForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const correo = String(new FormData(recoveryForm).get('email') || '').trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  formularioRecuperacion?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const correo = String(new FormData(formularioRecuperacion).get('email') || '').trim().toLowerCase();
+    const expresionCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(correo)) {
-      setStatus('Ingresá un correo válido para recuperar tu contraseña.', 'error');
-      recoveryForm.querySelector('[name="email"]').focus();
+    if (!expresionCorreo.test(correo)) {
+      establecerEstado('Ingresá un correo válido para recuperar tu contraseña.', 'error');
+      formularioRecuperacion.querySelector('[name="email"]').focus();
       return;
     }
 
-    setBusy(recoveryForm, true, 'Enviando enlace...');
+    establecerOcupado(formularioRecuperacion, true, 'Enviando enlace...');
     try {
-      const resultado = await sigturApiFetch('/api/auth/recuperar', {
+      const resultado = await solicitarApiSigtur('/api/auth/recuperar', {
         method: 'POST',
         body: JSON.stringify({ correo })
       });
-      setStatus(resultado.message, 'ok');
-      recoveryForm.reset();
-    } catch (error) {
-      setStatus(sanitizeAuthMessage(error.message, 'No se pudo enviar el enlace. Intentá nuevamente.'), 'error');
+      establecerEstado(resultado.message, 'ok');
+      formularioRecuperacion.reset();
+    } catch (fallo) {
+      establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo enviar el enlace. Intentá nuevamente.'), 'error');
     } finally {
-      setBusy(recoveryForm, false);
+      establecerOcupado(formularioRecuperacion, false);
     }
   });
 
-  passwordResetForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(passwordResetForm);
-    const password = String(data.get('password') || '');
-    const confirmation = String(data.get('password_confirmation') || '');
-    if (password.length < 8) return setStatus('La contraseña debe tener al menos 8 caracteres.', 'error');
-    if (password !== confirmation) return setStatus('Las contraseñas no coinciden.', 'error');
-    if (!sigturGetSession()?.token) return setStatus('Solicitá un enlace nuevo para cambiar la contraseña.', 'error');
-    setBusy(passwordResetForm, true, 'Actualizando contraseña...');
+  formularioRestablecerContrasena?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formularioRestablecerContrasena);
+    const contrasena = String(datos.get('password') || '');
+    const confirmacion = String(datos.get('password_confirmation') || '');
+    if (contrasena.length < 8) return establecerEstado('La contraseña debe tener al menos 8 caracteres.', 'error');
+    if (contrasena !== confirmacion) return establecerEstado('Las contraseñas no coinciden.', 'error');
+    if (!obtenerSesionSigtur()?.token) return establecerEstado('Solicitá un enlace nuevo para cambiar la contraseña.', 'error');
+    establecerOcupado(formularioRestablecerContrasena, true, 'Actualizando contraseña...');
     try {
-      await sigturApiFetch('/api/auth/password', { method: 'PATCH', body: JSON.stringify({ password }) });
-      await sigturLogout();
-      passwordResetForm.reset();
-      passwordResetForm.hidden = true;
-      passwordResetForm.classList.remove('active');
-      tabs.forEach(tab => tab.removeAttribute('hidden'));
-      activateTab('login');
-      setStatus('Contraseña actualizada. Ya puedes iniciar sesión.', 'ok');
-    } catch (error) {
-      setStatus(sanitizeAuthMessage(error.message, 'No se pudo cambiar la contraseña. Solicitá un enlace nuevo.'), 'error');
+      await solicitarApiSigtur('/api/auth/password', { method: 'PATCH', body: JSON.stringify({ password: contrasena }) });
+      await cerrarSesionSigtur();
+      formularioRestablecerContrasena.reset();
+      formularioRestablecerContrasena.hidden = true;
+      formularioRestablecerContrasena.classList.remove('active');
+      pestanas.forEach(tab => tab.removeAttribute('hidden'));
+      activarPestana('login');
+      establecerEstado('Contraseña actualizada. Ya puedes iniciar sesión.', 'ok');
+    } catch (fallo) {
+      establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo cambiar la contraseña. Solicitá un enlace nuevo.'), 'error');
     } finally {
-      setBusy(passwordResetForm, false);
+      establecerOcupado(formularioRestablecerContrasena, false);
     }
   });
 
   document.getElementById('recovery-cancel')?.addEventListener('click', () => {
-    recoveryForm?.toggleAttribute('hidden', true);
-    loginForm?.toggleAttribute('hidden', false);
-    recoveryForm?.classList.remove('active');
-    loginForm?.classList.add('active');
-    setStatus('');
+    formularioRecuperacion?.toggleAttribute('hidden', true);
+    formularioInicioSesion?.toggleAttribute('hidden', false);
+    formularioRecuperacion?.classList.remove('active');
+    formularioInicioSesion?.classList.add('active');
+    establecerEstado('');
   });
 }
 
-function showPasswordResetForm() {
-  const reset = document.getElementById('password-reset-form');
-  if (!reset) return;
-  document.querySelectorAll('[data-auth-panel]').forEach(panel => {
-    panel.hidden = true;
-    panel.classList.remove('active');
+function mostrarFormularioRestablecerContrasena() {
+  const restablecer = document.getElementById('password-reset-form');
+  if (!restablecer) return;
+  document.querySelectorAll('[data-auth-panel]').forEach(panelActual => {
+    panelActual.hidden = true;
+    panelActual.classList.remove('active');
   });
   document.querySelectorAll('[data-auth-tab]').forEach(tab => tab.hidden = true);
-  reset.hidden = false;
-  reset.classList.add('active');
+  restablecer.hidden = false;
+  restablecer.classList.add('active');
 }
 
-async function setupProfilePage() {
-  const profilePage = document.querySelector('.profile-page');
-  if (!profilePage) return;
-  profilePage.setAttribute('aria-busy', 'true');
+async function configurarPaginaPerfil() {
+  const paginaPerfil = document.querySelector('.profile-page');
+  if (!paginaPerfil) return;
+  paginaPerfil.setAttribute('aria-busy', 'true');
 
-  const session = sigturGetSession();
-  if (!session?.token) {
+  const sesion = obtenerSesionSigtur();
+  if (!sesion?.token) {
     window.location.replace('login.html');
     return;
   }
 
   try {
-    const result = await sigturApiFetch('/api/auth/me');
-    const usuario = result.usuario;
+    const resultado = await solicitarApiSigtur('/api/auth/me');
+    const usuario = resultado.usuario;
     if (!usuario?.id || !usuario.nombre || !usuario.correo) throw new Error('No se pudo validar el perfil de la cuenta.');
-    sigturSaveSession({ ...session, usuario }, true);
-    profilePage.setAttribute('aria-busy', 'false');
+    guardarSesionSigtur({ ...sesion, usuario }, true);
+    paginaPerfil.setAttribute('aria-busy', 'false');
 
-    const name = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
-    const initials = name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-    renderProfileIdentity(usuario, initials || '?');
+    const nombre = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
+    const iniciales = nombre.trim().split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase();
+    representarIdentidadPerfil(usuario, iniciales || '?');
     document.getElementById('role-tags').innerHTML = `<span class="tag">${usuario.rol === 'admin' ? 'Administrador' : 'Explorador'}</span>`;
     document.getElementById('followers').textContent = 'Activa';
-    setupProfileEditor(usuario);
-    await renderProfileReservations(usuario.id);
+    configurarEditorPerfil(usuario);
+    await representarReservasPerfil(usuario.id);
 
     try {
-      const saved = await sigturApiFetch('/api/guardados');
-      const savedPlaces = await hydrateSavedPlaces(saved.data || [], usuario.id);
-      document.getElementById('total-count').textContent = savedPlaces.length;
-      document.getElementById('following').textContent = savedPlaces.filter(item => item.entidad_tipo === 'place').length;
-      renderProfileGrid(savedPlaces);
-    } catch (error) {
-      const grid = document.getElementById('content-grid');
-      if (grid) grid.innerHTML = `<p class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar tus lugares guardados. Intentá nuevamente.')}</p>`;
+      const guardado = await solicitarApiSigtur('/api/guardados');
+      const lugaresGuardados = await completarLugaresGuardados(guardado.data || [], usuario.id);
+      document.getElementById('total-count').textContent = lugaresGuardados.length;
+      document.getElementById('following').textContent = lugaresGuardados.filter(elemento => elemento.entidad_tipo === 'place').length;
+      representarCuadriculaPerfil(lugaresGuardados);
+    } catch (fallo) {
+      const cuadricula = document.getElementById('content-grid');
+      if (cuadricula) cuadricula.innerHTML = `<p class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus lugares guardados. Intentá nuevamente.')}</p>`;
     }
-    setupMessaging();
-  } catch (error) {
-    profilePage.setAttribute('aria-busy', 'false');
-    if (!sigturGetSession()?.token) {
+    configurarMensajeria();
+  } catch (fallo) {
+    paginaPerfil.setAttribute('aria-busy', 'false');
+    if (!obtenerSesionSigtur()?.token) {
       window.location.replace('login.html');
     } else {
-      const title = document.getElementById('profile-title');
-      if (title) title.textContent = error.message || 'No se pudo cargar el perfil. Intentá nuevamente.';
+      const titulo = document.getElementById('profile-title');
+      if (titulo) titulo.textContent = fallo.message || 'No se pudo cargar el perfil. Intentá nuevamente.';
     }
     return;
   }
 
-  document.querySelector('[data-profile-logout]')?.addEventListener('click', logout);
+  document.querySelector('[data-profile-logout]')?.addEventListener('click', cerrarSesionDesdeInterfaz);
 }
 
-function renderProfileIdentity(usuario, initials) {
-  const name = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
+function representarIdentidadPerfil(usuario, iniciales) {
+  const nombre = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
   const avatar = document.getElementById('avatar');
-  if (avatar) avatar.innerHTML = usuario.avatar_url ? `<img src="${escapeText(usuario.avatar_url)}" alt="">` : escapeText(initials);
-  document.getElementById('profile-title').textContent = name;
+  if (avatar) avatar.innerHTML = usuario.avatar_url ? `<img src="${escaparTexto(usuario.avatar_url)}" alt="">` : escaparTexto(iniciales);
+  document.getElementById('profile-title').textContent = nombre;
   document.getElementById('bio').textContent = usuario.biografia || usuario.ubicacion || usuario.correo || 'Explorador de Salto';
 }
 
-function setupProfileEditor(initialUser) {
+function configurarEditorPerfil(usuarioInicial) {
   const editor = document.querySelector('[data-profile-editor]');
-  const trigger = document.querySelector('[data-profile-edit]');
-  const form = document.getElementById('profile-edit-form');
-  const input = document.getElementById('profile-avatar-input');
-  const preview = document.getElementById('profile-avatar-preview');
-  const status = document.querySelector('[data-profile-editor-status]');
-  if (!editor || !trigger || !form || !input || !preview) return;
-  let avatarUrl = initialUser.avatar_url || '';
-  const drawPreview = () => { preview.innerHTML = avatarUrl ? `<img src="${escapeText(avatarUrl)}" alt="">` : escapeText((initialUser.nombre || '?').slice(0, 1).toUpperCase()); };
-  form.nombre.value = initialUser.nombre || '';
-  form.ubicacion.value = initialUser.ubicacion || '';
-  form.biografia.value = initialUser.biografia || '';
-  form.sitio_web.value = initialUser.sitio_web || '';
-  drawPreview();
-  trigger.addEventListener('click', () => { editor.hidden = false; editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-  editor.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { editor.hidden = true; status.textContent = ''; });
-  input.addEventListener('change', () => {
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 1_000_000) { status.textContent = 'Elegí una imagen JPG, PNG o WebP de hasta 1 MB.'; input.value = ''; return; }
-    const reader = new FileReader();
-    reader.onload = () => { avatarUrl = String(reader.result); drawPreview(); status.textContent = ''; };
-    reader.onerror = () => { status.textContent = 'No se pudo leer la imagen.'; };
-    reader.readAsDataURL(file);
+  const disparador = document.querySelector('[data-profile-edit]');
+  const formulario = document.getElementById('profile-edit-form');
+  const entrada = document.getElementById('profile-avatar-input');
+  const vistaPrevia = document.getElementById('profile-avatar-preview');
+  const estado = document.querySelector('[data-profile-editor-status]');
+  if (!editor || !disparador || !formulario || !entrada || !vistaPrevia) return;
+  let urlAvatar = usuarioInicial.avatar_url || '';
+  const dibujarVistaPrevia = () => { vistaPrevia.innerHTML = urlAvatar ? `<img src="${escaparTexto(urlAvatar)}" alt="">` : escaparTexto((usuarioInicial.nombre || '?').slice(0, 1).toUpperCase()); };
+  formulario.nombre.value = usuarioInicial.nombre || '';
+  formulario.ubicacion.value = usuarioInicial.ubicacion || '';
+  formulario.biografia.value = usuarioInicial.biografia || '';
+  formulario.sitio_web.value = usuarioInicial.sitio_web || '';
+  dibujarVistaPrevia();
+  disparador.addEventListener('click', () => { editor.hidden = false; editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  editor.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => { editor.hidden = true; estado.textContent = ''; });
+  entrada.addEventListener('change', () => {
+    const archivo = entrada.files?.[0];
+    if (!archivo) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(archivo.type) || archivo.size > 1_000_000) { estado.textContent = 'Elegí una imagen JPG, PNG o WebP de hasta 1 MB.'; entrada.value = ''; return; }
+    const lector = new FileReader();
+    lector.onload = () => { urlAvatar = String(lector.result); dibujarVistaPrevia(); estado.textContent = ''; };
+    lector.onerror = () => { estado.textContent = 'No se pudo leer la imagen.'; };
+    lector.readAsDataURL(archivo);
   });
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-    const submit = form.querySelector('[type="submit"]');
-    const values = Object.fromEntries(new FormData(form));
+  formulario.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    const enviar = formulario.querySelector('[type="submit"]');
+    const valores = Object.fromEntries(new FormData(formulario));
     try {
-      submit.disabled = true; status.textContent = 'Guardando cambios...';
-      const result = await sigturApiFetch('/api/auth/me', { method: 'PATCH', body: JSON.stringify({ ...values, avatar_url: avatarUrl }) });
-      const session = sigturGetSession();
-      sigturSaveSession({ ...session, usuario: result.usuario }, true);
-      initialUser = result.usuario; avatarUrl = result.usuario.avatar_url || '';
-      const initials = (result.usuario.nombre || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-      renderProfileIdentity(result.usuario, initials);
-      status.textContent = 'Perfil actualizado.';
-    } catch (error) { status.textContent = error.message || 'No se pudo guardar el perfil.'; }
-    finally { submit.disabled = false; }
+      enviar.disabled = true; estado.textContent = 'Guardando cambios...';
+      const resultado = await solicitarApiSigtur('/api/auth/me', { method: 'PATCH', body: JSON.stringify({ ...valores, avatar_url: urlAvatar }) });
+      const sesion = obtenerSesionSigtur();
+      guardarSesionSigtur({ ...sesion, usuario: resultado.usuario }, true);
+      usuarioInicial = resultado.usuario; urlAvatar = resultado.usuario.avatar_url || '';
+      const iniciales = (resultado.usuario.nombre || '?').split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase();
+      representarIdentidadPerfil(resultado.usuario, iniciales);
+      estado.textContent = 'Perfil actualizado.';
+    } catch (fallo) { estado.textContent = fallo.message || 'No se pudo guardar el perfil.'; }
+    finally { enviar.disabled = false; }
   });
 }
 
-async function setupMessaging() {
-  const contactSelect = document.getElementById('dm-contact');
-  const contactList = document.getElementById('dm-contact-list');
-  const contactSearch = document.getElementById('dm-contact-search');
-  const thread = document.getElementById('dm-thread-list');
-  const form = document.getElementById('dm-form');
-  const message = document.getElementById('dm-message');
-  const status = document.getElementById('dm-status');
-  const recordButton = document.getElementById('dm-record');
-  const recordingStatus = document.getElementById('dm-recording-status');
-  const audioPreview = document.getElementById('dm-audio-preview');
-  const audioPlayback = document.getElementById('dm-audio-playback');
-  const audioDiscardButton = document.getElementById('dm-audio-discard');
-  const audioSendButton = document.getElementById('dm-audio-send');
-  const attachmentButton = document.getElementById('dm-attach');
-  const attachmentInput = document.getElementById('dm-attachment-input');
-  const attachmentStatus = document.getElementById('dm-attachment-status');
-  const attachmentPreview = document.getElementById('dm-attachment-preview');
-  const activeContactLabel = document.getElementById('dm-active-contact');
-  const cleanupFilesButton = document.getElementById('dm-cleanup-files');
-  const textSendButton = form?.querySelector('.dm-send-text');
-  if (!contactSelect || !thread || !form) return;
+async function configurarMensajeria() {
+  const selectorContactos = document.getElementById('dm-contact');
+  const listaContactos = document.getElementById('dm-contact-list');
+  const busquedaContactos = document.getElementById('dm-contact-search');
+  const hilo = document.getElementById('dm-thread-list');
+  const formulario = document.getElementById('dm-form');
+  const mensaje = document.getElementById('dm-message');
+  const estado = document.getElementById('dm-status');
+  const botonGrabar = document.getElementById('dm-record');
+  const estadoGrabacion = document.getElementById('dm-recording-status');
+  const vistaPreviaAudio = document.getElementById('dm-audio-preview');
+  const reproduccionAudio = document.getElementById('dm-audio-playback');
+  const botonDescartarAudio = document.getElementById('dm-audio-discard');
+  const botonEnviarAudio = document.getElementById('dm-audio-send');
+  const botonAdjunto = document.getElementById('dm-attach');
+  const entradaAdjunto = document.getElementById('dm-attachment-input');
+  const adjuntoEstado = document.getElementById('dm-attachment-status');
+  const vistaPreviaAdjunto = document.getElementById('dm-attachment-preview');
+  const etiquetaContactoActivo = document.getElementById('dm-active-contact');
+  const botonLimpiarArchivos = document.getElementById('dm-cleanup-files');
+  const botonEnviarTexto = formulario?.querySelector('.dm-send-text');
+  if (!selectorContactos || !hilo || !formulario) return;
 
-  cleanupFilesButton?.addEventListener('click', async () => {
+  botonLimpiarArchivos?.addEventListener('click', async () => {
     if (!window.confirm('Se eliminarán de tu almacenamiento los archivos y audios sin uso que tengan más de 30 días. ¿Continuar?')) return;
-    cleanupFilesButton.disabled = true;
-    try { const removed = await sigturApiFetch('/api/mensajes/archivos-antiguos', { method: 'DELETE' }); status.textContent = `Limpieza terminada: ${removed.audio} audios y ${removed.attachments} adjuntos eliminados.`; }
-    catch (error) { status.textContent = error.message || 'No se pudo limpiar el almacenamiento.'; }
-    finally { cleanupFilesButton.disabled = false; }
+    botonLimpiarArchivos.disabled = true;
+    try { const eliminado = await solicitarApiSigtur('/api/mensajes/archivos-antiguos', { method: 'DELETE' }); estado.textContent = `Limpieza terminada: ${eliminado.audio} audios y ${eliminado.attachments} adjuntos eliminados.`; }
+    catch (fallo) { estado.textContent = fallo.message || 'No se pudo limpiar el almacenamiento.'; }
+    finally { botonLimpiarArchivos.disabled = false; }
   });
 
-  let contacts = [];
-  let conversations = [];
-  let activeId = '';
-  let refreshing = false;
-  let messagingBroadcast = null;
-  let mediaRecorder = null;
-  let recordingStream = null;
-  let recordingChunks = [];
-  let recordingStartedAt = 0;
-  let recordingTimer = null;
-  let recordedAudio = null;
-  let recordedAudioDuration = 0;
-  let audioObjectUrl = '';
-  let sendingAudio = false;
-  let sendingMessage = false;
-  let pendingAttachments = [];
-  let attachmentPreviewUrls = [];
-  const maxAudioSeconds = 120;
-  const maxAudioBytes = 10 * 1024 * 1024;
-  const maxAttachments = 3;
-  const maxAttachmentBytes = 10 * 1024 * 1024;
-  const acceptedAttachmentTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
+  let contactos = [];
+  let conversaciones = [];
+  let activoIdentificador = '';
+  let actualizando = false;
+  let difusionMensajes = null;
+  let grabadorMultimedia = null;
+  let flujoGrabacion = null;
+  let fragmentosGrabacion = [];
+  let grabacionIniciadaEn = 0;
+  let temporizadorGrabacion = null;
+  let audioGrabado = null;
+  let duracionAudioGrabado = 0;
+  let urlObjetoAudio = '';
+  let enviandoAudio = false;
+  let enviandoMensaje = false;
+  let adjuntosPendientes = [];
+  let urlsVistaPreviaAdjuntos = [];
+  const segundosMaximosAudio = 120;
+  const bytesMaximosAudio = 10 * 1024 * 1024;
+  const adjuntosMaximos = 3;
+  const bytesMaximosAdjunto = 10 * 1024 * 1024;
+  const tiposAdjuntosAceptados = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
 
-  const formatAudioTime = seconds => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  const recorderMimeType = () => [
+  const formatearDuracionAudio = segundos => `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
+  const tipoMimeGrabador = () => [
     'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4',
-  ].find(type => window.MediaRecorder?.isTypeSupported?.(type)) || '';
-  const resetAudioPreview = () => {
-    if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
-    audioObjectUrl = '';
-    recordedAudio = null;
-    recordedAudioDuration = 0;
-    audioPlayback?.pause();
-    if (audioPlayback) audioPlayback.removeAttribute('src');
-    if (audioPreview) audioPreview.hidden = true;
-    if (audioSendButton) audioSendButton.disabled = true;
-    if (recordButton) {
-      recordButton.disabled = false;
-      recordButton.classList.remove('is-recording');
-      recordButton.setAttribute('aria-pressed', 'false');
-      recordButton.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
+  ].find(tipo => window.MediaRecorder?.isTypeSupported?.(tipo)) || '';
+  const restablecerVistaPreviaAudio = () => {
+    if (urlObjetoAudio) URL.revokeObjectURL(urlObjetoAudio);
+    urlObjetoAudio = '';
+    audioGrabado = null;
+    duracionAudioGrabado = 0;
+    reproduccionAudio?.pause();
+    if (reproduccionAudio) reproduccionAudio.removeAttribute('src');
+    if (vistaPreviaAudio) vistaPreviaAudio.hidden = true;
+    if (botonEnviarAudio) botonEnviarAudio.disabled = true;
+    if (botonGrabar) {
+      botonGrabar.disabled = false;
+      botonGrabar.classList.remove('is-recording');
+      botonGrabar.setAttribute('aria-pressed', 'false');
+      botonGrabar.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
     }
-    if (recordingStatus) recordingStatus.textContent = 'El audio dura hasta 2 minutos.';
+    if (estadoGrabacion) estadoGrabacion.textContent = 'El audio dura hasta 2 minutos.';
   };
 
-  const fileSizeLabel = bytes => bytes < 1024
+  const etiquetaTamanoArchivo = bytes => bytes < 1024
     ? `${bytes} B`
     : bytes < 1024 * 1024
       ? `${Math.round(bytes / 1024)} KB`
       : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  const renderMessageAttachments = attachments => {
-    if (!Array.isArray(attachments) || !attachments.length) return '';
-    return `<div class="dm-message-attachments">${attachments.map(file => {
-      const url = escapeText(file.url || '#');
-      const name = escapeText(file.name || (file.mime === 'application/pdf' ? 'Documento PDF' : 'Imagen adjunta'));
-      return file.mime?.startsWith('image/')
-        ? `<a class="dm-file-image" href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${name}" loading="lazy"><span>${name}</span></a>`
-        : `<a class="dm-file-document" href="${url}" target="_blank" rel="noopener noreferrer"><span class="dm-file-icon" aria-hidden="true">PDF</span><span><strong>${name}</strong><small>${fileSizeLabel(Number(file.size) || 0)} · Abrir documento</small></span></a>`;
+  const representarAdjuntosMensaje = adjuntos => {
+    if (!Array.isArray(adjuntos) || !adjuntos.length) return '';
+    return `<div class="dm-message-attachments">${adjuntos.map(archivo => {
+      const url = escaparTexto(archivo.url || '#');
+      const nombre = escaparTexto(archivo.name || (archivo.mime === 'application/pdf' ? 'Documento PDF' : 'Imagen adjunta'));
+      return archivo.mime?.startsWith('image/')
+        ? `<a class="dm-file-image" href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${nombre}" loading="lazy"><span>${nombre}</span></a>`
+        : `<a class="dm-file-document" href="${url}" target="_blank" rel="noopener noreferrer"><span class="dm-file-icon" aria-hidden="true">PDF</span><span><strong>${nombre}</strong><small>${etiquetaTamanoArchivo(Number(archivo.size) || 0)} · Abrir documento</small></span></a>`;
     }).join('')}</div>`;
   };
-  const renderPendingAttachments = () => {
-    (attachmentPreviewUrls || []).forEach(URL.revokeObjectURL);
-    attachmentPreviewUrls = [];
-    if (!attachmentPreview) return;
-    attachmentPreview.replaceChildren();
-    pendingAttachments.forEach((file, index) => {
-      const item = document.createElement('div');
-      item.className = 'dm-pending-file';
-      if (file.type.startsWith('image/')) {
-        const image = document.createElement('img');
-        image.src = URL.createObjectURL(file);
-        image.alt = `Vista previa: ${file.name}`;
-        attachmentPreviewUrls.push(image.src);
-        item.appendChild(image);
+  const representarAdjuntosPendientes = () => {
+    (urlsVistaPreviaAdjuntos || []).forEach(URL.revokeObjectURL);
+    urlsVistaPreviaAdjuntos = [];
+    if (!vistaPreviaAdjunto) return;
+    vistaPreviaAdjunto.replaceChildren();
+    adjuntosPendientes.forEach((archivo, indice) => {
+      const elemento = document.createElement('div');
+      elemento.className = 'dm-pending-file';
+      if (archivo.type.startsWith('image/')) {
+        const imagen = document.createElement('img');
+        imagen.src = URL.createObjectURL(archivo);
+        imagen.alt = `Vista previa: ${archivo.name}`;
+        urlsVistaPreviaAdjuntos.push(imagen.src);
+        elemento.appendChild(imagen);
       } else {
-        const icon = document.createElement('span');
-        icon.className = 'dm-file-icon';
-        icon.textContent = 'PDF';
-        item.appendChild(icon);
+        const icono = document.createElement('span');
+        icono.className = 'dm-file-icon';
+        icono.textContent = 'PDF';
+        elemento.appendChild(icono);
       }
-      const name = document.createElement('span');
-      name.className = 'dm-pending-file-name';
-      name.textContent = `${file.name} · ${fileSizeLabel(file.size)}`;
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.className = 'dm-remove-file';
-      remove.setAttribute('aria-label', `Quitar ${file.name}`);
-      remove.textContent = '×';
-      remove.addEventListener('click', () => {
-        pendingAttachments.splice(index, 1);
-        renderPendingAttachments();
+      const nombre = document.createElement('span');
+      nombre.className = 'dm-pending-file-name';
+      nombre.textContent = `${archivo.name} · ${etiquetaTamanoArchivo(archivo.size)}`;
+      const quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.className = 'dm-remove-file';
+      quitar.setAttribute('aria-label', `Quitar ${archivo.name}`);
+      quitar.textContent = '×';
+      quitar.addEventListener('click', () => {
+        adjuntosPendientes.splice(indice, 1);
+        representarAdjuntosPendientes();
       });
-      item.append(name, remove);
-      attachmentPreview.appendChild(item);
+      elemento.append(nombre, quitar);
+      vistaPreviaAdjunto.appendChild(elemento);
     });
-    if (attachmentStatus) {
-      attachmentStatus.textContent = pendingAttachments.length
-        ? `${pendingAttachments.length} de ${maxAttachments} archivos listos para enviar.`
+    if (adjuntoEstado) {
+      adjuntoEstado.textContent = adjuntosPendientes.length
+        ? `${adjuntosPendientes.length} de ${adjuntosMaximos} archivos listos para enviar.`
         : 'JPG, PNG, WebP, GIF o PDF · hasta 3 archivos de 10 MB';
     }
   };
-  const clearPendingAttachments = () => {
-    pendingAttachments = [];
-    if (attachmentInput) attachmentInput.value = '';
-    renderPendingAttachments();
+  const limpiarAdjuntosPendientes = () => {
+    adjuntosPendientes = [];
+    if (entradaAdjunto) entradaAdjunto.value = '';
+    representarAdjuntosPendientes();
   };
-  const addPendingAttachments = files => {
-    const chosen = [...files];
-    const remaining = maxAttachments - pendingAttachments.length;
-    const valid = chosen.filter(file => acceptedAttachmentTypes.has(file.type) && file.size > 0 && file.size <= maxAttachmentBytes);
-    const accepted = valid.slice(0, Math.max(remaining, 0));
-    pendingAttachments.push(...accepted);
-    renderPendingAttachments();
-    if (chosen.some(file => !acceptedAttachmentTypes.has(file.type) || file.size === 0 || file.size > maxAttachmentBytes)) {
-      status.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
-    } else if (accepted.length < chosen.length) {
-      status.textContent = `Podés adjuntar hasta ${maxAttachments} archivos por mensaje.`;
+  const agregarPendienteAdjuntos = archivos => {
+    const elegido = [...archivos];
+    const restante = adjuntosMaximos - adjuntosPendientes.length;
+    const valido = elegido.filter(archivo => tiposAdjuntosAceptados.has(archivo.type) && archivo.size > 0 && archivo.size <= bytesMaximosAdjunto);
+    const aceptado = valido.slice(0, Math.max(restante, 0));
+    adjuntosPendientes.push(...aceptado);
+    representarAdjuntosPendientes();
+    if (elegido.some(archivo => !tiposAdjuntosAceptados.has(archivo.type) || archivo.size === 0 || archivo.size > bytesMaximosAdjunto)) {
+      estado.textContent = 'Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.';
+    } else if (aceptado.length < elegido.length) {
+      estado.textContent = `Podés adjuntar hasta ${adjuntosMaximos} archivos por mensaje.`;
     }
   };
 
-  const currentUserId = () => sigturGetSession()?.usuario?.id;
-  const setComposerEnabled = enabled => {
-    if (message) message.disabled = !enabled || sendingMessage || sendingAudio;
-    if (recordButton && mediaRecorder?.state !== 'recording' && !sendingAudio && !sendingMessage) recordButton.disabled = !enabled;
-    if (textSendButton) textSendButton.disabled = !enabled || sendingMessage || sendingAudio;
-    if (attachmentButton) attachmentButton.disabled = !enabled || sendingMessage || sendingAudio;
-    if (attachmentInput) attachmentInput.disabled = !enabled || sendingMessage || sendingAudio;
+  const identificadorUsuarioActual = () => obtenerSesionSigtur()?.usuario?.id;
+  const establecerCompositorHabilitado = habilitado => {
+    if (mensaje) mensaje.disabled = !habilitado || enviandoMensaje || enviandoAudio;
+    if (botonGrabar && grabadorMultimedia?.state !== 'recording' && !enviandoAudio && !enviandoMensaje) botonGrabar.disabled = !habilitado;
+    if (botonEnviarTexto) botonEnviarTexto.disabled = !habilitado || enviandoMensaje || enviandoAudio;
+    if (botonAdjunto) botonAdjunto.disabled = !habilitado || enviandoMensaje || enviandoAudio;
+    if (entradaAdjunto) entradaAdjunto.disabled = !habilitado || enviandoMensaje || enviandoAudio;
   };
-  const notifyMessagingSync = (userId = null) => {
-    const payload = { type: 'messaging-sync', userId, ts: Date.now() };
+  const notificarSincronizacionMensajes = (usuarioIdentificador = null) => {
+    const datosEnviados = { type: 'messaging-sync', userId: usuarioIdentificador, ts: Date.now() };
     if ('BroadcastChannel' in window) {
-      const channel = new BroadcastChannel('sigtur-mensajes');
-      channel.postMessage(payload);
-      channel.close();
+      const canal = new BroadcastChannel('sigtur-mensajes');
+      canal.postMessage(datosEnviados);
+      canal.close();
     }
     try {
-      localStorage.setItem('sigtur-mensajes-sync', JSON.stringify(payload));
+      localStorage.setItem('sigtur-mensajes-sync', JSON.stringify(datosEnviados));
     } catch {
       // sin almacenamiento persistente no hay problema
     }
   };
 
-  const handleMessagingSync = async (event) => {
-    const payload = event?.data || (event?.key === 'sigtur-mensajes-sync' ? JSON.parse(event.newValue || 'null') : null);
-    if (!payload || !payload.ts) return;
-    await loadConversations();
-    if (activeId) await loadThread(activeId, { refreshConversations: false });
+  const gestionarSincronizacionMensajes = async (evento) => {
+    const datosEnviados = evento?.data || (evento?.key === 'sigtur-mensajes-sync' ? JSON.parse(evento.newValue || 'null') : null);
+    if (!datosEnviados || !datosEnviados.ts) return;
+    await cargarConversaciones();
+    if (activoIdentificador) await cargarHilo(activoIdentificador, { refreshConversations: false });
   };
-  const nameOf = user => `${user.nombre || 'Usuario'}${user.apellido ? ` ${user.apellido}` : ''}`;
-  const initialsOf = user => {
-    const name = nameOf(user).trim();
-    return name ? name.split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() : '?';
-  };
-
-  const renderContacts = () => {
-    contactSelect.innerHTML = '<option value="">Elegí un usuario</option>' + contacts.map(user => `<option value="${escapeText(user.id)}">${escapeText(nameOf(user))} · ${escapeText(user.correo)}</option>`).join('');
+  const nombreDe = usuario => `${usuario.nombre || 'Usuario'}${usuario.apellido ? ` ${usuario.apellido}` : ''}`;
+  const inicialesDe = usuario => {
+    const nombre = nombreDe(usuario).trim();
+    return nombre ? nombre.split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase() : '?';
   };
 
-  const renderConversations = () => {
-    if (!contactList) return;
-    const term = (contactSearch?.value || '').trim().toLowerCase();
-    const matchesTerm = (user, preview = '') => {
-      const hayTexto = [nameOf(user), user.correo || '', preview].filter(Boolean).join(' ').toLowerCase();
-      return !term || hayTexto.includes(term);
+  const representarContactos = () => {
+    selectorContactos.innerHTML = '<option value="">Elegí un usuario</option>' + contactos.map(usuario => `<option value="${escaparTexto(usuario.id)}">${escaparTexto(nombreDe(usuario))} · ${escaparTexto(usuario.correo)}</option>`).join('');
+  };
+
+  const representarConversaciones = () => {
+    if (!listaContactos) return;
+    const termino = (busquedaContactos?.value || '').trim().toLowerCase();
+    const coincideTermino = (usuario, vistaPrevia = '') => {
+      const hayTexto = [nombreDe(usuario), usuario.correo || '', vistaPrevia].filter(Boolean).join(' ').toLowerCase();
+      return !termino || hayTexto.includes(termino);
     };
-    const visible = conversations.filter((item) => {
-      const user = item.usuario || {};
-      return matchesTerm(user, item.last_message?.contenido || '');
+    const visible = conversaciones.filter((elemento) => {
+      const usuario = elemento.usuario || {};
+      return coincideTermino(usuario, elemento.last_message?.contenido || '');
     });
-    const conversationIds = new Set(conversations.map(item => item.usuario_id));
-    if (term) {
-      contacts.filter(user => !conversationIds.has(user.id) && matchesTerm(user))
-        .forEach(user => visible.push({ usuario_id: user.id, usuario: user, isNew: true }));
+    const identificadoresConversacion = new Set(conversaciones.map(elemento => elemento.usuario_id));
+    if (termino) {
+      contactos.filter(usuario => !identificadoresConversacion.has(usuario.id) && coincideTermino(usuario))
+        .forEach(usuario => visible.push({ usuario_id: usuario.id, usuario: usuario, isNew: true }));
     }
-    const activeContact = contacts.find(user => user.id === activeId);
-    if (activeContact && !conversationIds.has(activeId) && !visible.some(item => item.usuario_id === activeId)) {
-      visible.unshift({ usuario_id: activeId, usuario: activeContact, isNew: true });
+    const activoContacto = contactos.find(usuario => usuario.id === activoIdentificador);
+    if (activoContacto && !identificadoresConversacion.has(activoIdentificador) && !visible.some(elemento => elemento.usuario_id === activoIdentificador)) {
+      visible.unshift({ usuario_id: activoIdentificador, usuario: activoContacto, isNew: true });
     }
 
     if (!visible.length) {
-      contactList.innerHTML = term
+      listaContactos.innerHTML = termino
         ? '<p class="dm-empty">No encontramos usuarios ni conversaciones con ese nombre.</p>'
         : '<p class="dm-empty">Todavía no hay conversaciones. Buscá un usuario para iniciar una.</p>';
       return;
     }
 
-    contactList.innerHTML = visible.map((item) => {
-      const user = item.usuario || {};
-      const fecha = item.updated_at ? new Date(item.updated_at).toLocaleString('es-UY', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
-      const ultimo = item.last_message?.tipo === 'audio'
+    listaContactos.innerHTML = visible.map((elemento) => {
+      const usuario = elemento.usuario || {};
+      const fecha = elemento.updated_at ? new Date(elemento.updated_at).toLocaleString('es-UY', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+      const ultimo = elemento.last_message?.tipo === 'audio'
         ? '🎙 Mensaje de voz'
-        : item.last_message?.tipo === 'archivo'
+        : elemento.last_message?.tipo === 'archivo'
           ? '📎 Archivo adjunto'
-        : item.last_message?.contenido ? escapeText(item.last_message.contenido) : item.isNew ? 'Iniciar chat · se entrega al reconectar' : 'No hay mensajes todavía.';
-      const unread = Number(item.unread_count || 0);
-      const active = item.usuario_id === activeId ? 'is-active' : '';
+        : elemento.last_message?.contenido ? escaparTexto(elemento.last_message.contenido) : elemento.isNew ? 'Iniciar chat · se entrega al reconectar' : 'No hay mensajes todavía.';
+      const noLeido = Number(elemento.unread_count || 0);
+      const activo = elemento.usuario_id === activoIdentificador ? 'is-active' : '';
       return `
-        <button type="button" class="dm-conversation ${active}" data-dm-user="${escapeText(item.usuario_id)}">
-          <span class="dm-avatar">${escapeText(initialsOf(user))}</span>
+        <button type="button" class="dm-conversation ${activo}" data-dm-user="${escaparTexto(elemento.usuario_id)}">
+          <span class="dm-avatar">${escaparTexto(inicialesDe(usuario))}</span>
           <span class="dm-conversation-body">
-            <strong>${escapeText(nameOf(user))}</strong>
+            <strong>${escaparTexto(nombreDe(usuario))}</strong>
             <small>${ultimo}</small>
           </span>
           <span class="dm-meta">
-            <time>${escapeText(fecha)}</time>
-            ${unread ? `<span class="dm-badge">${unread}</span>` : ''}
+            <time>${escaparTexto(fecha)}</time>
+            ${noLeido ? `<span class="dm-badge">${noLeido}</span>` : ''}
           </span>
         </button>
       `;
     }).join('');
   };
 
-  const loadConversations = async () => {
+  const cargarConversaciones = async () => {
     try {
-      const result = await sigturApiFetch('/api/mensajes/conversaciones');
-      conversations = Array.isArray(result) ? result : result.data || [];
-      renderConversations();
-    } catch (error) {
-      status.textContent = error.message || 'No se pudieron cargar las conversaciones.';
+      const resultado = await solicitarApiSigtur('/api/mensajes/conversaciones');
+      conversaciones = Array.isArray(resultado) ? resultado : resultado.data || [];
+      representarConversaciones();
+    } catch (fallo) {
+      estado.textContent = fallo.message || 'No se pudieron cargar las conversaciones.';
     }
   };
 
-  const loadThread = async (userId, { scrollToBottom = false, refreshConversations = true } = {}) => {
-    if (!userId) return;
-    if (activeId && activeId !== userId && mediaRecorder?.state === 'recording') { status.textContent = 'Detené la grabación antes de cambiar de conversación.'; return; }
-    if (activeId && activeId !== userId && (recordedAudio || pendingAttachments.length) && !window.confirm('Tenés una grabación o archivos sin enviar. Si cambiás de conversación, se descartarán. ¿Continuar?')) return;
-    const conversationChanged = activeId !== userId;
-    const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
-    if (activeId !== userId) {
-      resetAudioPreview();
-      clearPendingAttachments();
+  const cargarHilo = async (usuarioIdentificador, { desplazarAlFinal = false, actualizarConversaciones = true } = {}) => {
+    if (!usuarioIdentificador) return;
+    if (activoIdentificador && activoIdentificador !== usuarioIdentificador && grabadorMultimedia?.state === 'recording') { estado.textContent = 'Detené la grabación antes de cambiar de conversación.'; return; }
+    if (activoIdentificador && activoIdentificador !== usuarioIdentificador && (audioGrabado || adjuntosPendientes.length) && !window.confirm('Tenés una grabación o archivos sin enviar. Si cambiás de conversación, se descartarán. ¿Continuar?')) return;
+    const conversacionCambiada = activoIdentificador !== usuarioIdentificador;
+    const estabaCercaDelFinal = hilo.scrollHeight - hilo.scrollTop - hilo.clientHeight < 80;
+    if (activoIdentificador !== usuarioIdentificador) {
+      restablecerVistaPreviaAudio();
+      limpiarAdjuntosPendientes();
     }
-    activeId = userId;
-    const activeContact = contacts.find(user => user.id === userId)
-      || conversations.find(entry => entry.usuario_id === userId)?.usuario;
-    if (activeContactLabel) activeContactLabel.textContent = activeContact ? nameOf(activeContact) : 'Conversación';
-    setComposerEnabled(true);
-    renderConversations();
+    activoIdentificador = usuarioIdentificador;
+    const activoContacto = contactos.find(usuario => usuario.id === usuarioIdentificador)
+      || conversaciones.find(entrada => entrada.usuario_id === usuarioIdentificador)?.usuario;
+    if (etiquetaContactoActivo) etiquetaContactoActivo.textContent = activoContacto ? nombreDe(activoContacto) : 'Conversación';
+    establecerCompositorHabilitado(true);
+    representarConversaciones();
     try {
-      const result = await sigturApiFetch(`/api/mensajes?usuario_id=${encodeURIComponent(userId)}`);
-      const items = Array.isArray(result) ? result : result.data || [];
-      if (activeId !== userId) return;
-      thread.innerHTML = (items || []).map((item) => {
-        const isOutgoing = item.remitente_id === currentUserId();
-        const stateText = isOutgoing ? (item.leido ? '✓✓ Leído' : '✓ Enviado') : '';
-        const content = item.tipo === 'audio' && item.audio_url
-          ? `<div class="dm-audio-message"><span><span aria-hidden="true">🎙</span> Mensaje de voz · ${formatAudioTime(Number(item.duration_seconds) || 0)}</span><audio controls preload="none" src="${escapeText(item.audio_url)}" aria-label="Reproducir mensaje de voz"></audio></div>`
-          : `${item.tipo !== 'archivo' && item.contenido ? `<p class="dm-message-text">${escapeText(item.contenido)}</p>` : ''}${renderMessageAttachments(item.attachments)}`;
+      const resultado = await solicitarApiSigtur(`/api/mensajes?usuario_id=${encodeURIComponent(usuarioIdentificador)}`);
+      const elementos = Array.isArray(resultado) ? resultado : resultado.data || [];
+      if (activoIdentificador !== usuarioIdentificador) return;
+      hilo.innerHTML = (elementos || []).map((elemento) => {
+        const esSaliente = elemento.remitente_id === identificadorUsuarioActual();
+        const textoEstado = esSaliente ? (elemento.leido ? '✓✓ Leído' : '✓ Enviado') : '';
+        const contenidoPrincipal = elemento.tipo === 'audio' && elemento.audio_url
+          ? `<div class="dm-audio-message"><span><span aria-hidden="true">🎙</span> Mensaje de voz · ${formatearDuracionAudio(Number(elemento.duration_seconds) || 0)}</span><audio controls preload="none" src="${escaparTexto(elemento.audio_url)}" aria-label="Reproducir mensaje de voz"></audio></div>`
+          : `${elemento.tipo !== 'archivo' && elemento.contenido ? `<p class="dm-message-text">${escaparTexto(elemento.contenido)}</p>` : ''}${representarAdjuntosMensaje(elemento.attachments)}`;
         return `
-          <article class="dm-bubble ${isOutgoing ? 'outgoing' : 'incoming'} ${item.tipo === 'audio' ? 'dm-bubble-audio' : ''}" data-message-id="${escapeText(item.id)}">
-            ${content}
-            <time>${new Date(item.created_at).toLocaleString('es-UY')} ${stateText ? `· ${escapeText(stateText)}` : ''}</time>
-            ${isOutgoing ? '<button type="button" data-delete-message>Eliminar mensaje</button>' : ''}
+          <article class="dm-bubble ${esSaliente ? 'outgoing' : 'incoming'} ${elemento.tipo === 'audio' ? 'dm-bubble-audio' : ''}" data-message-id="${escaparTexto(elemento.id)}">
+            ${contenidoPrincipal}
+            <time>${new Date(elemento.created_at).toLocaleString('es-UY')} ${textoEstado ? `· ${escaparTexto(textoEstado)}` : ''}</time>
+            ${esSaliente ? '<button type="button" data-delete-message>Eliminar mensaje</button>' : ''}
           </article>
         `;
       }).join('') || '<p class="dm-empty">No hay mensajes todavía.</p>';
-      if (scrollToBottom || conversationChanged || wasNearBottom) thread.scrollTop = thread.scrollHeight;
-      status.textContent = '';
-      if (items.some(item => item.destinatario_id === currentUserId() && !item.leido)) {
-        await sigturApiFetch('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: userId }) });
-        notifyMessagingSync(userId);
+      if (desplazarAlFinal || conversacionCambiada || estabaCercaDelFinal) hilo.scrollTop = hilo.scrollHeight;
+      estado.textContent = '';
+      if (elementos.some(elemento => elemento.destinatario_id === identificadorUsuarioActual() && !elemento.leido)) {
+        await solicitarApiSigtur('/api/mensajes/leer', { method: 'PATCH', body: JSON.stringify({ usuario_id: usuarioIdentificador }) });
+        notificarSincronizacionMensajes(usuarioIdentificador);
       }
-      if (refreshConversations) await loadConversations();
-    } catch (error) {
-      status.textContent = error.message || 'No se pudo abrir la conversación.';
+      if (actualizarConversaciones) await cargarConversaciones();
+    } catch (fallo) {
+      estado.textContent = fallo.message || 'No se pudo abrir la conversación.';
     }
   };
 
-  thread.addEventListener('click', async event => {
-    const button = event.target.closest('[data-delete-message]');
-    if (!button) return;
-    const bubble = button.closest('[data-message-id]');
-    if (!bubble || !window.confirm('¿Eliminar este mensaje y sus archivos adjuntos?')) return;
-    button.disabled = true;
-    try { await sigturApiFetch(`/api/mensajes/${encodeURIComponent(bubble.dataset.messageId)}`, { method: 'DELETE' }); await loadThread(activeId); }
-    catch (error) { button.disabled = false; status.textContent = error.message || 'No se pudo eliminar el mensaje.'; }
+  hilo.addEventListener('click', async evento => {
+    const boton = evento.target.closest('[data-delete-message]');
+    if (!boton) return;
+    const burbuja = boton.closest('[data-message-id]');
+    if (!burbuja || !window.confirm('¿Eliminar este mensaje y sus archivos adjuntos?')) return;
+    boton.disabled = true;
+    try { await solicitarApiSigtur(`/api/mensajes/${encodeURIComponent(burbuja.dataset.messageId)}`, { method: 'DELETE' }); await cargarHilo(activoIdentificador); }
+    catch (fallo) { boton.disabled = false; estado.textContent = fallo.message || 'No se pudo eliminar el mensaje.'; }
   });
 
 
-const refreshActiveThread = async () => {
-  const isPlayingAudio = [...thread.querySelectorAll('audio')].some(player => !player.paused);
-  if (!activeId || document.hidden || refreshing || sendingAudio || mediaRecorder?.state === 'recording' || isPlayingAudio) return;
+const actualizarHiloActivo = async () => {
+  const estaReproduciendoAudio = [...hilo.querySelectorAll('audio')].some(reproductor => !reproductor.paused);
+  if (!activoIdentificador || document.hidden || actualizando || enviandoAudio || grabadorMultimedia?.state === 'recording' || estaReproduciendoAudio) return;
 
-  refreshing = true;
+  actualizando = true;
   try {
-    await loadThread(activeId, { refreshConversations: false });
+    await cargarHilo(activoIdentificador, { refreshConversations: false });
   } finally {
-    refreshing = false;
+    actualizando = false;
   }
 };
 
-const refreshMessaging = async () => {
+const actualizarMensajeria = async () => {
   if (document.hidden) return;
 
   // La lista de conversaciones cambia con menor frecuencia que el hilo activo.
-  const now = Date.now();
-  if (now - lastConversationRefresh >= 60000) {
-    lastConversationRefresh = now;
-    await loadConversations();
+  const ahora = Date.now();
+  if (ahora - ultimaActualizacionConversacion >= 60000) {
+    ultimaActualizacionConversacion = ahora;
+    await cargarConversaciones();
   }
 
   // Si hay una conversación abierta, actualiza sus mensajes.
-  await refreshActiveThread();
+  await actualizarHiloActivo();
 };
 
-let lastConversationRefresh = Date.now();
+let ultimaActualizacionConversacion = Date.now();
 
 
   try {
-    status.textContent = 'Cargando usuarios...';
-    const result = await sigturApiFetch('/api/mensajes/usuarios');
-    contacts = Array.isArray(result) ? result : result.data || [];
-    renderContacts();
-    await loadConversations();
-    status.textContent = contacts.length ? 'Elegí una conversación para empezar.' : 'No hay otros usuarios registrados para contactar.';
-  } catch (error) {
-    status.textContent = error.message || 'No se pudieron cargar los usuarios.';
+    estado.textContent = 'Cargando usuarios...';
+    const resultado = await solicitarApiSigtur('/api/mensajes/usuarios');
+    contactos = Array.isArray(resultado) ? resultado : resultado.data || [];
+    representarContactos();
+    await cargarConversaciones();
+    estado.textContent = contactos.length ? 'Elegí una conversación para empezar.' : 'No hay otros usuarios registrados para contactar.';
+  } catch (fallo) {
+    estado.textContent = fallo.message || 'No se pudieron cargar los usuarios.';
   }
 
-  contactSelect.addEventListener('change', () => {
-    const hasValue = contactSelect.value;
-    if (hasValue) {
-      loadThread(hasValue);
+  selectorContactos.addEventListener('change', () => {
+    const tieneValor = selectorContactos.value;
+    if (tieneValor) {
+      cargarHilo(tieneValor);
     }
   });
 
-  contactList?.addEventListener('click', event => {
-    const button = event.target.closest('[data-dm-user]');
-    if (!button) return;
-    const userId = button.dataset.dmUser;
-    contactSelect.value = userId;
-    loadThread(userId);
+  listaContactos?.addEventListener('click', evento => {
+    const boton = evento.target.closest('[data-dm-user]');
+    if (!boton) return;
+    const usuarioIdentificador = boton.dataset.dmUser;
+    selectorContactos.value = usuarioIdentificador;
+    cargarHilo(usuarioIdentificador);
   });
 
-  contactSearch?.addEventListener('input', renderConversations);
+  busquedaContactos?.addEventListener('input', representarConversaciones);
 
-  attachmentButton?.addEventListener('click', () => attachmentInput?.click());
-  attachmentInput?.addEventListener('change', () => {
-    const chosen = [...(attachmentInput.files || [])];
-    attachmentInput.value = '';
-    addPendingAttachments(chosen);
+  botonAdjunto?.addEventListener('click', () => entradaAdjunto?.click());
+  entradaAdjunto?.addEventListener('change', () => {
+    const elegido = [...(entradaAdjunto.files || [])];
+    entradaAdjunto.value = '';
+    agregarPendienteAdjuntos(elegido);
   });
-  message?.addEventListener('keydown', event => {
-    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;
-    event.preventDefault();
-    if (textSendButton && !textSendButton.disabled) form.requestSubmit();
+  mensaje?.addEventListener('keydown', evento => {
+    if (evento.key !== 'Enter' || evento.shiftKey || evento.isComposing) return;
+    evento.preventDefault();
+    if (botonEnviarTexto && !botonEnviarTexto.disabled) formulario.requestSubmit();
   });
-  message?.addEventListener('paste', event => {
-    const files = [...(event.clipboardData?.items || [])]
-      .filter(item => item.kind === 'file')
-      .map(item => item.getAsFile())
+  mensaje?.addEventListener('paste', evento => {
+    const archivos = [...(evento.clipboardData?.items || [])]
+      .filter(elemento => elemento.kind === 'file')
+      .map(elemento => elemento.getAsFile())
       .filter(Boolean);
-    if (!files.length) return;
-    event.preventDefault();
-    addPendingAttachments(files);
+    if (!archivos.length) return;
+    evento.preventDefault();
+    agregarPendienteAdjuntos(archivos);
   });
-  form.addEventListener('dragover', event => {
-    if ([...(event.dataTransfer?.items || [])].some(item => item.kind === 'file')) {
-      event.preventDefault();
-      form.classList.add('is-drop-target');
+  formulario.addEventListener('dragover', evento => {
+    if ([...(evento.dataTransfer?.items || [])].some(elemento => elemento.kind === 'file')) {
+      evento.preventDefault();
+      formulario.classList.add('is-drop-target');
     }
   });
-  form.addEventListener('dragleave', event => {
-    if (!form.contains(event.relatedTarget)) form.classList.remove('is-drop-target');
+  formulario.addEventListener('dragleave', evento => {
+    if (!formulario.contains(evento.relatedTarget)) formulario.classList.remove('is-drop-target');
   });
-  form.addEventListener('drop', event => {
-    form.classList.remove('is-drop-target');
-    const files = [...(event.dataTransfer?.files || [])];
-    if (!files.length) return;
-    event.preventDefault();
-    addPendingAttachments(files);
+  formulario.addEventListener('drop', evento => {
+    formulario.classList.remove('is-drop-target');
+    const archivos = [...(evento.dataTransfer?.files || [])];
+    if (!archivos.length) return;
+    evento.preventDefault();
+    agregarPendienteAdjuntos(archivos);
   });
 
   if ('BroadcastChannel' in window) {
-    messagingBroadcast = new BroadcastChannel('sigtur-mensajes');
-    messagingBroadcast.addEventListener('message', handleMessagingSync);
+    difusionMensajes = new BroadcastChannel('sigtur-mensajes');
+    difusionMensajes.addEventListener('message', gestionarSincronizacionMensajes);
   }
-  window.addEventListener('storage', (event) => {
-    if (event.key === 'sigtur-mensajes-sync') {
-      handleMessagingSync(event);
+  window.addEventListener('storage', (evento) => {
+    if (evento.key === 'sigtur-mensajes-sync') {
+      gestionarSincronizacionMensajes(evento);
     }
   });
 
 
-window.addEventListener('focus', refreshMessaging);
+window.addEventListener('focus', actualizarMensajeria);
 
-const refreshTimer = window.setInterval(refreshMessaging, 15000);
+const temporizadorActualizacion = window.setInterval(actualizarMensajeria, 15000);
 
-document.addEventListener('visibilitychange', refreshMessaging);
+document.addEventListener('visibilitychange', actualizarMensajeria);
 
-  recordButton?.addEventListener('click', async () => {
-    if (mediaRecorder?.state === 'recording') {
-      mediaRecorder.stop();
+  botonGrabar?.addEventListener('click', async () => {
+    if (grabadorMultimedia?.state === 'recording') {
+      grabadorMultimedia.stop();
       return;
     }
-    if (!activeId) {
-      status.textContent = 'Elegí una conversación antes de grabar un audio.';
+    if (!activoIdentificador) {
+      estado.textContent = 'Elegí una conversación antes de grabar un audio.';
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      status.textContent = 'Este navegador no permite grabar audio. Podés enviar mensajes de texto.';
+      estado.textContent = 'Este navegador no permite grabar audio. Podés enviar mensajes de texto.';
       return;
     }
 
-    resetAudioPreview();
-    if (recordButton) {
-      recordButton.disabled = true;
-      recordButton.textContent = 'Solicitando micrófono…';
+    restablecerVistaPreviaAudio();
+    if (botonGrabar) {
+      botonGrabar.disabled = true;
+      botonGrabar.textContent = 'Solicitando micrófono…';
     }
     try {
-      recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = recorderMimeType();
-      mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined);
-      recordingChunks = [];
-      recordingStartedAt = Date.now();
-      mediaRecorder.addEventListener('dataavailable', event => {
-        if (event.data?.size) recordingChunks.push(event.data);
+      flujoGrabacion = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const tipoMime = tipoMimeGrabador();
+      grabadorMultimedia = new MediaRecorder(flujoGrabacion, tipoMime ? { mimeType: tipoMime } : undefined);
+      fragmentosGrabacion = [];
+      grabacionIniciadaEn = Date.now();
+      grabadorMultimedia.addEventListener('dataavailable', evento => {
+        if (evento.data?.size) fragmentosGrabacion.push(evento.data);
       });
-      mediaRecorder.addEventListener('stop', () => {
-        window.clearInterval(recordingTimer);
-        recordingTimer = null;
-        recordingStream?.getTracks().forEach(track => track.stop());
-        recordingStream = null;
-        const duration = Math.max(1, Math.min(maxAudioSeconds, Math.ceil((Date.now() - recordingStartedAt) / 1000)));
-        const blob = new Blob(recordingChunks, { type: mediaRecorder?.mimeType || mimeType || 'audio/webm' });
-        mediaRecorder = null;
-        recordingChunks = [];
-        recordButton?.classList.remove('is-recording');
-        recordButton?.setAttribute('aria-pressed', 'false');
-        if (recordButton) {
-          recordButton.disabled = false;
-          recordButton.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
+      grabadorMultimedia.addEventListener('stop', () => {
+        window.clearInterval(temporizadorGrabacion);
+        temporizadorGrabacion = null;
+        flujoGrabacion?.getTracks().forEach(pista => pista.stop());
+        flujoGrabacion = null;
+        const duracion = Math.max(1, Math.min(segundosMaximosAudio, Math.ceil((Date.now() - grabacionIniciadaEn) / 1000)));
+        const archivoBinario = new Blob(fragmentosGrabacion, { type: grabadorMultimedia?.mimeType || tipoMime || 'audio/webm' });
+        grabadorMultimedia = null;
+        fragmentosGrabacion = [];
+        botonGrabar?.classList.remove('is-recording');
+        botonGrabar?.setAttribute('aria-pressed', 'false');
+        if (botonGrabar) {
+          botonGrabar.disabled = false;
+          botonGrabar.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
         }
-        if (!blob.size || blob.size > maxAudioBytes) {
-          status.textContent = blob.size ? 'La grabación supera el límite de 10 MB. Intentá hacerla más corta.' : 'No se capturó audio. Volvé a intentarlo.';
-          resetAudioPreview();
+        if (!archivoBinario.size || archivoBinario.size > bytesMaximosAudio) {
+          estado.textContent = archivoBinario.size ? 'La grabación supera el límite de 10 MB. Intentá hacerla más corta.' : 'No se capturó audio. Volvé a intentarlo.';
+          restablecerVistaPreviaAudio();
           return;
         }
-        recordedAudio = blob;
-        recordedAudioDuration = duration;
-        audioObjectUrl = URL.createObjectURL(blob);
-        if (audioPlayback) audioPlayback.src = audioObjectUrl;
-        if (audioPreview) audioPreview.hidden = false;
-        if (audioSendButton) audioSendButton.disabled = false;
-        if (recordingStatus) recordingStatus.textContent = `Grabación lista · ${formatAudioTime(duration)}. Podés escucharla antes de enviarla.`;
+        audioGrabado = archivoBinario;
+        duracionAudioGrabado = duracion;
+        urlObjetoAudio = URL.createObjectURL(archivoBinario);
+        if (reproduccionAudio) reproduccionAudio.src = urlObjetoAudio;
+        if (vistaPreviaAudio) vistaPreviaAudio.hidden = false;
+        if (botonEnviarAudio) botonEnviarAudio.disabled = false;
+        if (estadoGrabacion) estadoGrabacion.textContent = `Grabación lista · ${formatearDuracionAudio(duracion)}. Podés escucharla antes de enviarla.`;
       }, { once: true });
 
-      mediaRecorder.start(250);
-      recordButton.disabled = false;
-      recordButton.classList.add('is-recording');
-      recordButton.setAttribute('aria-pressed', 'true');
-      recordButton.innerHTML = '<span aria-hidden="true">■</span> Detener grabación';
-      if (recordingStatus) recordingStatus.textContent = 'Grabando · 0:00';
-      recordingTimer = window.setInterval(() => {
-        const elapsed = Math.floor((Date.now() - recordingStartedAt) / 1000);
-        if (recordingStatus) recordingStatus.textContent = `Grabando · ${formatAudioTime(elapsed)}`;
-        if (elapsed >= maxAudioSeconds && mediaRecorder?.state === 'recording') mediaRecorder.stop();
+      grabadorMultimedia.start(250);
+      botonGrabar.disabled = false;
+      botonGrabar.classList.add('is-recording');
+      botonGrabar.setAttribute('aria-pressed', 'true');
+      botonGrabar.innerHTML = '<span aria-hidden="true">■</span> Detener grabación';
+      if (estadoGrabacion) estadoGrabacion.textContent = 'Grabando · 0:00';
+      temporizadorGrabacion = window.setInterval(() => {
+        const tiempoTranscurrido = Math.floor((Date.now() - grabacionIniciadaEn) / 1000);
+        if (estadoGrabacion) estadoGrabacion.textContent = `Grabando · ${formatearDuracionAudio(tiempoTranscurrido)}`;
+        if (tiempoTranscurrido >= segundosMaximosAudio && grabadorMultimedia?.state === 'recording') grabadorMultimedia.stop();
       }, 1000);
-    } catch (error) {
-      recordingStream?.getTracks().forEach(track => track.stop());
-      recordingStream = null;
-      mediaRecorder = null;
-      status.textContent = error.name === 'NotAllowedError'
+    } catch (fallo) {
+      flujoGrabacion?.getTracks().forEach(pista => pista.stop());
+      flujoGrabacion = null;
+      grabadorMultimedia = null;
+      estado.textContent = fallo.name === 'NotAllowedError'
         ? 'Permití el acceso al micrófono para grabar audio.'
-        : error.message || 'No se pudo iniciar la grabación.';
-      resetAudioPreview();
+        : fallo.message || 'No se pudo iniciar la grabación.';
+      restablecerVistaPreviaAudio();
     }
   });
 
-  audioDiscardButton?.addEventListener('click', () => {
-    resetAudioPreview();
-    status.textContent = 'Grabación descartada.';
+  botonDescartarAudio?.addEventListener('click', () => {
+    restablecerVistaPreviaAudio();
+    estado.textContent = 'Grabación descartada.';
   });
 
-  audioSendButton?.addEventListener('click', async () => {
-    if (!activeId || !recordedAudio || sendingAudio) return;
-    const recipientId = activeId;
-    const audio = recordedAudio;
-    const duration = recordedAudioDuration;
+  botonEnviarAudio?.addEventListener('click', async () => {
+    if (!activoIdentificador || !audioGrabado || enviandoAudio) return;
+    const identificadorDestinatario = activoIdentificador;
+    const audio = audioGrabado;
+    const duracion = duracionAudioGrabado;
     try {
-      if (!sigturGetSession()?.token) throw new Error('Iniciá sesión para enviar un mensaje de voz.');
-      sendingAudio = true;
-      audioSendButton.disabled = true;
-      status.textContent = 'Subiendo audio…';
-      const mimeType = audio.type.split(';')[0] || 'audio/webm';
-      const uploaded = await sigturApiFetch('/api/mensajes/audio', {
+      if (!obtenerSesionSigtur()?.token) throw new Error('Iniciá sesión para enviar un mensaje de voz.');
+      enviandoAudio = true;
+      botonEnviarAudio.disabled = true;
+      estado.textContent = 'Subiendo audio…';
+      const tipoMime = audio.type.split(';')[0] || 'audio/webm';
+      const cargado = await solicitarApiSigtur('/api/mensajes/audio', {
         method: 'POST',
-        headers: { 'Content-Type': mimeType },
+        headers: { 'Content-Type': tipoMime },
         body: audio,
       });
-      await sigturApiFetch('/api/mensajes', {
+      await solicitarApiSigtur('/api/mensajes', {
         method: 'POST',
         body: JSON.stringify({
-          destinatario_id: recipientId,
+          destinatario_id: identificadorDestinatario,
           tipo: 'audio',
-          audio_path: uploaded.path,
-          duration_seconds: duration,
+          audio_path: cargado.path,
+          duration_seconds: duracion,
         }),
       });
-      resetAudioPreview();
-      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
-      notifyMessagingSync(recipientId);
-      await loadThread(recipientId, { scrollToBottom: true });
-    } catch (error) {
-      status.textContent = error.message || 'No se pudo enviar el audio.';
-      if (audioSendButton) audioSendButton.disabled = false;
+      restablecerVistaPreviaAudio();
+      estado.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
+      notificarSincronizacionMensajes(identificadorDestinatario);
+      await cargarHilo(identificadorDestinatario, { scrollToBottom: true });
+    } catch (fallo) {
+      estado.textContent = fallo.message || 'No se pudo enviar el audio.';
+      if (botonEnviarAudio) botonEnviarAudio.disabled = false;
     } finally {
-      sendingAudio = false;
+      enviandoAudio = false;
     }
   });
 
-window.addEventListener('beforeunload', event => {
-  if (recordedAudio || pendingAttachments.length || mediaRecorder?.state === 'recording') { event.preventDefault(); event.returnValue = ''; return; }
-  window.clearInterval(refreshTimer);
-  window.clearInterval(recordingTimer);
-  recordingStream?.getTracks().forEach(track => track.stop());
-  if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
-  document.removeEventListener('visibilitychange', refreshMessaging);
-  window.removeEventListener('focus', refreshMessaging);
-  messagingBroadcast?.close();
+window.addEventListener('beforeunload', evento => {
+  if (audioGrabado || adjuntosPendientes.length || grabadorMultimedia?.state === 'recording') { evento.preventDefault(); evento.returnValue = ''; return; }
+  window.clearInterval(temporizadorActualizacion);
+  window.clearInterval(temporizadorGrabacion);
+  flujoGrabacion?.getTracks().forEach(pista => pista.stop());
+  if (urlObjetoAudio) URL.revokeObjectURL(urlObjetoAudio);
+  document.removeEventListener('visibilitychange', actualizarMensajeria);
+  window.removeEventListener('focus', actualizarMensajeria);
+  difusionMensajes?.close();
 }, { once: true });
 
-  const uploadPendingAttachments = async () => {
-    const uploadedFiles = [];
-    for (let index = 0; index < pendingAttachments.length; index += 1) {
-      const file = pendingAttachments[index];
-      if (!acceptedAttachmentTypes.has(file.type) || !file.size || file.size > maxAttachmentBytes) {
+  const subirAdjuntosPendientes = async () => {
+    const archivosSubidos = [];
+    for (let indice = 0; indice < adjuntosPendientes.length; indice += 1) {
+      const archivo = adjuntosPendientes[indice];
+      if (!tiposAdjuntosAceptados.has(archivo.type) || !archivo.size || archivo.size > bytesMaximosAdjunto) {
         throw new Error('Adjuntá JPG, PNG, WebP, GIF o PDF de hasta 10 MB cada uno.');
       }
-      if (attachmentStatus) attachmentStatus.textContent = `Subiendo archivo ${index + 1} de ${pendingAttachments.length}…`;
-      const uploaded = await sigturApiFetch('/api/mensajes/adjuntos', {
+      if (adjuntoEstado) adjuntoEstado.textContent = `Subiendo archivo ${indice + 1} de ${adjuntosPendientes.length}…`;
+      const cargado = await solicitarApiSigtur('/api/mensajes/adjuntos', {
         method: 'POST',
-        headers: { 'Content-Type': file.type },
-        body: file,
+        headers: { 'Content-Type': archivo.type },
+        body: archivo,
       });
-      uploadedFiles.push({
-        path: uploaded.path,
-        name: file.name,
-        mime: uploaded.mime || file.type,
-        size: uploaded.size || file.size,
+      archivosSubidos.push({
+        path: cargado.path,
+        name: archivo.name,
+        mime: cargado.mime || archivo.type,
+        size: cargado.size || archivo.size,
       });
     }
-    return uploadedFiles;
+    return archivosSubidos;
   };
 
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
+  formulario.addEventListener('submit', async evento => {
+    evento.preventDefault();
     try {
-      if (!activeId) throw new Error('Elegí un usuario para iniciar la conversación.');
-      const contenido = message.value.trim();
-      if (!contenido && !pendingAttachments.length) throw new Error('Escribí un mensaje o adjuntá un archivo.');
-      if (!sigturGetSession()?.token) throw new Error('Iniciá sesión para enviar mensajes.');
-      const recipientId = activeId;
-      sendingMessage = true;
-      setComposerEnabled(true);
-      status.textContent = pendingAttachments.length ? 'Subiendo adjuntos…' : 'Enviando mensaje…';
-      const attachments = await uploadPendingAttachments();
-      await sigturApiFetch('/api/mensajes', {
+      if (!activoIdentificador) throw new Error('Elegí un usuario para iniciar la conversación.');
+      const contenido = mensaje.value.trim();
+      if (!contenido && !adjuntosPendientes.length) throw new Error('Escribí un mensaje o adjuntá un archivo.');
+      if (!obtenerSesionSigtur()?.token) throw new Error('Iniciá sesión para enviar mensajes.');
+      const identificadorDestinatario = activoIdentificador;
+      enviandoMensaje = true;
+      establecerCompositorHabilitado(true);
+      estado.textContent = adjuntosPendientes.length ? 'Subiendo adjuntos…' : 'Enviando mensaje…';
+      const adjuntos = await subirAdjuntosPendientes();
+      await solicitarApiSigtur('/api/mensajes', {
         method: 'POST',
         body: JSON.stringify({
-          destinatario_id: recipientId,
+          destinatario_id: identificadorDestinatario,
           contenido,
           tipo: contenido ? 'texto' : 'archivo',
-          attachments,
+          attachments: adjuntos,
         })
       });
-      message.value = '';
-      clearPendingAttachments();
-      status.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
-      notifyMessagingSync(recipientId);
-      await loadThread(recipientId, { scrollToBottom: true });
-    } catch (error) {
-      status.textContent = error.message || 'No se pudo enviar el mensaje.';
+      mensaje.value = '';
+      limpiarAdjuntosPendientes();
+      estado.textContent = 'Mensaje guardado. El destinatario lo verá cuando vuelva a conectarse.';
+      notificarSincronizacionMensajes(identificadorDestinatario);
+      await cargarHilo(identificadorDestinatario, { scrollToBottom: true });
+    } catch (fallo) {
+      estado.textContent = fallo.message || 'No se pudo enviar el mensaje.';
     } finally {
-      sendingMessage = false;
-      if (pendingAttachments.length) renderPendingAttachments();
-      setComposerEnabled(Boolean(activeId));
+      enviandoMensaje = false;
+      if (adjuntosPendientes.length) representarAdjuntosPendientes();
+      establecerCompositorHabilitado(Boolean(activoIdentificador));
     }
   });
 }
 
-function escapeText(value) {
-  const element = document.createElement('span');
-  element.textContent = String(value ?? '');
-  return element.innerHTML;
+function escaparTexto(valor) {
+  const elemento = document.createElement('span');
+  elemento.textContent = String(valor ?? '');
+  return elemento.innerHTML;
 }
 
-function setupFavoriteButtons() {
-  document.querySelectorAll('.prop-heart, .lugar-action-link.guardar').forEach(button => {
-    const card = button.closest('.prop-card') || button.closest('.lugar-actions')?.parentElement?.parentElement || button.parentElement;
-    const title = card.querySelector('.prop-name, h3, h4')?.textContent.trim() || button.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || card.querySelector('img')?.alt?.trim() || 'Lugar turístico';
-    const entityId = button.dataset.entityId || title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    button.dataset.entityId = entityId;
-    button.setAttribute('aria-pressed', 'false');
-    const sync = async () => {
-      try { const state = await sigturApiFetch(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(entityId)}`); button.setAttribute('aria-pressed', String(Boolean(state.saved))); button.classList.toggle('liked', Boolean(state.saved)); }
-      catch { button.setAttribute('aria-pressed', 'false'); }
+function configurarBotonesFavoritos() {
+  document.querySelectorAll('.prop-heart, .lugar-action-link.guardar').forEach(boton => {
+    const tarjeta = boton.closest('.prop-card') || boton.closest('.lugar-actions')?.parentElement?.parentElement || boton.parentElement;
+    const titulo = tarjeta.querySelector('.prop-name, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
+    const identificadorEntidad = boton.dataset.entityId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    boton.dataset.entityId = identificadorEntidad;
+    boton.setAttribute('aria-pressed', 'false');
+    const sincronizar = async () => {
+      try { const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(identificadorEntidad)}`); boton.setAttribute('aria-pressed', String(Boolean(estado.saved))); boton.classList.toggle('liked', Boolean(estado.saved)); }
+      catch { boton.setAttribute('aria-pressed', 'false'); }
     };
-    sync();
-    button.addEventListener('click', async event => {
-      event.preventDefault();
-      if (!sigturGetSession()?.token) { window.location.assign('login.html'); return; }
-      const active = button.getAttribute('aria-pressed') !== 'true'; button.disabled = true;
+    sincronizar();
+    boton.addEventListener('click', async evento => {
+      evento.preventDefault();
+      if (!obtenerSesionSigtur()?.token) { window.location.assign('login.html'); return; }
+      const activo = boton.getAttribute('aria-pressed') !== 'true'; boton.disabled = true;
       try {
-        await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'place', entidad_id: entityId, activo: active, metadata: { nombre: title } }) });
-        button.setAttribute('aria-pressed', String(active)); button.classList.toggle('liked', active);
-        button.setAttribute('aria-label', active ? `Quitar ${title} de guardados` : `Guardar ${title}`);
-      } catch (error) { window.alert(error.message || 'No se pudo actualizar guardados.'); }
-      finally { button.disabled = false; }
+        await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'place', entidad_id: identificadorEntidad, activo: activo, metadata: { nombre: titulo } }) });
+        boton.setAttribute('aria-pressed', String(activo)); boton.classList.toggle('liked', activo);
+        boton.setAttribute('aria-label', activo ? `Quitar ${titulo} de guardados` : `Guardar ${titulo}`);
+      } catch (fallo) { window.alert(fallo.message || 'No se pudo actualizar guardados.'); }
+      finally { boton.disabled = false; }
     });
   });
 }
 
-function setupTourismPlanning() {
-  const cards = document.querySelectorAll('.alojamientos-section .prop-card');
-  if (!cards.length) return;
-  const dialog = document.createElement('dialog');
-  dialog.className = 'tourism-plan-dialog';
-  document.body.appendChild(dialog);
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close('cancel'); });
-  const open = card => {
-    const name = card.querySelector('.prop-name')?.textContent.trim() || 'Experiencia turística';
-    const price = card.querySelector('.prop-price')?.textContent.trim() || 'Consultar tarifa';
-    const placeRef = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    dialog.innerHTML = `<form class="tourism-plan-widget"><header><div><p>Planificá tu visita</p><h2>${escapeText(name)}</h2></div><button type="button" data-plan-close aria-label="Cerrar">×</button></header><div class="tourism-plan-grid"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reservation-slots"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="tourism-plan-summary"><span>Desde</span><strong>${escapeText(price)}</strong></div><footer><button type="button" data-plan-close>Cancelar</button><button type="submit">Solicitar disponibilidad</button></footer><p class="tourism-plan-status" aria-live="polite"></p></form>`;
-    dialog.querySelectorAll('[data-plan-close]').forEach(button => button.addEventListener('click', () => dialog.close('cancel')));
-    dialog.querySelector('form').addEventListener('submit', async event => {
-      event.preventDefault();
-      const form = event.currentTarget, status = form.querySelector('.tourism-plan-status'), values = new FormData(form);
-      if (!sigturGetSession()?.token) { window.location.assign('login.html'); return; }
-      const submit = form.querySelector('[type="submit"]'); submit.disabled = true; status.textContent = 'Guardando planificación…';
-      try { await sigturApiFetch('/api/reservas/planes', { method: 'POST', body: JSON.stringify({ place_ref: placeRef, place_name: name, visit_date: values.get('date'), people: Number(values.get('people')), schedule: values.get('schedule') }) }); status.textContent = 'Plan guardado en tu perfil.'; window.setTimeout(() => dialog.close('saved'), 700); }
-      catch (error) { status.textContent = error.message || 'No se pudo guardar el plan.'; submit.disabled = false; }
+function configurarPlanificacionTuristica() {
+  const tarjetas = document.querySelectorAll('.alojamientos-section .prop-card');
+  if (!tarjetas.length) return;
+  const dialogo = document.createElement('dialog');
+  dialogo.className = 'tourism-plan-dialog';
+  document.body.appendChild(dialogo);
+  dialogo.addEventListener('click', evento => { if (evento.target === dialogo) dialogo.close('cancel'); });
+  const abrir = tarjeta => {
+    const nombre = tarjeta.querySelector('.prop-name')?.textContent.trim() || 'Experiencia turística';
+    const precio = tarjeta.querySelector('.prop-price')?.textContent.trim() || 'Consultar tarifa';
+    const referenciaLugar = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    dialogo.innerHTML = `<form class="tourism-plan-widget"><header><div><p>Planificá tu visita</p><h2>${escaparTexto(nombre)}</h2></div><button type="button" data-plan-close aria-label="Cerrar">×</button></header><div class="tourism-plan-grid"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reservation-slots"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="tourism-plan-summary"><span>Desde</span><strong>${escaparTexto(precio)}</strong></div><footer><button type="button" data-plan-close>Cancelar</button><button type="submit">Solicitar disponibilidad</button></footer><p class="tourism-plan-status" aria-live="polite"></p></form>`;
+    dialogo.querySelectorAll('[data-plan-close]').forEach(boton => boton.addEventListener('click', () => dialogo.close('cancel')));
+    dialogo.querySelector('form').addEventListener('submit', async evento => {
+      evento.preventDefault();
+      const formulario = evento.currentTarget, estado = formulario.querySelector('.tourism-plan-status'), valores = new FormData(formulario);
+      if (!obtenerSesionSigtur()?.token) { window.location.assign('login.html'); return; }
+      const enviar = formulario.querySelector('[type="submit"]'); enviar.disabled = true; estado.textContent = 'Guardando planificación…';
+      try { await solicitarApiSigtur('/api/reservas/planes', { method: 'POST', body: JSON.stringify({ place_ref: referenciaLugar, place_name: nombre, visit_date: valores.get('date'), people: Number(valores.get('people')), schedule: valores.get('schedule') }) }); estado.textContent = 'Plan guardado en tu perfil.'; window.setTimeout(() => dialogo.close('saved'), 700); }
+      catch (fallo) { estado.textContent = fallo.message || 'No se pudo guardar el plan.'; enviar.disabled = false; }
     });
-    dialog.showModal();
+    dialogo.showModal();
   };
-  cards.forEach(card => {
-    const info = card.querySelector('.prop-info');
-    if (!info) return;
-    const button = document.createElement('button');
-    button.className = 'tourism-plan-trigger'; button.type = 'button'; button.textContent = 'Planificar visita';
-    button.addEventListener('click', () => open(card));
-    info.appendChild(button);
+  tarjetas.forEach(tarjeta => {
+    const informacion = tarjeta.querySelector('.prop-info');
+    if (!informacion) return;
+    const boton = document.createElement('button');
+    boton.className = 'tourism-plan-trigger'; boton.type = 'button'; boton.textContent = 'Planificar visita';
+    boton.addEventListener('click', () => abrir(tarjeta));
+    informacion.appendChild(boton);
   });
 }
 
-function setupTourismCuriosity() {
-  const target = document.getElementById('tourism-curiosity-text');
-  if (!target) return;
-  const facts = [
+function configurarCuriosidadesTuristicas() {
+  const destino = document.getElementById('tourism-curiosity-text');
+  if (!destino) return;
+  const datosCuriosos = [
     'Las termas del Daymán son uno de los grandes atractivos de Salto: sus aguas cálidas invitan a descansar todo el año.',
     'Salto se asoma al río Uruguay y su costanera es uno de los lugares preferidos para caminar al atardecer.',
     'La naranja es parte de la identidad productiva local; en la ciudad se celebra con sabores, ferias y recetas regionales.',
     'El nombre de Salto remite a los antiguos saltos de agua del río Uruguay, que marcaron la historia de la zona.',
     'La ciudad combina patrimonio, termas, gastronomía y naturaleza en distancias cortas para recorrer sin apuro.'
   ];
-  let previous = Number(localStorage.getItem('sigtur-last-curiosity'));
-  if (!Number.isInteger(previous) || previous < 0 || previous >= facts.length) previous = -1;
-  const available = facts.map((_, index) => index).filter(index => index !== previous);
-  const next = available[Math.floor(Math.random() * available.length)];
-  localStorage.setItem('sigtur-last-curiosity', String(next));
-  target.textContent = facts[next];
+  let anterior = Number(localStorage.getItem('sigtur-last-curiosity'));
+  if (!Number.isInteger(anterior) || anterior < 0 || anterior >= datosCuriosos.length) anterior = -1;
+  const disponible = datosCuriosos.map((_, indice) => indice).filter(indice => indice !== anterior);
+  const siguiente = disponible[Math.floor(Math.random() * disponible.length)];
+  localStorage.setItem('sigtur-last-curiosity', String(siguiente));
+  destino.textContent = datosCuriosos[siguiente];
 }
 
-function setupFoodInfo() {
-  const cards = document.querySelectorAll('.page-home .food-card');
-  if (!cards.length) return;
-  const descriptions = {
+function configurarInformacionGastronomica() {
+  const tarjetas = document.querySelectorAll('.page-home .food-card');
+  if (!tarjetas.length) return;
+  const descripciones = {
     'Asado criollo': 'El asado criollo se cocina lentamente a las brasas. Es una tradición de encuentro: cortes de carne, fuego paciente y sobremesa compartida.',
     Empanadas: 'Las empanadas son masas rellenas y horneadas o fritas. En Salto suelen encontrarse con carne, queso, jamón, pollo o verduras, ideales para compartir.',
     'Cultura del mate': 'El mate es una infusión de yerba mate que se toma con bombilla. Más que una bebida, es una costumbre cotidiana para conversar y recorrer la ciudad.'
   };
-  const dialog = document.createElement('dialog');
-  dialog.className = 'food-info-dialog'; document.body.appendChild(dialog);
-  cards.forEach(card => {
-    card.tabIndex = 0; card.setAttribute('role', 'button');
-    const title = card.querySelector('.food-card-btn')?.textContent.trim() || 'Gastronomía local';
-    const open = () => { dialog.innerHTML = `<article><button type="button" aria-label="Cerrar">×</button><p>Sabores de Salto</p><h2>${escapeText(title)}</h2><div>${escapeText(descriptions[title] || 'Una propuesta gastronómica para descubrir durante tu visita a Salto.')}</div></article>`; dialog.showModal(); dialog.querySelector('button').addEventListener('click', () => dialog.close()); };
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  const dialogo = document.createElement('dialog');
+  dialogo.className = 'food-info-dialog'; document.body.appendChild(dialogo);
+  tarjetas.forEach(tarjeta => {
+    tarjeta.tabIndex = 0; tarjeta.setAttribute('role', 'button');
+    const titulo = tarjeta.querySelector('.food-card-btn')?.textContent.trim() || 'Gastronomía local';
+    const abrir = () => { dialogo.innerHTML = `<article><button type="button" aria-label="Cerrar">×</button><p>Sabores de Salto</p><h2>${escaparTexto(titulo)}</h2><div>${escaparTexto(descripciones[titulo] || 'Una propuesta gastronómica para descubrir durante tu visita a Salto.')}</div></article>`; dialogo.showModal(); dialogo.querySelector('button').addEventListener('click', () => dialogo.close()); };
+    tarjeta.addEventListener('click', abrir);
+    tarjeta.addEventListener('keydown', evento => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir(); } });
   });
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialogo.addEventListener('click', evento => { if (evento.target === dialogo) dialogo.close(); });
 }
 
-async function hydrateSavedPlaces(savedPlaces = [], userId) {
-  let cachedPins = {};
-  try { cachedPins = JSON.parse(localStorage.getItem(`sigtur-place-pins:${userId}`) || '{}'); } catch { /* caché local inválida */ }
-  let catalog = [];
+async function completarLugaresGuardados(lugaresGuardados = [], usuarioIdentificador) {
+  let marcadoresAlmacenados = {};
+  try { marcadoresAlmacenados = JSON.parse(localStorage.getItem(`sigtur-place-pins:${usuarioIdentificador}`) || '{}'); } catch { /* caché local inválida */ }
+  let catalogo = [];
   try {
-    const response = await fetch(`${SIGTUR_BACKEND_URL}/mapa`);
-    const payload = response.ok ? await response.json() : null;
-    catalog = Array.isArray(payload) ? payload : payload?.data || payload?.puntos || [];
+    const respuesta = await fetch(`${SIGTUR_URL_SERVIDOR}/mapa`);
+    const datosEnviados = respuesta.ok ? await respuesta.json() : null;
+    catalogo = Array.isArray(datosEnviados) ? datosEnviados : datosEnviados?.data || datosEnviados?.puntos || [];
   } catch { /* se usa la caché local si el catálogo no está disponible */ }
-  const catalogPins = Object.fromEntries(catalog.map(item => {
-    const id = String(item.id ?? '');
-    return [id, {
-      id,
-      nombre: item.nombre || item.name || item.titulo || item.title || '',
-      direccion: item.direccion || item.address || item.ubicacion || '',
-      categorias: item.categorias || item.categories || item.category || [],
-      imagen: item.imagen || item.imagen_url || item.image || item.image_url || '',
-      enlace: item.enlace || item.url || item.link || '',
+  const marcadoresCatalogo = Object.fromEntries(catalogo.map(elemento => {
+    const identificador = String(elemento.id ?? '');
+    return [identificador, {
+      id: identificador,
+      nombre: elemento.nombre || elemento.name || elemento.titulo || elemento.title || '',
+      direccion: elemento.direccion || elemento.address || elemento.ubicacion || '',
+      categorias: elemento.categorias || elemento.categories || elemento.category || [],
+      imagen: elemento.imagen || elemento.imagen_url || elemento.image || elemento.image_url || '',
+      enlace: elemento.enlace || elemento.url || elemento.link || '',
     }];
-  }).filter(([id]) => id));
-  const remoteIds = new Set(savedPlaces.filter(item => item.entidad_tipo === 'place').map(item => String(item.entidad_id)));
-  const remote = savedPlaces.map(item => item.entidad_tipo === 'place' && (cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)])
-    ? { ...item, pin: cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)] }
-    : item);
-  return remote.map(item => ({ ...item, pin: item.metadata || item.pin || cachedPins[String(item.entidad_id)] || catalogPins[String(item.entidad_id)] || {} }))
+  }).filter(([identificador]) => identificador));
+  const identificadoresRemotos = new Set(lugaresGuardados.filter(elemento => elemento.entidad_tipo === 'place').map(elemento => String(elemento.entidad_id)));
+  const remoto = lugaresGuardados.map(elemento => elemento.entidad_tipo === 'place' && (marcadoresAlmacenados[String(elemento.entidad_id)] || marcadoresCatalogo[String(elemento.entidad_id)])
+    ? { ...elemento, pin: marcadoresAlmacenados[String(elemento.entidad_id)] || marcadoresCatalogo[String(elemento.entidad_id)] }
+    : elemento);
+  return remoto.map(elemento => ({ ...elemento, pin: elemento.metadata || elemento.pin || marcadoresAlmacenados[String(elemento.entidad_id)] || marcadoresCatalogo[String(elemento.entidad_id)] || {} }))
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
-function renderProfileGrid(savedPlaces = []) {
-  const grid = document.getElementById('content-grid');
-  if (!grid) return;
-  if (!savedPlaces.length) {
-    grid.innerHTML = '<p class="profile-empty">Todavía no guardaste ningún punto. Explorá el mapa para armar tu lista.</p>';
+function representarCuadriculaPerfil(lugaresGuardados = []) {
+  const cuadricula = document.getElementById('content-grid');
+  if (!cuadricula) return;
+  if (!lugaresGuardados.length) {
+    cuadricula.innerHTML = '<p class="profile-empty">Todavía no guardaste ningún punto. Explorá el mapa para armar tu lista.</p>';
     return;
   }
-  grid.innerHTML = savedPlaces.map(item => {
-    const pin = item.pin || {};
-    const kind = item.entidad_tipo === 'event' ? 'Evento' : item.entidad_tipo === 'company' ? 'Gastronomía o servicio' : 'Lugar guardado';
-    const title = pin.nombre || `${kind} · ${item.entidad_id}`;
-    const href = item.entidad_tipo === 'event' ? 'eventos.html' : `mapa.html?focus=${encodeURIComponent(item.entidad_id)}`;
-    const action = item.entidad_tipo === 'event' ? 'Ver eventos' : 'Ver en el mapa';
-    const tags = Array.isArray(pin.categorias) && pin.categorias.length ? `<p class="profile-card-tags">${pin.categorias.map(tag => `<span>${escapeText(tag)}</span>`).join('')}</p>` : '';
-    const image = pin.imagen ? `<img src="${escapeText(pin.imagen)}" alt="" loading="lazy">` : '';
-    return `<article class="profile-card">${image}<div><small class="profile-card-kind">${kind}</small><h3>${escapeText(title)}</h3>${pin.direccion ? `<p>${escapeText(pin.direccion)}</p>` : ''}${tags}<p>Guardado el ${new Date(item.created_at).toLocaleDateString('es-UY')}</p><a href="${href}">${action}</a> <button type="button" data-remove-saved="${escapeText(item.entidad_id)}" data-saved-type="${escapeText(item.entidad_tipo)}">Quitar de guardados</button></div></article>`;
+  cuadricula.innerHTML = lugaresGuardados.map(elemento => {
+    const marcador = elemento.pin || {};
+    const tipo = elemento.entidad_tipo === 'event' ? 'Evento' : elemento.entidad_tipo === 'company' ? 'Gastronomía o servicio' : 'Lugar guardado';
+    const titulo = marcador.nombre || `${tipo} · ${elemento.entidad_id}`;
+    const enlace = elemento.entidad_tipo === 'event' ? 'eventos.html' : `mapa.html?focus=${encodeURIComponent(elemento.entidad_id)}`;
+    const accion = elemento.entidad_tipo === 'event' ? 'Ver eventos' : 'Ver en el mapa';
+    const etiquetas = Array.isArray(marcador.categorias) && marcador.categorias.length ? `<p class="profile-card-tags">${marcador.categorias.map(etiqueta => `<span>${escaparTexto(etiqueta)}</span>`).join('')}</p>` : '';
+    const imagen = marcador.imagen ? `<img src="${escaparTexto(marcador.imagen)}" alt="" loading="lazy">` : '';
+    return `<article class="profile-card">${imagen}<div><small class="profile-card-kind">${tipo}</small><h3>${escaparTexto(titulo)}</h3>${marcador.direccion ? `<p>${escaparTexto(marcador.direccion)}</p>` : ''}${etiquetas}<p>Guardado el ${new Date(elemento.created_at).toLocaleDateString('es-UY')}</p><a href="${enlace}">${accion}</a> <button type="button" data-remove-saved="${escaparTexto(elemento.entidad_id)}" data-saved-type="${escaparTexto(elemento.entidad_tipo)}">Quitar de guardados</button></div></article>`;
   }).join('');
 }
 
-async function renderProfileReservations(userId) {
-  const list = document.getElementById('reservations-list');
-  if (!list) return;
-  list.setAttribute('aria-busy', 'true');
-  list.innerHTML = '<p class="ui-list-status is-loading" role="status">Cargando reservas...</p>';
-  let result;
-  try { result = await sigturApiFetch('/api/reservas'); }
-  catch (error) { list.innerHTML = `<p class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar tus reservas.')}</p>`; list.setAttribute('aria-busy', 'false'); return; }
-  const entries = [
-    ...(result.events || []).map(item => ({ ...item, type: 'event', displayName: item.event_title, displayDate: item.created_at, quantity: item.quantity, id: item.id })),
-    ...(result.plans || []).map(item => ({ ...item, type: 'place', displayName: item.place_name, displayDate: item.visit_date, created_at: item.created_at, people: item.people, date: item.visit_date, id: item.id })),
+async function representarReservasPerfil(usuarioIdentificador) {
+  const lista = document.getElementById('reservations-list');
+  if (!lista) return;
+  lista.setAttribute('aria-busy', 'true');
+  lista.innerHTML = '<p class="ui-list-status is-loading" role="status">Cargando reservas...</p>';
+  let resultado;
+  try { resultado = await solicitarApiSigtur('/api/reservas'); }
+  catch (fallo) { lista.innerHTML = `<p class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus reservas.')}</p>`; lista.setAttribute('aria-busy', 'false'); return; }
+  const entradas = [
+    ...(resultado.events || []).map(elemento => ({ ...elemento, type: 'event', displayName: elemento.event_title, displayDate: elemento.created_at, quantity: elemento.quantity, id: elemento.id })),
+    ...(resultado.plans || []).map(elemento => ({ ...elemento, type: 'place', displayName: elemento.place_name, displayDate: elemento.visit_date, created_at: elemento.created_at, people: elemento.people, date: elemento.visit_date, id: elemento.id })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  list.innerHTML = entries.length
-    ? entries.map(reservation => reservation.type === 'event'
-      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escapeText(reservation.displayName || 'Evento')}</strong><p>${reservation.quantity} ${Number(reservation.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escapeText(reservation.schedule)} · ${new Date(reservation.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reservation.event_ref)}">Ver evento</a><button type="button" data-cancel-reservation="${reservation.id}" data-reservation-type="eventos">Cancelar</button></article>`
-      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escapeText(reservation.displayName || 'Experiencia turística')}</strong><p>${escapeText(reservation.date)} · ${reservation.people} ${Number(reservation.people) === 1 ? 'persona' : 'personas'} · ${escapeText(reservation.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reservation="${reservation.id}" data-reservation-type="planes">Cancelar</button></article>`).join('')
+  lista.innerHTML = entradas.length
+    ? entradas.map(reserva => reserva.type === 'event'
+      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escaparTexto(reserva.displayName || 'Evento')}</strong><p>${reserva.quantity} ${Number(reserva.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escaparTexto(reserva.schedule)} · ${new Date(reserva.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reserva.event_ref)}">Ver evento</a><button type="button" data-cancel-reservation="${reserva.id}" data-reservation-type="eventos">Cancelar</button></article>`
+      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escaparTexto(reserva.displayName || 'Experiencia turística')}</strong><p>${escaparTexto(reserva.date)} · ${reserva.people} ${Number(reserva.people) === 1 ? 'persona' : 'personas'} · ${escaparTexto(reserva.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reservation="${reserva.id}" data-reservation-type="planes">Cancelar</button></article>`).join('')
     : '<p class="profile-empty">Todavía no tenés reservas ni visitas planificadas.</p>';
-  list.setAttribute('aria-busy', 'false');
-  list.onclick = async event => {
-    const cancel = event.target.closest('[data-cancel-reservation]');
-    if (!cancel || !window.confirm('¿Cancelar esta reserva o planificación?')) return;
-    cancel.disabled = true;
-    try { await sigturApiFetch(`/api/reservas/${cancel.dataset.reservationType}/${encodeURIComponent(cancel.dataset.cancelReservation)}`, { method: 'DELETE' }); await renderProfileReservations(userId); }
-    catch (error) { cancel.disabled = false; window.alert(error.message || 'No se pudo cancelar.'); }
+  lista.setAttribute('aria-busy', 'false');
+  lista.onclick = async evento => {
+    const cancelar = evento.target.closest('[data-cancel-reservation]');
+    if (!cancelar || !window.confirm('¿Cancelar esta reserva o planificación?')) return;
+    cancelar.disabled = true;
+    try { await solicitarApiSigtur(`/api/reservas/${cancelar.dataset.reservationType}/${encodeURIComponent(cancelar.dataset.cancelReservation)}`, { method: 'DELETE' }); await representarReservasPerfil(usuarioIdentificador); }
+    catch (fallo) { cancelar.disabled = false; window.alert(fallo.message || 'No se pudo cancelar.'); }
   };
 }
 
-function setupEventAdminShortcut() {
-  if (sigturGetSession()?.usuario?.rol !== 'admin') return;
-  const host = document.querySelector('.destacados-header');
-  if (!host || host.querySelector('[data-admin-create-event]')) return;
-  const link = document.createElement('a');
-  link.href = 'admin.html#admin-event-form';
-  link.className = 'admin-create-event';
-  link.dataset.adminCreateEvent = 'true';
-  link.textContent = '+ Crear evento';
-  host.appendChild(link);
+function configurarAccesoRapidoEventosAdmin() {
+  if (obtenerSesionSigtur()?.usuario?.rol !== 'admin') return;
+  const servidor = document.querySelector('.destacados-header');
+  if (!servidor || servidor.querySelector('[data-admin-create-event]')) return;
+  const enlace = document.createElement('a');
+  enlace.href = 'admin.html#admin-event-form';
+  enlace.className = 'admin-create-event';
+  enlace.dataset.adminCreateEvent = 'true';
+  enlace.textContent = '+ Crear evento';
+  servidor.appendChild(enlace);
 }
 
-async function setupEventInteractions() {
-  const ticketList = document.querySelector('.page-eventos .event-tickets');
-  if (!ticketList) return;
-  const eventIcon = (name) => {
-    const paths = {
+async function configurarInteraccionesEventos() {
+  const listaTickets = document.querySelector('.page-eventos .event-tickets');
+  if (!listaTickets) return;
+  const iconoEvento = (nombre) => {
+    const rutas = {
       location: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
       culture: '<path d="M4 5h16v12H4zM8 21h8M12 17v4M8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01"/>',
       music: '<path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Zm12-2a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3Z"/>',
@@ -2196,334 +2196,334 @@ async function setupEventInteractions() {
       price: '<path d="M20 13 13 20l-9-9V4h7l9 9Z"/><circle cx="8" cy="8" r="1"/>',
       comment: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-.9L3 21l1.9-5.5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 8.5-8.5 8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M8 11h8M8 15h5"/>',
     };
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.culture}</svg>`;
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${rutas[nombre] || rutas.culture}</svg>`;
   };
-  const categoryIcon = value => {
-    const key = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const icon = key.includes('mus') ? 'music' : key.includes('deport') ? 'sports' : key.includes('feria') ? 'fair' : key.includes('gastr') ? 'food' : key.includes('relig') ? 'faith' : key.includes('infant') ? 'kids' : 'culture';
-    return eventIcon(icon);
+  const iconoCategoria = valor => {
+    const clave = String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const icono = clave.includes('mus') ? 'music' : clave.includes('deport') ? 'sports' : clave.includes('feria') ? 'fair' : clave.includes('gastr') ? 'food' : clave.includes('relig') ? 'faith' : clave.includes('infant') ? 'kids' : 'culture';
+    return iconoEvento(icono);
   };
   try {
-    const result = await sigturApiFetch('/api/eventos');
-    const events = Array.isArray(result) ? result : result.data || [];
-    const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    events.forEach(event => {
-      const date = new Date(`${event.date_start}T00:00:00`);
-      const category = String(event.categories?.[0] || 'Cultura').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '');
-      const row = document.createElement('article');
-      row.className = 'ticket-row ticket-row-remote';
-      row.dataset.cat = category;
-      row.dataset.eventId = `event-${event.id}`;
-      const eventColor = /^#[0-9a-f]{6}$/i.test(String(event.color || '')) ? event.color : '#16b3a3';
-      const eventImage = (() => { try { const source = String(event.image_url || '').trim(); if (!source) return ''; const image = new URL(source, window.location.href); return ['http:', 'https:'].includes(image.protocol) ? image.href : ''; } catch { return ''; } })();
-      row.dataset.eventColor = eventColor;
-      row.dataset.eventImage = eventImage;
-      row.style.setProperty('--event-color', eventColor);
-      const eventTime = event.event_time ? String(event.event_time).slice(0, 5) : 'Horario a confirmar';
-      const eventPrice = Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis';
-      row.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(date.getTime()) ? '--' : String(date.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(date.getTime()) ? '---' : monthNames[date.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><div class="ticket-heading"><span class="ticket-image">${eventImage ? `<img class="ticket-thumbnail" src="${escapeText(eventImage)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ticket-image-fallback">${categoryIcon(event.categories?.[0])}</span></span><span class="ticket-title">${escapeText(event.title)}</span></div><span class="ticket-subtitle">${escapeText(event.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${eventIcon('location')}${escapeText(event.location || 'Ubicaci\u00f3n a confirmar')}</div></div><span class="ticket-badge badge-green">${categoryIcon(event.categories?.[0])}<span>${escapeText(event.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${eventIcon('time')}<span>${escapeText(eventTime)}</span></span><span class="ticket-time ticket-price">${eventIcon('price')}<span>${eventPrice}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
-      row.querySelector('.ticket-thumbnail')?.addEventListener('error', imageError => imageError.currentTarget.remove(), { once: true });
-      ticketList.prepend(row);
+    const resultado = await solicitarApiSigtur('/api/eventos');
+    const eventos = Array.isArray(resultado) ? resultado : resultado.data || [];
+    const nombresMeses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    eventos.forEach(evento => {
+      const fecha = new Date(`${evento.date_start}T00:00:00`);
+      const categoria = String(evento.categories?.[0] || 'Cultura').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '');
+      const fila = document.createElement('article');
+      fila.className = 'ticket-row ticket-row-remote';
+      fila.dataset.cat = categoria;
+      fila.dataset.eventId = `event-${evento.id}`;
+      const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
+      const imagenEvento = (() => { try { const fuente = String(evento.image_url || '').trim(); if (!fuente) return ''; const imagen = new URL(fuente, window.location.href); return ['http:', 'https:'].includes(imagen.protocol) ? imagen.href : ''; } catch { return ''; } })();
+      fila.dataset.eventColor = colorEvento;
+      fila.dataset.eventImage = imagenEvento;
+      fila.style.setProperty('--event-color', colorEvento);
+      const horaEvento = evento.event_time ? String(evento.event_time).slice(0, 5) : 'Horario a confirmar';
+      const precioEvento = Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis';
+      fila.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(fecha.getTime()) ? '--' : String(fecha.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(fecha.getTime()) ? '---' : nombresMeses[fecha.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><div class="ticket-heading"><span class="ticket-image">${imagenEvento ? `<img class="ticket-thumbnail" src="${escaparTexto(imagenEvento)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ticket-image-fallback">${iconoCategoria(evento.categories?.[0])}</span></span><span class="ticket-title">${escaparTexto(evento.title)}</span></div><span class="ticket-subtitle">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${iconoEvento('location')}${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</div></div><span class="ticket-badge badge-green">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span><span class="ticket-time ticket-price">${iconoEvento('price')}<span>${precioEvento}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
+      fila.querySelector('.ticket-thumbnail')?.addEventListener('error', errorImagen => errorImagen.currentTarget.remove(), { once: true });
+      listaTickets.prepend(fila);
     });
-  } catch (error) {
-    const status = document.createElement('p');
-    status.className = 'form-help event-api-status';
-    status.textContent = error.message || 'No se pudieron cargar los eventos publicados.';
-    ticketList.insertAdjacentElement('beforebegin', status);
+  } catch (fallo) {
+    const estado = document.createElement('p');
+    estado.className = 'form-help event-api-status';
+    estado.textContent = fallo.message || 'No se pudieron cargar los eventos publicados.';
+    listaTickets.insertAdjacentElement('beforebegin', estado);
   }
-  document.querySelectorAll('.page-eventos .ticket-row:not(.ticket-row-remote)').forEach(row => {
-    const oldTime = row.querySelector('.ticket-time');
-    if (oldTime && !row.querySelector('.ticket-schedule')) {
-      oldTime.classList.add('ticket-schedule');
-      oldTime.innerHTML = `${eventIcon('time')}<span>${escapeText(oldTime.textContent.trim())}</span>`;
-      const price = document.createElement('span');
-      price.className = 'ticket-time ticket-price';
-      price.innerHTML = `${eventIcon('price')}<span>Consultar</span>`;
-      oldTime.insertAdjacentElement('afterend', price);
+  document.querySelectorAll('.page-eventos .ticket-row:not(.ticket-row-remote)').forEach(fila => {
+    const horaAnterior = fila.querySelector('.ticket-time');
+    if (horaAnterior && !fila.querySelector('.ticket-schedule')) {
+      horaAnterior.classList.add('ticket-schedule');
+      horaAnterior.innerHTML = `${iconoEvento('time')}<span>${escaparTexto(horaAnterior.textContent.trim())}</span>`;
+      const precio = document.createElement('span');
+      precio.className = 'ticket-time ticket-price';
+      precio.innerHTML = `${iconoEvento('price')}<span>Consultar</span>`;
+      horaAnterior.insertAdjacentElement('afterend', precio);
     }
-    const badge = row.querySelector('.ticket-badge');
-    if (badge && !badge.querySelector('svg')) badge.insertAdjacentHTML('afterbegin', categoryIcon(badge.textContent));
-    const location = row.querySelector('.ticket-location');
-    if (location && !location.querySelector('svg')) location.insertAdjacentHTML('afterbegin', eventIcon('location'));
+    const insignia = fila.querySelector('.ticket-badge');
+    if (insignia && !insignia.querySelector('svg')) insignia.insertAdjacentHTML('afterbegin', iconoCategoria(insignia.textContent));
+    const ubicacion = fila.querySelector('.ticket-location');
+    if (ubicacion && !ubicacion.querySelector('svg')) ubicacion.insertAdjacentHTML('afterbegin', iconoEvento('location'));
   });
-  const rows = document.querySelectorAll('.page-eventos .ticket-row');
-  if (!rows.length) return;
+  const filas = document.querySelectorAll('.page-eventos .ticket-row');
+  if (!filas.length) return;
 
-  const escapeHtml = (value) => {
-    const element = document.createElement('span');
-    element.textContent = String(value ?? '');
-    return element.innerHTML;
+  const escaparHtml = (valor) => {
+    const elemento = document.createElement('span');
+    elemento.textContent = String(valor ?? '');
+    return elemento.innerHTML;
   };
-  const slugify = (value) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const getEventData = (row) => {
-    const title = row.querySelector('.ticket-title')?.textContent.trim() || 'Evento';
-    const date = `${row.querySelector('.day')?.textContent.trim() || ''}-${row.querySelector('.month')?.textContent.trim() || ''}`;
-    const location = row.querySelector('.ticket-location')?.textContent.trim() || '';
-    const category = row.querySelector('.ticket-badge')?.textContent.trim() || 'Evento';
-    const time = row.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
-    const price = row.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
-    const description = row.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
-    return { title, id: row.dataset.eventId || `event-${slugify(`${title}-${date}-${location}`)}`, date, location, category, time, price, description, image: row.dataset.eventImage || '', color: /^#[0-9a-f]{6}$/i.test(row.dataset.eventColor || '') ? row.dataset.eventColor : '#087f72' };
+  const crearIdentificadorUrl = (valor) => String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const obtenerDatosEvento = (fila) => {
+    const titulo = fila.querySelector('.ticket-title')?.textContent.trim() || 'Evento';
+    const fecha = `${fila.querySelector('.day')?.textContent.trim() || ''}-${fila.querySelector('.month')?.textContent.trim() || ''}`;
+    const ubicacion = fila.querySelector('.ticket-location')?.textContent.trim() || '';
+    const categoria = fila.querySelector('.ticket-badge')?.textContent.trim() || 'Evento';
+    const hora = fila.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
+    const precio = fila.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
+    const descripcion = fila.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
+    return { title: titulo, id: fila.dataset.eventId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.eventImage || '', color: /^#[0-9a-f]{6}$/i.test(fila.dataset.eventColor || '') ? fila.dataset.eventColor : '#087f72' };
   };
-  const detailDialog = document.createElement('dialog');
-  detailDialog.className = 'event-detail-dialog';
-  document.body.appendChild(detailDialog);
-  const openEventDetail = event => {
-    detailDialog.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${slugify(event.category)}" style="--event-accent:${event.color}">${event.image ? `<img class="event-detail-image" src="${escapeHtml(event.image)}" alt="" decoding="async">` : ''}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escapeHtml(event.title)}</h2><p>${escapeHtml(event.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${eventIcon('time')}Horario</small><strong>${escapeHtml(event.time)}</strong></div><div><small>${eventIcon('price')}Precio</small><strong>${escapeHtml(event.price)}</strong></div><div><small>${eventIcon('location')}D\u00f3nde</small><strong>${escapeHtml(event.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(event.id)}">Ver en mapa</a></div></div></article>`;
-    detailDialog.showModal();
-    detailDialog.querySelector('.event-detail-close').addEventListener('click', () => detailDialog.close());
-    detailDialog.querySelector('[data-detail-reserve]').addEventListener('click', () => { detailDialog.close(); const ticket = [...rows].find(row => getEventData(row).id === event.id); ticket?.querySelector('[data-event-reservation]')?.click(); });
+  const dialogoDetalle = document.createElement('dialog');
+  dialogoDetalle.className = 'event-detail-dialog';
+  document.body.appendChild(dialogoDetalle);
+  const abrirDetalleEvento = evento => {
+    dialogoDetalle.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${crearIdentificadorUrl(evento.category)}" style="--event-accent:${evento.color}">${evento.image ? `<img class="event-detail-image" src="${escaparHtml(evento.image)}" alt="" decoding="async">` : ''}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a></div></div></article>`;
+    dialogoDetalle.showModal();
+    dialogoDetalle.querySelector('.event-detail-close').addEventListener('click', () => dialogoDetalle.close());
+    dialogoDetalle.querySelector('[data-detail-reserve]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-event-reservation]')?.click(); });
   };
-  detailDialog.addEventListener('click', clickEvent => { if (clickEvent.target === detailDialog) detailDialog.close(); });
-  const authorName = (comment) => {
-    const author = comment.autor || {};
-    return [author.nombre, author.apellido].filter(Boolean).join(' ') || 'Explorador';
+  dialogoDetalle.addEventListener('click', clicEvento => { if (clicEvento.target === dialogoDetalle) dialogoDetalle.close(); });
+  const nombreAutor = (comentario) => {
+    const autor = comentario.autor || {};
+    return [autor.nombre, autor.apellido].filter(Boolean).join(' ') || 'Explorador';
   };
-  const authorAvatar = (comment) => {
-    const author = comment.autor || {};
-    const initials = authorName(comment).split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
-    return `<span class="comment-avatar">${author.avatar_url ? `<img src="${escapeHtml(author.avatar_url)}" alt="" onerror="this.remove()">` : ''}<span>${escapeHtml(initials)}</span></span>`;
+  const avatarAutor = (comentario) => {
+    const autor = comentario.autor || {};
+    const iniciales = nombreAutor(comentario).split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase() || '?';
+    return `<span class="comment-avatar">${autor.avatar_url ? `<img src="${escaparHtml(autor.avatar_url)}" alt="" onerror="this.remove()">` : ''}<span>${escaparHtml(iniciales)}</span></span>`;
   };
-  const syncEventLikeButton = async (button, eventId) => {
+  const sincronizarBotonMeGusta = async (boton, identificadorEvento) => {
     try {
-      const state = await sigturApiFetch(`/api/likes/estado?entidad_tipo=event&entidad_id=${encodeURIComponent(eventId)}`);
-      button.setAttribute('aria-pressed', String(Boolean(state.liked)));
-      button.classList.toggle('liked', Boolean(state.liked));
-      button.setAttribute('aria-label', state.liked ? 'Quitar like' : 'Dar like');
-      const icon = button.querySelector('[aria-hidden="true"]');
-      if (icon) icon.textContent = state.liked ? '♥' : '♡';
+      const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
+      boton.setAttribute('aria-pressed', String(Boolean(estado.liked)));
+      boton.classList.toggle('liked', Boolean(estado.liked));
+      boton.setAttribute('aria-label', estado.liked ? 'Quitar like' : 'Dar like');
+      const icono = boton.querySelector('[aria-hidden="true"]');
+      if (icono) icono.textContent = estado.liked ? '♥' : '♡';
     } catch {
-      button.setAttribute('aria-pressed', 'false');
+      boton.setAttribute('aria-pressed', 'false');
     }
   };
-  const renderComments = (panel, comments) => {
-    const list = panel.querySelector('[data-event-comment-list]');
-    if (!list) return;
-    const order = panel.querySelector('[data-comment-order][aria-pressed="true"]')?.dataset.commentOrder || 'newest';
-    const byParent = new Map();
-    comments.forEach(comment => { const key = comment.parent_id || 'root'; byParent.set(key, [...(byParent.get(key) || []), comment]); });
-    const sort = entries => [...entries].sort((a, b) => {
+  const representarComentarios = (panelActual, comentarios) => {
+    const lista = panelActual.querySelector('[data-event-comment-list]');
+    if (!lista) return;
+    const orden = panelActual.querySelector('[data-comment-order][aria-pressed="true"]')?.dataset.commentOrder || 'newest';
+    const porPadre = new Map();
+    comentarios.forEach(comentario => { const clave = comentario.parent_id || 'root'; porPadre.set(clave, [...(porPadre.get(clave) || []), comentario]); });
+    const ordenar = entradas => [...entradas].sort((a, b) => {
       if (Boolean(a.fijado) !== Boolean(b.fijado)) return a.fijado ? -1 : 1;
-      return order === 'oldest' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at);
+      return orden === 'oldest' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at);
     });
-    const renderComment = comment => {
-      const replies = sort(byParent.get(comment.id) || []);
-      const media = window.sigturCommentMediaMarkup?.(comment.media_urls) || '';
-      const content = comment.contenido ? `<p>${escapeHtml(comment.contenido)}</p>` : '';
-      const own = sigturGetSession()?.usuario?.id === comment.usuario_id;
-      const likeState = comment.likeState || { liked: false, likes: 0 };
-      return `<article class="event-comment ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${escapeHtml(comment.id)}" data-comment-user="${escapeHtml(comment.usuario_id)}"><div class="comment-author">${authorAvatar(comment)}<span><strong>${escapeHtml(authorName(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="event-comment-actions"><button type="button" data-comment-like aria-pressed="${likeState.liked}">${likeState.liked ? '♥' : '♡'} Me gusta (${likeState.likes})</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${own ? '<button type="button" data-edit-comment>Editar</button><button type="button" data-delete-own-comment>Eliminar</button>' : ''}${sigturGetSession()?.usuario?.rol === 'admin' && !own ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escapeHtml(authorName(comment))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${replies.length ? `<div class="event-comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
+    const representarComentario = comentario => {
+      const respuestas = ordenar(porPadre.get(comentario.id) || []);
+      const multimedia = window.sigturCommentMediaMarkup?.(comentario.media_urls) || '';
+      const contenidoPrincipal = comentario.contenido ? `<p>${escaparHtml(comentario.contenido)}</p>` : '';
+      const propio = obtenerSesionSigtur()?.usuario?.id === comentario.usuario_id;
+      const estadoMeGusta = comentario.likeState || { liked: false, likes: 0 };
+      return `<article class="event-comment ${comentario.fijado ? 'is-pinned' : ''}" data-comment-id="${escaparHtml(comentario.id)}" data-comment-user="${escaparHtml(comentario.usuario_id)}"><div class="comment-author">${avatarAutor(comentario)}<span><strong>${escaparHtml(nombreAutor(comentario))}</strong><small>${comentario.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comentario.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comentario.created_at).toLocaleDateString('es-UY')}</time></div>${contenidoPrincipal}${multimedia}<div class="event-comment-actions"><button type="button" data-comment-like aria-pressed="${estadoMeGusta.liked}">${estadoMeGusta.liked ? '♥' : '♡'} Me gusta (${estadoMeGusta.likes})</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${propio ? '<button type="button" data-edit-comment>Editar</button><button type="button" data-delete-own-comment>Eliminar</button>' : ''}${obtenerSesionSigtur()?.usuario?.rol === 'admin' && !propio ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escaparHtml(nombreAutor(comentario))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${respuestas.length ? `<div class="event-comment-replies"><span>${respuestas.length} ${respuestas.length === 1 ? 'respuesta' : 'respuestas'}</span>${respuestas.map(representarComentario).join('')}</div>` : ''}</article>`;
     };
-    const roots = sort(byParent.get('root') || []);
-    list.innerHTML = roots.length
-      ? roots.map(renderComment).join('')
+    const raices = ordenar(porPadre.get('root') || []);
+    lista.innerHTML = raices.length
+      ? raices.map(representarComentario).join('')
       : '<p class="event-panel-status">Todavía no hay comentarios.</p>';
   };
-  const loadComments = async (panel, eventId) => {
-    const status = panel.querySelector('[data-event-panel-status]');
+  const cargarComentarios = async (panelActual, identificadorEvento) => {
+    const estado = panelActual.querySelector('[data-event-panel-status]');
     try {
-      status.setAttribute('role', 'status');
-      status.setAttribute('aria-busy', 'true');
-      status.classList.add('ui-list-status', 'is-loading');
-      status.classList.remove('is-error');
-      status.textContent = 'Cargando comentarios...';
-      const result = await sigturApiFetch(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(eventId)}`);
-      panel._eventComments = await Promise.all((result.data || []).map(async comment => {
-        try { return { ...comment, likeState: await sigturApiFetch(`/api/comentarios/${comment.id}/likes`) }; }
-        catch { return { ...comment, likeState: { liked: false, likes: 0 } }; }
+      estado.setAttribute('role', 'status');
+      estado.setAttribute('aria-busy', 'true');
+      estado.classList.add('ui-list-status', 'is-loading');
+      estado.classList.remove('is-error');
+      estado.textContent = 'Cargando comentarios...';
+      const resultado = await solicitarApiSigtur(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
+      panelActual._eventComments = await Promise.all((resultado.data || []).map(async comentario => {
+        try { return { ...comentario, likeState: await solicitarApiSigtur(`/api/comentarios/${comentario.id}/likes`) }; }
+        catch { return { ...comentario, likeState: { liked: false, likes: 0 } }; }
       }));
-      renderComments(panel, panel._eventComments);
-      status.textContent = '';
-      status.setAttribute('aria-busy', 'false');
-      status.classList.remove('is-loading');
-    } catch (error) {
-      status.setAttribute('role', 'alert');
-      status.setAttribute('aria-busy', 'false');
-      status.classList.remove('is-loading');
-      status.classList.add('ui-list-status', 'is-error');
-      status.textContent = error.message || 'No se pudieron cargar los comentarios. Revisa database/README.md y aplica las migraciones pendientes con Supabase CLI.';
+      representarComentarios(panelActual, panelActual._eventComments);
+      estado.textContent = '';
+      estado.setAttribute('aria-busy', 'false');
+      estado.classList.remove('is-loading');
+    } catch (fallo) {
+      estado.setAttribute('role', 'alert');
+      estado.setAttribute('aria-busy', 'false');
+      estado.classList.remove('is-loading');
+      estado.classList.add('ui-list-status', 'is-error');
+      estado.textContent = fallo.message || 'No se pudieron cargar los comentarios. Revisa database/README.md y aplica las migraciones pendientes con Supabase CLI.';
     }
   };
-  const showLogin = () => { window.location.replace('login.html'); };
-  const interactionKey = event => `entidad_tipo=event&entidad_id=${encodeURIComponent(event.id)}`;
-  const syncSavedButton = async (button, event) => {
+  const mostrarInicioSesion = () => { window.location.replace('login.html'); };
+  const claveInteraccion = evento => `entidad_tipo=event&entidad_id=${encodeURIComponent(evento.id)}`;
+  const sincronizarBotonGuardado = async (boton, evento) => {
     try {
-      const state = await sigturApiFetch(`/api/likes/estado?${interactionKey(event)}`);
-      button.setAttribute('aria-pressed', String(Boolean(state.saved)));
-      button.textContent = state.saved ? '🔖 Guardado' : '🔖 Guardar';
-    } catch { button.textContent = '🔖 Guardar'; }
+      const estado = await solicitarApiSigtur(`/api/likes/estado?${claveInteraccion(evento)}`);
+      boton.setAttribute('aria-pressed', String(Boolean(estado.saved)));
+      boton.textContent = estado.saved ? '🔖 Guardado' : '🔖 Guardar';
+    } catch { boton.textContent = '🔖 Guardar'; }
   };
 
-  rows.forEach(row => {
-    const event = getEventData(row);
-    const likeButton = row.querySelector('.ticket-heart');
-    if (likeButton) {
-      syncEventLikeButton(likeButton, event.id);
-      likeButton.addEventListener('click', async clickEvent => {
-        clickEvent.preventDefault();
-        clickEvent.stopPropagation();
-        if (!sigturGetSession()?.token) { showLogin(); return; }
-        const active = likeButton.getAttribute('aria-pressed') !== 'true';
-        likeButton.disabled = true;
+  filas.forEach(fila => {
+    const evento = obtenerDatosEvento(fila);
+    const botonMeGusta = fila.querySelector('.ticket-heart');
+    if (botonMeGusta) {
+      sincronizarBotonMeGusta(botonMeGusta, evento.id);
+      botonMeGusta.addEventListener('click', async clicEvento => {
+        clicEvento.preventDefault();
+        clicEvento.stopPropagation();
+        if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
+        const activo = botonMeGusta.getAttribute('aria-pressed') !== 'true';
+        botonMeGusta.disabled = true;
         try {
-          await sigturApiFetch('/api/likes', {
+          await solicitarApiSigtur('/api/likes', {
             method: 'POST',
-            body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, activo: active }),
+            body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, activo: activo }),
           });
-          likeButton.setAttribute('aria-pressed', String(active));
-          likeButton.classList.toggle('liked', active);
-          likeButton.setAttribute('aria-label', active ? 'Quitar like' : 'Dar like');
-          const icon = likeButton.querySelector('[aria-hidden="true"]');
-          if (icon) icon.textContent = active ? '♥' : '♡';
-        } catch (error) {
-          likeButton.setAttribute('aria-label', error.message || 'No se pudo actualizar el like');
+          botonMeGusta.setAttribute('aria-pressed', String(activo));
+          botonMeGusta.classList.toggle('liked', activo);
+          botonMeGusta.setAttribute('aria-label', activo ? 'Quitar like' : 'Dar like');
+          const icono = botonMeGusta.querySelector('[aria-hidden="true"]');
+          if (icono) icono.textContent = activo ? '♥' : '♡';
+        } catch (fallo) {
+          botonMeGusta.setAttribute('aria-label', fallo.message || 'No se pudo actualizar el like');
         } finally {
-          likeButton.disabled = false;
+          botonMeGusta.disabled = false;
         }
       });
     }
-    const controls = document.createElement('div');
-    controls.className = 'event-interaction-tools';
-    controls.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">Ver ficha</button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${eventIcon('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${eventIcon('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${eventIcon('reserve')}<span>Reservar</span></button>`;
-    row.appendChild(controls);
+    const controles = document.createElement('div');
+    controles.className = 'event-interaction-tools';
+    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">Ver ficha</button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
+    fila.appendChild(controles);
 
-    const panel = document.createElement('div');
-    panel.className = 'event-interaction-panel';
-    panel.hidden = true;
-    panel.innerHTML = `<div class="event-panel-head"><strong>${escapeHtml(event.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escapeHtml(event.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
-    row.insertAdjacentElement('afterend', panel);
-    loadComments(panel, event.id);
-    syncSavedButton(controls.querySelector('[data-event-save]'), event);
+    const panelActual = document.createElement('div');
+    panelActual.className = 'event-interaction-panel';
+    panelActual.hidden = true;
+    panelActual.innerHTML = `<div class="event-panel-head"><strong>${escaparHtml(evento.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
+    fila.insertAdjacentElement('afterend', panelActual);
+    cargarComentarios(panelActual, evento.id);
+    sincronizarBotonGuardado(controles.querySelector('[data-event-save]'), evento);
 
-    const closePanel = () => {
-      panel.setAttribute('hidden', '');
-      row.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+    const cerrarPanel = () => {
+      panelActual.setAttribute('hidden', '');
+      fila.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
     };
-    panel.querySelector('[data-event-close]').addEventListener('click', closeEvent => {
-      closeEvent.preventDefault();
-      closeEvent.stopPropagation();
-      closePanel();
+    panelActual.querySelector('[data-event-close]').addEventListener('click', cerrarEvento => {
+      cerrarEvento.preventDefault();
+      cerrarEvento.stopPropagation();
+      cerrarPanel();
     });
 
-    row.addEventListener('click', async (clickEvent) => {
-      const saveButton = clickEvent.target.closest('[data-event-save]');
-      if (saveButton) {
-        clickEvent.stopPropagation();
+    fila.addEventListener('click', async (clicEvento) => {
+      const guardarBoton = clicEvento.target.closest('[data-event-save]');
+      if (guardarBoton) {
+        clicEvento.stopPropagation();
         try {
-          if (!sigturGetSession()?.token) { showLogin(); return; }
-          saveButton.disabled = true;
-          const active = saveButton.getAttribute('aria-pressed') !== 'true';
-          await sigturApiFetch('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, activo: active, metadata: { nombre: event.title, direccion: event.location, categorias: [event.category] } }) });
-          saveButton.setAttribute('aria-pressed', String(active));
-          saveButton.textContent = active ? '🔖 Guardado' : '🔖 Guardar';
-        } catch (error) { panel.querySelector('[data-event-panel-status]').textContent = error.message || 'No se pudo guardar el evento.'; }
-        finally { saveButton.disabled = false; }
+          if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
+          guardarBoton.disabled = true;
+          const activo = guardarBoton.getAttribute('aria-pressed') !== 'true';
+          await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, activo: activo, metadata: { nombre: evento.title, direccion: evento.location, categorias: [evento.category] } }) });
+          guardarBoton.setAttribute('aria-pressed', String(activo));
+          guardarBoton.textContent = activo ? '🔖 Guardado' : '🔖 Guardar';
+        } catch (fallo) { panelActual.querySelector('[data-event-panel-status]').textContent = fallo.message || 'No se pudo guardar el evento.'; }
+        finally { guardarBoton.disabled = false; }
         return;
       }
-      if (clickEvent.target.closest('[data-event-detail]')) { clickEvent.stopPropagation(); openEventDetail(event); return; }
-      const commentsButton = clickEvent.target.closest('[data-event-comments]');
-      const reservationButton = clickEvent.target.closest('[data-event-reservation]');
-      if (!commentsButton && !reservationButton) return;
-      clickEvent.stopPropagation();
-      const isReservation = Boolean(reservationButton);
-      panel.hidden = false;
-      panel.querySelector('.event-comments-view').hidden = isReservation;
-      panel.querySelector('.event-reservation-view').hidden = !isReservation;
-      const activeButton = isReservation ? reservationButton : commentsButton;
-      const wasExpanded = activeButton.getAttribute('aria-expanded') === 'true';
-      row.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(button => button.setAttribute('aria-expanded', 'false'));
-      activeButton.setAttribute('aria-expanded', String(!wasExpanded));
-      panel.hidden = wasExpanded;
-      if (!isReservation && !wasExpanded) await loadComments(panel, event.id);
+      if (clicEvento.target.closest('[data-event-detail]')) { clicEvento.stopPropagation(); abrirDetalleEvento(evento); return; }
+      const botonComentarios = clicEvento.target.closest('[data-event-comments]');
+      const reservaBoton = clicEvento.target.closest('[data-event-reservation]');
+      if (!botonComentarios && !reservaBoton) return;
+      clicEvento.stopPropagation();
+      const esReserva = Boolean(reservaBoton);
+      panelActual.hidden = false;
+      panelActual.querySelector('.event-comments-view').hidden = esReserva;
+      panelActual.querySelector('.event-reservation-view').hidden = !esReserva;
+      const activoBoton = esReserva ? reservaBoton : botonComentarios;
+      const estabaExpandido = activoBoton.getAttribute('aria-expanded') === 'true';
+      fila.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
+      activoBoton.setAttribute('aria-expanded', String(!estabaExpandido));
+      panelActual.hidden = estabaExpandido;
+      if (!esReserva && !estabaExpandido) await cargarComentarios(panelActual, evento.id);
     });
 
-    panel.addEventListener('click', async (clickEvent) => {
-      const filterButton = clickEvent.target.closest('[data-comment-order]');
-      if (filterButton) {
-        panel.querySelectorAll('[data-comment-order]').forEach(button => button.setAttribute('aria-pressed', String(button === filterButton)));
-        renderComments(panel, panel._eventComments || []);
+    panelActual.addEventListener('click', async (clicEvento) => {
+      const botonFiltro = clicEvento.target.closest('[data-comment-order]');
+      if (botonFiltro) {
+        panelActual.querySelectorAll('[data-comment-order]').forEach(boton => boton.setAttribute('aria-pressed', String(boton === botonFiltro)));
+        representarComentarios(panelActual, panelActual._eventComments || []);
         return;
       }
-      if (clickEvent.target.closest('[data-event-close]')) {
-        closePanel();
+      if (clicEvento.target.closest('[data-event-close]')) {
+        cerrarPanel();
         return;
       }
-      const reserveButton = clickEvent.target.closest('[data-reserve-confirm]');
-      if (!reserveButton) return;
-      const status = panel.querySelector('[data-reservation-status]');
+      const reservarBoton = clicEvento.target.closest('[data-reserve-confirm]');
+      if (!reservarBoton) return;
+      const estado = panelActual.querySelector('[data-reservation-status]');
       try {
-        if (!sigturGetSession()?.token) { showLogin(); return; }
-        reserveButton.disabled = true;
-        const quantity = Number(panel.querySelector('[data-reservation-quantity]').value);
-        const schedule = panel.querySelector(`input[name="slot-${CSS.escape(event.id)}"]:checked`)?.value || 'Flexible · a coordinar';
-        await sigturApiFetch('/api/reservas/eventos', { method: 'POST', body: JSON.stringify({ event_ref: event.id, event_title: event.title, quantity, schedule }) });
-        status.textContent = `Reserva registrada: ${quantity} ${quantity === 1 ? 'lugar' : 'lugares'} · ${schedule}.`;
-      } catch (error) {
-        status.textContent = error.message || 'No se pudo completar la reserva.';
-      } finally { reserveButton.disabled = false; }
+        if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
+        reservarBoton.disabled = true;
+        const cantidad = Number(panelActual.querySelector('[data-reservation-quantity]').value);
+        const horario = panelActual.querySelector(`input[name="slot-${CSS.escape(evento.id)}"]:checked`)?.value || 'Flexible · a coordinar';
+        await solicitarApiSigtur('/api/reservas/eventos', { method: 'POST', body: JSON.stringify({ event_ref: evento.id, event_title: evento.title, quantity: cantidad, schedule: horario }) });
+        estado.textContent = `Reserva registrada: ${cantidad} ${cantidad === 1 ? 'lugar' : 'lugares'} · ${horario}.`;
+      } catch (fallo) {
+        estado.textContent = fallo.message || 'No se pudo completar la reserva.';
+      } finally { reservarBoton.disabled = false; }
     });
 
-    panel.addEventListener('click', async (clickEvent) => {
-      const comment = clickEvent.target.closest('[data-comment-id]');
-      if (!comment) return;
+    panelActual.addEventListener('click', async (clicEvento) => {
+      const comentario = clicEvento.target.closest('[data-comment-id]');
+      if (!comentario) return;
       try {
-        if (!sigturGetSession()?.token) { showLogin(); return; }
-        if (clickEvent.target.closest('[data-admin-delete-comment]')) {
-          if (sigturGetSession()?.usuario?.rol !== 'admin' || !window.confirm('¿Eliminar este comentario?')) return;
-          await sigturApiFetch(`/api/admin/comentarios/${comment.dataset.commentId}`, { method: 'DELETE' });
-          await loadComments(panel, event.id);
+        if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
+        if (clicEvento.target.closest('[data-admin-delete-comment]')) {
+          if (obtenerSesionSigtur()?.usuario?.rol !== 'admin' || !window.confirm('¿Eliminar este comentario?')) return;
+          await solicitarApiSigtur(`/api/admin/comentarios/${comentario.dataset.commentId}`, { method: 'DELETE' });
+          await cargarComentarios(panelActual, evento.id);
           return;
         }
-        if (clickEvent.target.closest('[data-delete-own-comment]')) {
+        if (clicEvento.target.closest('[data-delete-own-comment]')) {
           if (!window.confirm('¿Eliminar este comentario y sus respuestas?')) return;
-          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'DELETE' });
-          await loadComments(panel, event.id); return;
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}`, { method: 'DELETE' });
+          await cargarComentarios(panelActual, evento.id); return;
         }
-        if (clickEvent.target.closest('[data-edit-comment]')) {
-          const existing = panel._eventComments.find(item => item.id === comment.dataset.commentId)?.contenido || '';
-          const contenido = window.prompt('Editá tu comentario:', existing);
+        if (clicEvento.target.closest('[data-edit-comment]')) {
+          const existente = panelActual._eventComments.find(elemento => elemento.id === comentario.dataset.commentId)?.contenido || '';
+          const contenido = window.prompt('Editá tu comentario:', existente);
           if (contenido === null || !contenido.trim()) return;
-          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
-          await loadComments(panel, event.id); return;
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
+          await cargarComentarios(panelActual, evento.id); return;
         }
-        if (clickEvent.target.closest('[data-comment-reply]')) {
-          comment.querySelector('.event-reply-form').hidden = false;
+        if (clicEvento.target.closest('[data-comment-reply]')) {
+          comentario.querySelector('.event-reply-form').hidden = false;
         }
-        if (clickEvent.target.closest('[data-submit-reply]')) {
-          const contenido = comment.querySelector('textarea').value;
-          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}/respuestas`, { method: 'POST', body: JSON.stringify({ contenido }) });
-          await loadComments(panel, event.id);
+        if (clicEvento.target.closest('[data-submit-reply]')) {
+          const contenido = comentario.querySelector('textarea').value;
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/respuestas`, { method: 'POST', body: JSON.stringify({ contenido }) });
+          await cargarComentarios(panelActual, evento.id);
         }
-        if (clickEvent.target.closest('[data-comment-like]')) {
-          const button = clickEvent.target.closest('[data-comment-like]');
-          const state = await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}/likes`);
-          await sigturApiFetch(`/api/comentarios/${comment.dataset.commentId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !state.liked }) });
-          await loadComments(panel, event.id);
+        if (clicEvento.target.closest('[data-comment-like]')) {
+          const boton = clicEvento.target.closest('[data-comment-like]');
+          const estado = await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/likes`);
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !estado.liked }) });
+          await cargarComentarios(panelActual, evento.id);
         }
-        if (clickEvent.target.closest('[data-comment-message]')) {
-          const recipient = comment.dataset.commentUser;
+        if (clicEvento.target.closest('[data-comment-message]')) {
+          const destinatario = comentario.dataset.commentUser;
           const contenido = window.prompt('Mensaje para este usuario:');
-          if (contenido?.trim()) await sigturApiFetch('/api/mensajes', { method: 'POST', body: JSON.stringify({ destinatario_id: recipient, contenido }) });
+          if (contenido?.trim()) await solicitarApiSigtur('/api/mensajes', { method: 'POST', body: JSON.stringify({ destinatario_id: destinatario, contenido }) });
         }
-      } catch (error) {
-        panel.querySelector('[data-event-panel-status]').textContent = error.message || 'No se pudo completar la acción.';
+      } catch (fallo) {
+        panelActual.querySelector('[data-event-panel-status]').textContent = fallo.message || 'No se pudo completar la acción.';
       }
     });
 
-    panel.querySelector('[data-event-comment-form]').addEventListener('submit', async (submitEvent) => {
-      submitEvent.preventDefault();
-      const form = submitEvent.currentTarget;
-      const status = panel.querySelector('[data-event-panel-status]');
+    panelActual.querySelector('[data-event-comment-form]').addEventListener('submit', async (enviarEvento) => {
+      enviarEvento.preventDefault();
+      const formulario = enviarEvento.currentTarget;
+      const estado = panelActual.querySelector('[data-event-panel-status]');
       try {
-        if (!sigturGetSession()?.token) { showLogin(); return; }
-        const contenido = new FormData(form).get('contenido');
-        const media_paths = await window.sigturPrepareCommentMedia(form);
+        if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
+        const contenido = new FormData(formulario).get('contenido');
+        const media_paths = await window.sigturPrepareCommentMedia(formulario);
         if (!String(contenido || '').trim() && !media_paths.length) throw new Error('Escribí un comentario o adjuntá una imagen.');
-        await sigturApiFetch('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: event.id, contenido, media_paths }) });
-        form.reset();
-        window.sigturClearCommentMedia(form);
-        await loadComments(panel, event.id);
-      } catch (error) { status.textContent = error.message || 'No se pudo publicar el comentario.'; }
+        await solicitarApiSigtur('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, contenido, media_paths }) });
+        formulario.reset();
+        window.sigturClearCommentMedia(formulario);
+        await cargarComentarios(panelActual, evento.id);
+      } catch (fallo) { estado.textContent = fallo.message || 'No se pudo publicar el comentario.'; }
     });
   });
 }
@@ -2539,413 +2539,413 @@ async function setupEventInteractions() {
 // Como vimos en el HTML, esta página no tiene ningún control de acceso:
 // esta función corre para CUALQUIERA que abra admin.html, logueado o no.
 // ============================================================================
-async function setupAdminPage() {
-  const form = document.getElementById('admin-settings-form');
-  if (!form) return;
+async function configurarPaginaAdministracion() {
+  const formulario = document.getElementById('admin-settings-form');
+  if (!formulario) return;
 
-  const session = sigturGetSession();
-  if (!session?.token) {
+  const sesion = obtenerSesionSigtur();
+  if (!sesion?.token) {
     window.location.replace('login.html');
     return;
   }
 
-  form.closest('.utility-grid')?.setAttribute('hidden', '');
+  formulario.closest('.utility-grid')?.setAttribute('hidden', '');
   try {
-    await sigturApiFetch('/api/auth/es-admin');
-  } catch (error) {
-    console.error('No se pudo validar el acceso de administrador:', error);
-    if (error.status === 401) {
-      sigturClearSession();
+    await solicitarApiSigtur('/api/auth/es-admin');
+  } catch (fallo) {
+    console.error('No se pudo validar el acceso de administrador:', fallo);
+    if (fallo.status === 401) {
+      limpiarSesionSigtur();
       window.location.replace('login.html');
     } else {
-      const message = document.createElement('p');
-      message.className = 'auth-status';
-      message.setAttribute('role', 'status');
-      message.textContent = error.status === 403 ? 'Esta cuenta no tiene permisos de administrador.' : 'No se pudo validar el acceso. Intentá nuevamente.';
-      form.closest('.utility-grid')?.before(message);
+      const mensaje = document.createElement('p');
+      mensaje.className = 'auth-status';
+      mensaje.setAttribute('role', 'status');
+      mensaje.textContent = fallo.status === 403 ? 'Esta cuenta no tiene permisos de administrador.' : 'No se pudo validar el acceso. Intentá nuevamente.';
+      formulario.closest('.utility-grid')?.before(mensaje);
     }
     return;
   }
-  form.closest('.utility-grid')?.removeAttribute('hidden');
+  formulario.closest('.utility-grid')?.removeAttribute('hidden');
 
-  const status = document.getElementById('admin-save-status');
-  const activity = document.getElementById('admin-activity');
-  const announcementForm = document.getElementById('admin-announcement-form');
-  const preview = document.getElementById('admin-announcement-preview');
-  const clearBtn = document.getElementById('admin-clear-announcement');
-  const exportBtn = document.getElementById('admin-export');
+  const estado = document.getElementById('admin-save-status');
+  const actividad = document.getElementById('admin-activity');
+  const formularioAviso = document.getElementById('admin-announcement-form');
+  const vistaPrevia = document.getElementById('admin-announcement-preview');
+  const botonLimpiarAviso = document.getElementById('admin-clear-announcement');
+  const botonExportar = document.getElementById('admin-export');
 
-  const defaults = {
+  const valoresPredeterminados = {
     featuredEvents: true,
     reviewPlaces: true,
     showSupport: true,
     maintenanceMode: false
   };
 
-  const log = async (message) => { try { await sigturApiFetch('/api/admin/actividad', { method: 'POST', body: JSON.stringify({ action: 'admin.action', details: { message } }) }); const rows = await sigturApiFetch('/api/admin/actividad?page=1&pageSize=8'); if (activity) activity.innerHTML = (rows.data || []).map(row => `<p>${escapeText(new Date(row.created_at).toLocaleString('es-UY'))} · ${escapeText(row.details?.message || row.action)}</p>`).join(''); } catch { if (activity) activity.textContent = 'No se pudo guardar la actividad.'; } };
+  const registro = async (mensaje) => { try { await solicitarApiSigtur('/api/admin/actividad', { method: 'POST', body: JSON.stringify({ action: 'admin.action', details: { message: mensaje } }) }); const filas = await solicitarApiSigtur('/api/admin/actividad?page=1&pageSize=8'); if (actividad) actividad.innerHTML = (filas.data || []).map(fila => `<p>${escaparTexto(new Date(fila.created_at).toLocaleString('es-UY'))} · ${escaparTexto(fila.details?.message || fila.action)}</p>`).join(''); } catch { if (actividad) actividad.textContent = 'No se pudo guardar la actividad.'; } };
 
-  const setStatus = (message) => {
-    if (!status) return;
-    status.textContent = message;
-    clearTimeout(setStatus.timer);
-    setStatus.timer = setTimeout(() => { status.textContent = 'Listo'; }, 1800);
+  const establecerEstado = (mensaje) => {
+    if (!estado) return;
+    estado.textContent = mensaje;
+    clearTimeout(establecerEstado.timer);
+    establecerEstado.timer = setTimeout(() => { estado.textContent = 'Listo'; }, 1800);
   };
 
-  const applySettings = (settings) => {
-    Object.entries({ ...defaults, ...settings }).forEach(([key, value]) => {
-      const input = form.elements[key];
-      if (input) input.checked = Boolean(value);
+  const aplicarConfiguracion = (configuracion) => {
+    Object.entries({ ...valoresPredeterminados, ...configuracion }).forEach(([clave, valor]) => {
+      const entrada = formulario.elements[clave];
+      if (entrada) entrada.checked = Boolean(valor);
     });
   };
 
-  const collectSettings = () => Array.from(form.querySelectorAll('input[type="checkbox"]')).reduce((acc, input) => {
-    acc[input.name] = input.checked;
-    return acc;
+  const recopilarConfiguracion = () => Array.from(formulario.querySelectorAll('input[type="checkbox"]')).reduce((acumulador, entrada) => {
+    acumulador[entrada.name] = entrada.checked;
+    return acumulador;
   }, {});
 
-  const updatePreview = () => {
-    const saved = savedAnnouncement;
-    if (!preview) return;
-    preview.textContent = saved?.title ? `${saved.title}: ${saved.body || 'Sin descripcion'}` : 'Sin aviso publicado.';
+  const actualizarVistaPrevia = () => {
+    const guardado = avisoGuardado;
+    if (!vistaPrevia) return;
+    vistaPrevia.textContent = guardado?.title ? `${guardado.title}: ${guardado.body || 'Sin descripcion'}` : 'Sin aviso publicado.';
   };
 
-  let savedAnnouncement = null;
+  let avisoGuardado = null;
   try {
-    const [settings, notice, metrics] = await Promise.all([sigturApiFetch('/api/admin/configuracion'), sigturApiFetch('/api/admin/aviso'), sigturApiFetch('/api/admin/metricas')]);
-    applySettings({ ...defaults, ...settings });
-    savedAnnouncement = notice.data || null;
-    if (savedAnnouncement && announcementForm) { announcementForm.elements.title.value = savedAnnouncement.title || ''; announcementForm.elements.body.value = savedAnnouncement.body || ''; }
-    Object.entries(metrics).forEach(([key, value]) => { const metric = document.querySelector(`[data-admin-metric="${key}"]`); if (metric) metric.textContent = String(value); });
-  } catch (error) { setStatus(error.message || 'No se pudo cargar la configuración.'); }
-  updatePreview();
-  try { const rows = await sigturApiFetch('/api/admin/actividad?page=1&pageSize=8'); if (activity) activity.innerHTML = (rows.data || []).map(row => `<p>${escapeText(new Date(row.created_at).toLocaleString('es-UY'))} · ${escapeText(row.action.replaceAll('.', ' '))}</p>`).join('') || '<p>Sin actividad registrada.</p>'; } catch { if (activity) activity.textContent = 'No se pudo cargar la actividad.'; }
+    const [configuracion, avisoAdmin, metricas] = await Promise.all([solicitarApiSigtur('/api/admin/configuracion'), solicitarApiSigtur('/api/admin/aviso'), solicitarApiSigtur('/api/admin/metricas')]);
+    aplicarConfiguracion({ ...valoresPredeterminados, ...configuracion });
+    avisoGuardado = avisoAdmin.data || null;
+    if (avisoGuardado && formularioAviso) { formularioAviso.elements.title.value = avisoGuardado.title || ''; formularioAviso.elements.body.value = avisoGuardado.body || ''; }
+    Object.entries(metricas).forEach(([clave, valor]) => { const metrica = document.querySelector(`[data-admin-metric="${clave}"]`); if (metrica) metrica.textContent = String(valor); });
+  } catch (fallo) { establecerEstado(fallo.message || 'No se pudo cargar la configuración.'); }
+  actualizarVistaPrevia();
+  try { const filas = await solicitarApiSigtur('/api/admin/actividad?page=1&pageSize=8'); if (actividad) actividad.innerHTML = (filas.data || []).map(fila => `<p>${escaparTexto(new Date(fila.created_at).toLocaleString('es-UY'))} · ${escaparTexto(fila.action.replaceAll('.', ' '))}</p>`).join('') || '<p>Sin actividad registrada.</p>'; } catch { if (actividad) actividad.textContent = 'No se pudo cargar la actividad.'; }
 
-  form.addEventListener('change', async (event) => {
-    const settings = collectSettings();
-    try { await sigturApiFetch('/api/admin/configuracion', { method: 'PATCH', body: JSON.stringify(settings) }); setStatus('Cambios guardados en el servidor'); await loadPublicSiteSettings(); }
-    catch (error) { event.target.checked = !event.target.checked; setStatus(error.message || 'No se pudieron guardar los ajustes.'); return; }
-    const label = event.target?.closest('.settings-item')?.querySelector('strong')?.textContent || 'Ajuste';
-    void label;
+  formulario.addEventListener('change', async (evento) => {
+    const configuracion = recopilarConfiguracion();
+    try { await solicitarApiSigtur('/api/admin/configuracion', { method: 'PATCH', body: JSON.stringify(configuracion) }); establecerEstado('Cambios guardados en el servidor'); await cargarConfiguracionPublica(); }
+    catch (fallo) { evento.target.checked = !evento.target.checked; establecerEstado(fallo.message || 'No se pudieron guardar los ajustes.'); return; }
+    const etiqueta = evento.target?.closest('.settings-item')?.querySelector('strong')?.textContent || 'Ajuste';
+    void etiqueta;
   });
 
-  announcementForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(announcementForm);
-    const announcement = {
-      title: String(data.get('title') || '').trim(),
-      body: String(data.get('body') || '').trim(),
+  formularioAviso?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formularioAviso);
+    const aviso = {
+      title: String(datos.get('title') || '').trim(),
+      body: String(datos.get('body') || '').trim(),
       updatedAt: new Date().toISOString()
     };
-    try { const response = await sigturApiFetch('/api/admin/aviso', { method: 'PUT', body: JSON.stringify(announcement) }); savedAnnouncement = response.data; await loadPublicSiteSettings(); }
-    catch (error) { setStatus(error.message || 'No se pudo guardar el aviso.'); return; }
-    updatePreview();
-    setStatus('Aviso guardado');
+    try { const respuesta = await solicitarApiSigtur('/api/admin/aviso', { method: 'PUT', body: JSON.stringify(aviso) }); avisoGuardado = respuesta.data; await cargarConfiguracionPublica(); }
+    catch (fallo) { establecerEstado(fallo.message || 'No se pudo guardar el aviso.'); return; }
+    actualizarVistaPrevia();
+    establecerEstado('Aviso guardado');
 
   });
 
-  clearBtn?.addEventListener('click', async () => {
-    try { await sigturApiFetch('/api/admin/aviso', { method: 'DELETE' }); savedAnnouncement = null; await loadPublicSiteSettings(); }
-    catch (error) { setStatus(error.message || 'No se pudo eliminar el aviso.'); return; }
-    announcementForm?.reset();
-    updatePreview();
-    setStatus('Aviso limpiado');
+  botonLimpiarAviso?.addEventListener('click', async () => {
+    try { await solicitarApiSigtur('/api/admin/aviso', { method: 'DELETE' }); avisoGuardado = null; await cargarConfiguracionPublica(); }
+    catch (fallo) { establecerEstado(fallo.message || 'No se pudo eliminar el aviso.'); return; }
+    formularioAviso?.reset();
+    actualizarVistaPrevia();
+    establecerEstado('Aviso limpiado');
   });
 
   // gonza: el export copia el estado actual del admin al portapapeles como JSON.
   // clipboard.writeText también es async porque acceder al portapapeles
   // puede requerir permiso del browser en algunos casos
-  exportBtn?.addEventListener('click', async () => {
-    const payload = {
-      settings: collectSettings(),
-      announcement: savedAnnouncement,
+  botonExportar?.addEventListener('click', async () => {
+    const datosEnviados = {
+      settings: recopilarConfiguracion(),
+      announcement: avisoGuardado,
       exportedAt: new Date().toISOString()
     };
-    const text = JSON.stringify(payload, null, 2);
+    const texto = JSON.stringify(datosEnviados, null, 2);
     try {
-      await navigator.clipboard.writeText(text);
-      setStatus('Estado copiado');
-      log('Estado copiado al portapapeles');
+      await navigator.clipboard.writeText(texto);
+      establecerEstado('Estado copiado');
+      registro('Estado copiado al portapapeles');
     } catch {
-      setStatus('Export listo en consola');
-      console.info('SIGTUR admin export', payload);
-      log('Estado enviado a consola');
+      establecerEstado('Export listo en consola');
+      console.info('SIGTUR admin export', datosEnviados);
+      registro('Estado enviado a consola');
     }
   });
 
-  const eventForm = document.getElementById('admin-event-form');
-  const eventsList = document.getElementById('admin-events-list');
-  const eventFormTitle = document.getElementById('admin-event-form-title');
-  const eventSubmit = document.getElementById('admin-event-submit');
-  const eventCancel = document.getElementById('admin-event-cancel');
-  const eventImageInput = document.getElementById('admin-event-image');
-  const eventImagePreview = document.getElementById('admin-event-image-preview');
-  const eventImagePreviewImg = eventImagePreview?.querySelector('img');
-  const eventMapElement = document.getElementById('admin-event-map');
-  const eventLatitude = document.getElementById('admin-event-latitude');
-  const eventLongitude = document.getElementById('admin-event-longitude');
-  const eventCategorySymbols = {
+  const formularioEvento = document.getElementById('admin-event-form');
+  const listaEventos = document.getElementById('admin-events-list');
+  const tituloFormularioEvento = document.getElementById('admin-event-form-title');
+  const enviarEvento = document.getElementById('admin-event-submit');
+  const cancelarEvento = document.getElementById('admin-event-cancel');
+  const entradaImagenEvento = document.getElementById('admin-event-image');
+  const vistaPreviaImagenEvento = document.getElementById('admin-event-image-preview');
+  const eventImagePreviewImg = vistaPreviaImagenEvento?.querySelector('img');
+  const elementoMapaEvento = document.getElementById('admin-event-map');
+  const latitudEvento = document.getElementById('admin-event-latitude');
+  const longitudEvento = document.getElementById('admin-event-longitude');
+  const simbolosCategoriaEvento = {
     cultura: '🎭', musica: '♫', deportes: '⚽', feria: '▦',
     gastronomia: '♨', religiosos: '✦', infantiles: '★'
   };
-  const eventCategorySymbol = (categories) => {
-    const category = Array.isArray(categories) ? categories[0] : categories;
-    return eventCategorySymbols[String(category || '').toLowerCase()] || '◉';
+  const simboloCategoriaEvento = (categorias) => {
+    const categoria = Array.isArray(categorias) ? categorias[0] : categorias;
+    return simbolosCategoriaEvento[String(categoria || '').toLowerCase()] || '◉';
   };
-  const adminEventRecords = new Map();
-  const renderAdminEvents = (events) => {
-    if (!eventsList) return;
-    adminEventRecords.clear();
-    eventsList.innerHTML = events.map(event => {
-      adminEventRecords.set(String(event.id), event);
-      const category = Array.isArray(event.categories) ? event.categories[0] : '';
-      const eventDate = event.date_start ? new Date(`${event.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
-      const eventColor = /^#[0-9a-f]{6}$/i.test(String(event.color || '')) ? event.color : '#16b3a3';
-      const eventTime = event.event_time ? ` · ${String(event.event_time).slice(0, 5)}` : '';
-      const image = event.image_url
-        ? `<img src="${escapeText(event.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`
-        : `<span class="admin-event-fallback" aria-hidden="true">${eventCategorySymbol(event.categories)}</span>`;
-      return `<li class="admin-event-item" style="--admin-event-color:${eventColor}"><div class="admin-event-thumb">${image}</div><div class="admin-event-summary"><strong>${escapeText(event.title || 'Evento sin t\u00edtulo')}</strong><span>${eventCategorySymbol(event.categories)} ${escapeText(category || 'Evento')} | ${eventDate}${eventTime}</span><small>${escapeText(event.location || 'Lugar sin especificar')} | ${Number(event.price) > 0 ? `$${escapeText(event.price)}` : 'Gratis'}</small></div><div class="admin-event-actions"><button type="button" class="admin-event-edit" data-edit-event="${escapeText(event.id)}" aria-label="Editar evento">Editar</button><button type="button" class="admin-event-delete" data-delete-event="${escapeText(event.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
+  const registrosEventosAdmin = new Map();
+  const representarEventosAdministracion = (eventos) => {
+    if (!listaEventos) return;
+    registrosEventosAdmin.clear();
+    listaEventos.innerHTML = eventos.map(evento => {
+      registrosEventosAdmin.set(String(evento.id), evento);
+      const categoria = Array.isArray(evento.categories) ? evento.categories[0] : '';
+      const fechaEvento = evento.date_start ? new Date(`${evento.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
+      const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
+      const horaEvento = evento.event_time ? ` · ${String(evento.event_time).slice(0, 5)}` : '';
+      const imagen = evento.image_url
+        ? `<img src="${escaparTexto(evento.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`
+        : `<span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`;
+      return `<li class="admin-event-item" style="--admin-event-color:${colorEvento}"><div class="admin-event-thumb">${imagen}</div><div class="admin-event-summary"><strong>${escaparTexto(evento.title || 'Evento sin t\u00edtulo')}</strong><span>${simboloCategoriaEvento(evento.categories)} ${escaparTexto(categoria || 'Evento')} | ${fechaEvento}${horaEvento}</span><small>${escaparTexto(evento.location || 'Lugar sin especificar')} | ${Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis'}</small></div><div class="admin-event-actions"><button type="button" class="admin-event-edit" data-edit-event="${escaparTexto(evento.id)}" aria-label="Editar evento">Editar</button><button type="button" class="admin-event-delete" data-delete-event="${escaparTexto(evento.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
     }).join('') || '<li class="admin-event-empty ui-list-status">Todavía no hay eventos publicados.</li>';
-    eventsList.querySelectorAll('.admin-event-thumb img').forEach(image => image.addEventListener('error', () => image.remove(), { once: true }));
+    listaEventos.querySelectorAll('.admin-event-thumb img').forEach(imagen => imagen.addEventListener('error', () => imagen.remove(), { once: true }));
   };
-  let eventsPage = 1;
-  const loadAdminEvents = async () => {
-    if (!eventsList) return;
-    eventsList.setAttribute('aria-busy', 'true'); eventsList.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos...</li>;'
+  let paginaEventos = 1;
+  const cargarAdministracionEventos = async () => {
+    if (!listaEventos) return;
+    listaEventos.setAttribute('aria-busy', 'true'); listaEventos.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos...</li>;'
     try {
-      const query = new URLSearchParams({ page: eventsPage, pageSize: 10, q: document.getElementById('admin-events-search')?.value || '' });
-      const response = await sigturApiFetch(`/api/admin/eventos?${query}`);
-      renderAdminEvents(response.data || []); eventsList.setAttribute('aria-busy', 'false');
-      const label = document.getElementById('admin-events-page'); if (label) label.textContent = `Página ${eventsPage} · ${response.total} eventos`;
-    } catch (error) {
-      eventsList.innerHTML = `<li class="admin-event-empty ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los eventos.')}</li>`; eventsList.setAttribute('aria-busy', 'false');
+      const consulta = new URLSearchParams({ page: paginaEventos, pageSize: 10, q: document.getElementById('admin-events-search')?.value || '' });
+      const respuesta = await solicitarApiSigtur(`/api/admin/eventos?${consulta}`);
+      representarEventosAdministracion(respuesta.data || []); listaEventos.setAttribute('aria-busy', 'false');
+      const etiqueta = document.getElementById('admin-events-page'); if (etiqueta) etiqueta.textContent = `Página ${paginaEventos} · ${respuesta.total} eventos`;
+    } catch (fallo) {
+      listaEventos.innerHTML = `<li class="admin-event-empty ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los eventos.')}</li>`; listaEventos.setAttribute('aria-busy', 'false');
     }
   };
-  const updateEventImagePreview = () => {
-    const imageUrl = String(eventImageInput?.value || '').trim();
-    if (!eventImagePreview || !eventImagePreviewImg) return;
-    if (!imageUrl) {
-      eventImagePreview.hidden = true;
+  const actualizarVistaPreviaImagenEvento = () => {
+    const urlImagen = String(entradaImagenEvento?.value || '').trim();
+    if (!vistaPreviaImagenEvento || !eventImagePreviewImg) return;
+    if (!urlImagen) {
+      vistaPreviaImagenEvento.hidden = true;
       eventImagePreviewImg.removeAttribute('src');
       return;
     }
-    eventImagePreviewImg.onload = () => { eventImagePreview.hidden = false; };
-    eventImagePreviewImg.onerror = () => { eventImagePreview.hidden = true; };
-    eventImagePreviewImg.src = imageUrl;
+    eventImagePreviewImg.onload = () => { vistaPreviaImagenEvento.hidden = false; };
+    eventImagePreviewImg.onerror = () => { vistaPreviaImagenEvento.hidden = true; };
+    eventImagePreviewImg.src = urlImagen;
   };
-  eventImageInput?.addEventListener('input', updateEventImagePreview);
-  eventImageInput?.addEventListener('change', updateEventImagePreview);
-  loadAdminEvents();
-  document.querySelectorAll('[data-admin-page="events"]').forEach(button => button.addEventListener('click', () => { eventsPage = Math.max(1, eventsPage + Number(button.dataset.direction)); loadAdminEvents(); }));
-  document.getElementById('admin-events-search')?.addEventListener('input', () => { eventsPage = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(loadAdminEvents, 250); });
-  let setAdminEventPoint = null;
-  let clearAdminEventMarker = () => {};
-  if (eventMapElement && eventLatitude && eventLongitude && window.L) {
+  entradaImagenEvento?.addEventListener('input', actualizarVistaPreviaImagenEvento);
+  entradaImagenEvento?.addEventListener('change', actualizarVistaPreviaImagenEvento);
+  cargarAdministracionEventos();
+  document.querySelectorAll('[data-admin-page="events"]').forEach(boton => boton.addEventListener('click', () => { paginaEventos = Math.max(1, paginaEventos + Number(boton.dataset.direction)); cargarAdministracionEventos(); }));
+  document.getElementById('admin-events-search')?.addEventListener('input', () => { paginaEventos = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(cargarAdministracionEventos, 250); });
+  let establecerPuntoEventoAdmin = null;
+  let limpiarMarcadorEventoAdmin = () => {};
+  if (elementoMapaEvento && latitudEvento && longitudEvento && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
-    const eventMap = L.map(eventMapElement).setView([-31.383, -57.964], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(eventMap);
-    let eventMarker;
-    const setEventPoint = (latitude, longitude) => {
-      eventLatitude.value = latitude.toFixed(6);
-      eventLongitude.value = longitude.toFixed(6);
-      if (eventMarker) eventMarker.setLatLng([latitude, longitude]);
-      else eventMarker = L.marker([latitude, longitude]).addTo(eventMap);
+    const mapaEvento = L.map(elementoMapaEvento).setView([-31.383, -57.964], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(mapaEvento);
+    let marcadorEvento;
+    const establecerPuntoEvento = (latitud, longitud) => {
+      latitudEvento.value = latitud.toFixed(6);
+      longitudEvento.value = longitud.toFixed(6);
+      if (marcadorEvento) marcadorEvento.setLatLng([latitud, longitud]);
+      else marcadorEvento = L.marker([latitud, longitud]).addTo(mapaEvento);
     };
-    setAdminEventPoint = (latitude, longitude) => { setEventPoint(latitude, longitude); eventMap.setView([latitude, longitude], Math.max(eventMap.getZoom(), 15)); };
-    clearAdminEventMarker = () => { if (eventMarker) eventMap.removeLayer(eventMarker); eventMarker = null; };
-    eventMap.on('click', clickEvent => setEventPoint(clickEvent.latlng.lat, clickEvent.latlng.lng));
+    establecerPuntoEventoAdmin = (latitud, longitud) => { establecerPuntoEvento(latitud, longitud); mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15)); };
+    limpiarMarcadorEventoAdmin = () => { if (marcadorEvento) mapaEvento.removeLayer(marcadorEvento); marcadorEvento = null; };
+    mapaEvento.on('click', clicEvento => establecerPuntoEvento(clicEvento.latlng.lat, clicEvento.latlng.lng));
     // Tambien permite pegar coordenadas manuales para ajustar el punto.
-    [eventLatitude, eventLongitude].forEach(input => input.addEventListener('change', () => {
-      if (!eventLatitude.value.trim() || !eventLongitude.value.trim()) return;
-      const latitude = Number(eventLatitude.value);
-      const longitude = Number(eventLongitude.value);
-      if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-        setEventPoint(latitude, longitude);
-        eventMap.setView([latitude, longitude], Math.max(eventMap.getZoom(), 15));
+    [latitudEvento, longitudEvento].forEach(entrada => entrada.addEventListener('change', () => {
+      if (!latitudEvento.value.trim() || !longitudEvento.value.trim()) return;
+      const latitud = Number(latitudEvento.value);
+      const longitud = Number(longitudEvento.value);
+      if (Number.isFinite(latitud) && Number.isFinite(longitud)) {
+        establecerPuntoEvento(latitud, longitud);
+        mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15));
       }
     }));
-    window.setTimeout(() => eventMap.invalidateSize(), 0);
+    window.setTimeout(() => mapaEvento.invalidateSize(), 0);
   }
-  const usersList = document.getElementById('admin-users-list');
-  const commentsList = document.getElementById('admin-comments-list');
-  const adminStatus = document.getElementById('admin-resource-status');
-  const showResourceStatus = (message) => { if (adminStatus) adminStatus.textContent = message; };
-  const renderUsers = (users) => {
-    if (!usersList) return;
-    usersList.innerHTML = users.map(user => `<li><span>${escapeText(user.nombre || 'Usuario')} · ${escapeText(user.correo)}</span><button type="button" data-ban-user="${user.id}" data-banned="${Boolean(user.banned)}">${user.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
+  const usuariosLista = document.getElementById('admin-users-list');
+  const listaComentarios = document.getElementById('admin-comments-list');
+  const administracionEstado = document.getElementById('admin-resource-status');
+  const mostrarEstadoRecurso = (mensaje) => { if (administracionEstado) administracionEstado.textContent = mensaje; };
+  const representarUsuarios = (usuarios) => {
+    if (!usuariosLista) return;
+    usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-ban-user="${usuario.id}" data-banned="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
   };
-  const pages = { users: 1, comments: 1, support: 1 };
-  const loadUsers = async () => {
-    if (usersList) { usersList.setAttribute('aria-busy', 'true'); usersList.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios...</li>'; }
+  const paginas = { users: 1, comments: 1, support: 1 };
+  const cargarUsuarios = async () => {
+    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios...</li>'; }
     try {
-      const q = new URLSearchParams({ page: pages.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
-      const result = await sigturApiFetch(`/api/admin/usuarios?${q}`);
-      renderUsers(result.data || []);
-      const label = document.getElementById('admin-users-page'); if (label) label.textContent = `Página ${pages.users} · ${result.total} usuarios`;
-    } catch (error) {
-      if (usersList) usersList.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los usuarios.')}</li>`;
-      showResourceStatus(error.message); throw error;
-    } finally { usersList?.setAttribute('aria-busy', 'false'); }
+      const q = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
+      const resultado = await solicitarApiSigtur(`/api/admin/usuarios?${q}`);
+      representarUsuarios(resultado.data || []);
+      const etiqueta = document.getElementById('admin-users-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.users} · ${resultado.total} usuarios`;
+    } catch (fallo) {
+      if (usuariosLista) usuariosLista.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los usuarios.')}</li>`;
+      mostrarEstadoRecurso(fallo.message); throw fallo;
+    } finally { usuariosLista?.setAttribute('aria-busy', 'false'); }
   };
-  const loadComments = async () => {
-    if (commentsList) { commentsList.setAttribute('aria-busy', 'true'); commentsList.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios...</li>'; }
+  const cargarComentarios = async () => {
+    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios...</li>'; }
     try {
-      const q = new URLSearchParams({ page: pages.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
-      const result = await sigturApiFetch(`/api/admin/comentarios?${q}`);
-      if (commentsList) commentsList.innerHTML = (result.data || []).map(comment => `<li><span>${comment.fijado ? 'Fijado \u00b7 ' : ''}${escapeText(comment.contenido.slice(0, 120))}</span><span><button type="button" data-pin-comment="${comment.id}" data-pinned="${Boolean(comment.fijado)}">${comment.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comment.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
-      const label = document.getElementById('admin-comments-page'); if (label) label.textContent = `Página ${pages.comments} · ${result.total} comentarios`;
-    } catch (error) {
-      if (commentsList) commentsList.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar los comentarios.')}</li>`;
-      showResourceStatus(error.message); throw error;
-    } finally { commentsList?.setAttribute('aria-busy', 'false'); }
+      const q = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
+      const resultado = await solicitarApiSigtur(`/api/admin/comentarios?${q}`);
+      if (listaComentarios) listaComentarios.innerHTML = (resultado.data || []).map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(comentario.contenido.slice(0, 120))}</span><span><button type="button" data-pin-comment="${comentario.id}" data-pinned="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
+      const etiqueta = document.getElementById('admin-comments-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comments} · ${resultado.total} comentarios`;
+    } catch (fallo) {
+      if (listaComentarios) listaComentarios.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los comentarios.')}</li>`;
+      mostrarEstadoRecurso(fallo.message); throw fallo;
+    } finally { listaComentarios?.setAttribute('aria-busy', 'false'); }
   };
-  const loadSupport = async () => {
-    const list = document.getElementById('admin-support-list');
-    if (list) { list.setAttribute('aria-busy', 'true'); list.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas...</li>'; }
+  const cargarSoporte = async () => {
+    const lista = document.getElementById('admin-support-list');
+    if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas...</li>'; }
     try {
-      const q = new URLSearchParams({ page: pages.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
-      const result = await sigturApiFetch(`/api/admin/soporte?${q}`);
-      if (list) list.innerHTML = (result.data || []).map(ticket => {
-        const verification = ticket.ticket_type === 'business_verification', details = ticket.details || {};
-        const organizationTypes = { company: 'Empresa o comercio', nonprofit: 'Organización o asociación', tourism_service: 'Servicio turístico', independent_professional: 'Profesional independiente' };
-        const rows = [
-          ['Tipo de cuenta', organizationTypes[details.organization_type] || details.organization_type],
-          ['Nombre legal', details.legal_name], ['Nombre público', details.public_name],
-          ['RUT o registro', details.registration_number], ['Teléfono', details.phone],
-          ['Dirección', details.address], ['Localidad', details.locality],
-          ['Web o red social', details.website], ['Enlace de referencia', details.evidence_url],
-          ['ID de cuenta', ticket.user_id],
-        ].filter(([, value]) => value);
-        const detailsMarkup = verification ? `<details class="admin-verification-data"><summary>Ver datos de verificación</summary><dl>${rows.map(([label, value]) => `<div><dt>${escapeText(label)}</dt><dd>${escapeText(value)}</dd></div>`).join('')}</dl></details>` : '';
-        return `<li class="admin-support-ticket ${verification ? 'is-verification' : ''}"><div class="admin-support-ticket-content"><span><strong>${verification ? 'Verificación de cuenta' : escapeText(ticket.topic)}</strong> · ${escapeText(ticket.name)} (${escapeText(ticket.email)})</span><p>${escapeText(ticket.message.slice(0, 500))}</p>${detailsMarkup}<small>${escapeText(ticket.created_at ? new Date(ticket.created_at).toLocaleString('es-UY') : '')}</small></div><select data-ticket-status="${escapeText(ticket.id)}" aria-label="Estado del ticket"><option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${ticket.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
+      const q = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
+      const resultado = await solicitarApiSigtur(`/api/admin/soporte?${q}`);
+      if (lista) lista.innerHTML = (resultado.data || []).map(tique => {
+        const verificacion = tique.ticket_type === 'business_verification', detalles = tique.details || {};
+        const tiposOrganizacion = { company: 'Empresa o comercio', nonprofit: 'Organización o asociación', tourism_service: 'Servicio turístico', independent_professional: 'Profesional independiente' };
+        const filas = [
+          ['Tipo de cuenta', tiposOrganizacion[detalles.organization_type] || detalles.organization_type],
+          ['Nombre legal', detalles.legal_name], ['Nombre público', detalles.public_name],
+          ['RUT o registro', detalles.registration_number], ['Teléfono', detalles.phone],
+          ['Dirección', detalles.address], ['Localidad', detalles.locality],
+          ['Web o red social', detalles.website], ['Enlace de referencia', detalles.evidence_url],
+          ['ID de cuenta', tique.user_id],
+        ].filter(([, valor]) => valor);
+        const marcadoDetalles = verificacion ? `<details class="admin-verification-data"><summary>Ver datos de verificación</summary><dl>${filas.map(([etiqueta, valor]) => `<div><dt>${escaparTexto(etiqueta)}</dt><dd>${escaparTexto(valor)}</dd></div>`).join('')}</dl></details>` : '';
+        return `<li class="admin-support-ticket ${verificacion ? 'is-verification' : ''}"><div class="admin-support-ticket-content"><span><strong>${verificacion ? 'Verificación de cuenta' : escaparTexto(tique.topic)}</strong> · ${escaparTexto(tique.name)} (${escaparTexto(tique.email)})</span><p>${escaparTexto(tique.message.slice(0, 500))}</p>${marcadoDetalles}<small>${escaparTexto(tique.created_at ? new Date(tique.created_at).toLocaleString('es-UY') : '')}</small></div><select data-ticket-status="${escaparTexto(tique.id)}" aria-label="Estado del ticket"><option value="open" ${tique.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${tique.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${tique.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
       }).join('') || '<li class="ui-list-status">No hay consultas.</li>';
-      const label = document.getElementById('admin-support-page'); if (label) label.textContent = `Página ${pages.support} · ${result.total} consultas`;
-    } catch (error) {
-      if (list) list.innerHTML = `<li class="ui-list-status is-error" role="alert">${escapeText(error.message || 'No se pudieron cargar las consultas.')}</li>`;
-      showResourceStatus(error.message); throw error;
-    } finally { list?.setAttribute('aria-busy', 'false'); }
+      const etiqueta = document.getElementById('admin-support-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.support} · ${resultado.total} consultas`;
+    } catch (fallo) {
+      if (lista) lista.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar las consultas.')}</li>`;
+      mostrarEstadoRecurso(fallo.message); throw fallo;
+    } finally { lista?.setAttribute('aria-busy', 'false'); }
   };
-  try { await Promise.all([loadUsers(), loadComments(), loadSupport()]); } catch (error) { showResourceStatus(error.message); }
-  document.querySelectorAll('[data-admin-page]').forEach(button => button.addEventListener('click', async () => { const key = button.dataset.adminPage; pages[key] = Math.max(1, pages[key] + Number(button.dataset.direction)); try { await ({ users: loadUsers, comments: loadComments, support: loadSupport })[key](); } catch (error) { showResourceStatus(error.message); } }));
-  [['admin-users-search','users',loadUsers],['admin-comments-search','comments',loadComments]].forEach(([id,key,loader]) => document.getElementById(id)?.addEventListener('input', () => { pages[key] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => loader().catch(error => showResourceStatus(error.message)), 250); }));
-  document.getElementById('admin-support-status')?.addEventListener('change', () => { pages.support = 1; loadSupport().catch(error => showResourceStatus(error.message)); });
-  document.getElementById('admin-support-type')?.addEventListener('change', () => { pages.support = 1; loadSupport().catch(error => showResourceStatus(error.message)); });
-  document.getElementById('admin-support-list')?.addEventListener('change', async event => { const select = event.target.closest('[data-ticket-status]'); if (!select) return; try { await sigturApiFetch(`/api/admin/soporte/${select.dataset.ticketStatus}`, { method: 'PATCH', body: JSON.stringify({ status: select.value }) }); await loadSupport(); } catch (error) { showResourceStatus(error.message); } });
-  const resetEventEditor = () => {
-    eventForm?.reset();
-    if (eventForm) delete eventForm.dataset.editingId;
-    if (eventFormTitle) eventFormTitle.textContent = 'Crear evento';
-    if (eventSubmit) eventSubmit.textContent = 'Publicar evento';
-    if (eventCancel) eventCancel.hidden = true;
-    clearAdminEventMarker();
-    updateEventImagePreview();
+  try { await Promise.all([cargarUsuarios(), cargarComentarios(), cargarSoporte()]); } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
+  document.querySelectorAll('[data-admin-page]').forEach(boton => boton.addEventListener('click', async () => { const clave = boton.dataset.adminPage; paginas[clave] = Math.max(1, paginas[clave] + Number(boton.dataset.direction)); try { await ({ users: cargarUsuarios, comments: cargarComentarios, support: cargarSoporte })[clave](); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } }));
+  [['admin-users-search','users',cargarUsuarios],['admin-comments-search','comments',cargarComentarios]].forEach(([identificador,clave,cargador]) => document.getElementById(identificador)?.addEventListener('input', () => { paginas[clave] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => cargador().catch(fallo => mostrarEstadoRecurso(fallo.message)), 250); }));
+  document.getElementById('admin-support-status')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('admin-support-type')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('admin-support-list')?.addEventListener('change', async evento => { const seleccionar = evento.target.closest('[data-ticket-status]'); if (!seleccionar) return; try { await solicitarApiSigtur(`/api/admin/soporte/${seleccionar.dataset.ticketStatus}`, { method: 'PATCH', body: JSON.stringify({ status: seleccionar.value }) }); await cargarSoporte(); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } });
+  const restablecerEditorEvento = () => {
+    formularioEvento?.reset();
+    if (formularioEvento) delete formularioEvento.dataset.editingId;
+    if (tituloFormularioEvento) tituloFormularioEvento.textContent = 'Crear evento';
+    if (enviarEvento) enviarEvento.textContent = 'Publicar evento';
+    if (cancelarEvento) cancelarEvento.hidden = true;
+    limpiarMarcadorEventoAdmin();
+    actualizarVistaPreviaImagenEvento();
   };
-  const beginEventEdit = (eventRecord) => {
-    if (!eventForm || !eventRecord) return;
-    const fields = {
-      title: eventRecord.title,
-      description: eventRecord.description,
-      location: eventRecord.location,
-      latitude: eventRecord.latitude,
-      longitude: eventRecord.longitude,
-      date_start: eventRecord.date_start,
-      date_end: eventRecord.date_end,
-      event_time: eventRecord.event_time,
-      price: eventRecord.price ?? 0,
-      color: eventRecord.color || '#16b3a3',
-      image_url: eventRecord.image_url,
+  const iniciarEdicionEvento = (registroEvento) => {
+    if (!formularioEvento || !registroEvento) return;
+    const campos = {
+      title: registroEvento.title,
+      description: registroEvento.description,
+      location: registroEvento.location,
+      latitude: registroEvento.latitude,
+      longitude: registroEvento.longitude,
+      date_start: registroEvento.date_start,
+      date_end: registroEvento.date_end,
+      event_time: registroEvento.event_time,
+      price: registroEvento.price ?? 0,
+      color: registroEvento.color || '#16b3a3',
+      image_url: registroEvento.image_url,
     };
-    Object.entries(fields).forEach(([name, value]) => {
-      const input = eventForm.elements.namedItem(name);
-      if (input) input.value = value ?? '';
+    Object.entries(campos).forEach(([nombre, valor]) => {
+      const entrada = formularioEvento.elements.namedItem(nombre);
+      if (entrada) entrada.value = valor ?? '';
     });
-    const category = (Array.isArray(eventRecord.categories) ? eventRecord.categories[0] : '') || 'cultura';
-    const categoryKey = String(category).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    eventForm.elements.namedItem('category').value = categoryKey;
-    eventForm.dataset.editingId = eventRecord.id;
-    if (eventRecord.latitude != null && eventRecord.longitude != null) {
-      const latitude = Number(eventRecord.latitude), longitude = Number(eventRecord.longitude);
-      if (Number.isFinite(latitude) && Number.isFinite(longitude)) setAdminEventPoint?.(latitude, longitude);
+    const categoria = (Array.isArray(registroEvento.categories) ? registroEvento.categories[0] : '') || 'cultura';
+    const claveCategoria = String(categoria).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    formularioEvento.elements.namedItem('category').value = claveCategoria;
+    formularioEvento.dataset.editingId = registroEvento.id;
+    if (registroEvento.latitude != null && registroEvento.longitude != null) {
+      const latitud = Number(registroEvento.latitude), longitud = Number(registroEvento.longitude);
+      if (Number.isFinite(latitud) && Number.isFinite(longitud)) establecerPuntoEventoAdmin?.(latitud, longitud);
     }
-    if (eventFormTitle) eventFormTitle.textContent = 'Editar evento';
-    if (eventSubmit) eventSubmit.textContent = 'Guardar cambios';
-    if (eventCancel) eventCancel.hidden = false;
-    updateEventImagePreview();
-    showResourceStatus(`Editando: ${eventRecord.title || 'evento'}.`);
-    eventForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (tituloFormularioEvento) tituloFormularioEvento.textContent = 'Editar evento';
+    if (enviarEvento) enviarEvento.textContent = 'Guardar cambios';
+    if (cancelarEvento) cancelarEvento.hidden = false;
+    actualizarVistaPreviaImagenEvento();
+    mostrarEstadoRecurso(`Editando: ${registroEvento.title || 'evento'}.`);
+    formularioEvento.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-  eventCancel?.addEventListener('click', resetEventEditor);
-  eventForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(eventForm);
-    const editingId = eventForm.dataset.editingId;
-    const method = editingId ? 'PATCH' : 'POST';
-    const url = editingId ? `/api/admin/eventos/${encodeURIComponent(editingId)}` : '/api/admin/eventos';
-    if (eventSubmit) { eventSubmit.disabled = true; eventSubmit.textContent = 'Guardando...'; }
+  cancelarEvento?.addEventListener('click', restablecerEditorEvento);
+  formularioEvento?.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formularioEvento);
+    const identificadorEnEdicion = formularioEvento.dataset.editingId;
+    const metodo = identificadorEnEdicion ? 'PATCH' : 'POST';
+    const url = identificadorEnEdicion ? `/api/admin/eventos/${encodeURIComponent(identificadorEnEdicion)}` : '/api/admin/eventos';
+    if (enviarEvento) { enviarEvento.disabled = true; enviarEvento.textContent = 'Guardando...'; }
     try {
-      await sigturApiFetch(url, { method, body: JSON.stringify({ title: data.get('title'), description: data.get('description'), date_start: data.get('date_start'), date_end: data.get('date_end'), event_time: data.get('event_time'), location: data.get('location'), latitude: data.get('latitude'), longitude: data.get('longitude'), price: data.get('price'), color: data.get('color'), image_url: data.get('image_url'), categories: [data.get('category')] }) });
-      resetEventEditor();
-      showResourceStatus(editingId ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
-      await loadAdminEvents();
-    } catch (error) {
-      showResourceStatus(error.message);
+      await solicitarApiSigtur(url, { method: metodo, body: JSON.stringify({ title: datos.get('title'), description: datos.get('description'), date_start: datos.get('date_start'), date_end: datos.get('date_end'), event_time: datos.get('event_time'), location: datos.get('location'), latitude: datos.get('latitude'), longitude: datos.get('longitude'), price: datos.get('price'), color: datos.get('color'), image_url: datos.get('image_url'), categories: [datos.get('category')] }) });
+      restablecerEditorEvento();
+      mostrarEstadoRecurso(identificadorEnEdicion ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
+      await cargarAdministracionEventos();
+    } catch (fallo) {
+      mostrarEstadoRecurso(fallo.message);
     } finally {
-      if (eventSubmit) { eventSubmit.disabled = false; eventSubmit.textContent = eventForm.dataset.editingId ? 'Guardar cambios' : 'Publicar evento'; }
+      if (enviarEvento) { enviarEvento.disabled = false; enviarEvento.textContent = formularioEvento.dataset.editingId ? 'Guardar cambios' : 'Publicar evento'; }
     }
   });
-  eventsList?.addEventListener('click', async (event) => {
-    const editButton = event.target.closest('[data-edit-event]');
-    if (editButton) {
-      const record = adminEventRecords.get(String(editButton.dataset.editEvent));
-      if (record) beginEventEdit(record);
-      else showResourceStatus('No se pudo encontrar ese evento. Actualiza la lista e intenta nuevamente.');
+  listaEventos?.addEventListener('click', async (evento) => {
+    const botonEditar = evento.target.closest('[data-edit-event]');
+    if (botonEditar) {
+      const grabacion = registrosEventosAdmin.get(String(botonEditar.dataset.editEvent));
+      if (grabacion) iniciarEdicionEvento(grabacion);
+      else mostrarEstadoRecurso('No se pudo encontrar ese evento. Actualiza la lista e intenta nuevamente.');
       return;
     }
-    const button = event.target.closest('[data-delete-event]');
-    if (!button || !window.confirm('Eliminar este evento? Esta accion no se puede deshacer.')) return;
-    button.disabled = true;
+    const boton = evento.target.closest('[data-delete-event]');
+    if (!boton || !window.confirm('Eliminar este evento? Esta accion no se puede deshacer.')) return;
+    boton.disabled = true;
     try {
-      await sigturApiFetch(`/api/admin/eventos/${encodeURIComponent(button.dataset.deleteEvent)}`, { method: 'DELETE' });
-      if (eventForm?.dataset.editingId === button.dataset.deleteEvent) resetEventEditor();
-      showResourceStatus('Evento eliminado.');
-      await loadAdminEvents();
-    } catch (error) {
-      button.disabled = false;
-      showResourceStatus(error.message || 'No se pudo eliminar el evento.');
+      await solicitarApiSigtur(`/api/admin/eventos/${encodeURIComponent(boton.dataset.deleteEvent)}`, { method: 'DELETE' });
+      if (formularioEvento?.dataset.editingId === boton.dataset.deleteEvent) restablecerEditorEvento();
+      mostrarEstadoRecurso('Evento eliminado.');
+      await cargarAdministracionEventos();
+    } catch (fallo) {
+      boton.disabled = false;
+      mostrarEstadoRecurso(fallo.message || 'No se pudo eliminar el evento.');
     }
   });
-  usersList?.addEventListener('click', async (event) => {
-    const button = event.target.closest('[data-ban-user]');
-    if (!button) return;
+  usuariosLista?.addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-ban-user]');
+    if (!boton) return;
     try {
-      const duration = button.dataset.banned === 'true' ? 'none' : '24h';
-      await sigturApiFetch(`/api/admin/usuarios/${button.dataset.banUser}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration }) });
-      button.dataset.banned = duration === 'none' ? 'false' : 'true';
-      button.textContent = duration === 'none' ? 'Banear 24 h' : 'Desbanear';
-      showResourceStatus(duration === 'none' ? 'Usuario desbaneado.' : 'Usuario baneado por 24 horas.');
-    } catch (error) { showResourceStatus(error.message); }
+      const duracion = boton.dataset.banned === 'true' ? 'none' : '24h';
+      await solicitarApiSigtur(`/api/admin/usuarios/${boton.dataset.banUser}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration: duracion }) });
+      boton.dataset.banned = duracion === 'none' ? 'false' : 'true';
+      boton.textContent = duracion === 'none' ? 'Banear 24 h' : 'Desbanear';
+      mostrarEstadoRecurso(duracion === 'none' ? 'Usuario desbaneado.' : 'Usuario baneado por 24 horas.');
+    } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
   });
-  commentsList?.addEventListener('click', async event => {
-    const pinButton = event.target.closest('[data-pin-comment]');
-    if (pinButton) {
+  listaComentarios?.addEventListener('click', async evento => {
+    const botonMarcador = evento.target.closest('[data-pin-comment]');
+    if (botonMarcador) {
       try {
-        const fixed = pinButton.dataset.pinned !== 'true';
-        await sigturApiFetch(`/api/admin/comentarios/${pinButton.dataset.pinComment}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fixed }) });
-        pinButton.dataset.pinned = String(fixed);
-        pinButton.textContent = fixed ? 'Desfijar' : 'Fijar';
-        const text = pinButton.closest('li')?.querySelector('span');
-        if (text) text.innerHTML = `${fixed ? '📌 ' : ''}${text.textContent.replace(/^📌\s*/, '')}`;
-        showResourceStatus(fixed ? 'Comentario fijado.' : 'Comentario desfijado.');
-      } catch (error) { showResourceStatus(error.message); }
+        const fijado = botonMarcador.dataset.pinned !== 'true';
+        await solicitarApiSigtur(`/api/admin/comentarios/${botonMarcador.dataset.pinComment}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fijado }) });
+        botonMarcador.dataset.pinned = String(fijado);
+        botonMarcador.textContent = fijado ? 'Desfijar' : 'Fijar';
+        const texto = botonMarcador.closest('li')?.querySelector('span');
+        if (texto) texto.innerHTML = `${fijado ? '📌 ' : ''}${texto.textContent.replace(/^📌\s*/, '')}`;
+        mostrarEstadoRecurso(fijado ? 'Comentario fijado.' : 'Comentario desfijado.');
+      } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
       return;
     }
-    const button = event.target.closest('[data-delete-comment]');
-    if (!button || !window.confirm('¿Borrar este comentario?')) return;
+    const boton = evento.target.closest('[data-delete-comment]');
+    if (!boton || !window.confirm('¿Borrar este comentario?')) return;
     try {
-      await sigturApiFetch(`/api/admin/comentarios/${button.dataset.deleteComment}`, { method: 'DELETE' });
-      button.closest('li')?.remove();
-      showResourceStatus('Comentario borrado.');
-    } catch (error) { showResourceStatus(error.message); }
+      await solicitarApiSigtur(`/api/admin/comentarios/${boton.dataset.deleteComment}`, { method: 'DELETE' });
+      boton.closest('li')?.remove();
+      mostrarEstadoRecurso('Comentario borrado.');
+    } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
   });
 }
 
@@ -2953,89 +2953,89 @@ async function setupAdminPage() {
 // setupSupportPage() — envía las consultas al backend y carga el historial
 // del usuario autenticado desde la API de soporte.
 // ============================================================================
-async function loadPublicSiteSettings() {
+async function cargarConfiguracionPublica() {
   try {
-    const site = await sigturApiFetch('/api/public/site');
-    let banner = document.getElementById('site-announcement');
-    if (site.announcement?.title && !banner) { banner = document.createElement('aside'); banner.id = 'site-announcement'; banner.className = 'site-announcement'; document.body.prepend(banner); }
-    if (banner) { banner.hidden = !site.announcement?.title; banner.textContent = site.announcement?.title ? `${site.announcement.title}: ${site.announcement.body}` : ''; }
-    if (site.settings?.showSupport === false) document.querySelectorAll('a[href*="soporte.html"]').forEach(link => { link.hidden = true; });
-    let maintenance = document.getElementById('site-maintenance-notice');
-    if (site.settings?.maintenanceMode && !maintenance) { maintenance = document.createElement('aside'); maintenance.id = 'site-maintenance-notice'; maintenance.className = 'site-announcement'; maintenance.textContent = 'Estamos realizando tareas de mantenimiento. Algunas funciones pueden cambiar temporalmente.'; document.body.prepend(maintenance); }
-    if (maintenance) maintenance.hidden = !site.settings?.maintenanceMode;
+    const sitio = await solicitarApiSigtur('/api/public/site');
+    let cartel = document.getElementById('site-announcement');
+    if (sitio.announcement?.title && !cartel) { cartel = document.createElement('aside'); cartel.id = 'site-announcement'; cartel.className = 'site-announcement'; document.body.prepend(cartel); }
+    if (cartel) { cartel.hidden = !sitio.announcement?.title; cartel.textContent = sitio.announcement?.title ? `${sitio.announcement.title}: ${sitio.announcement.body}` : ''; }
+    if (sitio.settings?.showSupport === false) document.querySelectorAll('a[href*="soporte.html"]').forEach(enlace => { enlace.hidden = true; });
+    let mantenimiento = document.getElementById('site-maintenance-notice');
+    if (sitio.settings?.maintenanceMode && !mantenimiento) { mantenimiento = document.createElement('aside'); mantenimiento.id = 'site-maintenance-notice'; mantenimiento.className = 'site-announcement'; mantenimiento.textContent = 'Estamos realizando tareas de mantenimiento. Algunas funciones pueden cambiar temporalmente.'; document.body.prepend(mantenimiento); }
+    if (mantenimiento) mantenimiento.hidden = !sitio.settings?.maintenanceMode;
   } catch { /* el sitio sigue disponible si el backend temporalmente no responde */ }
 }
 
-function setupSupportPage() {
-  const form = document.getElementById('support-form');
-  if (!form) return;
+function configurarPaginaSoporte() {
+  const formulario = document.getElementById('support-form');
+  if (!formulario) return;
 
-  const list = document.getElementById('support-ticket-list');
-  const status = document.getElementById('support-status');
-  const topic = form.elements.namedItem('topic');
-  const verificationFields = document.getElementById('support-business-fields');
-  const messageLabel = document.getElementById('support-message-label');
-  const messageField = form.elements.namedItem('message');
-  const updateVerificationFields = () => {
-    const verification = topic?.value === 'business_verification';
-    if (verificationFields) { verificationFields.hidden = !verification; verificationFields.disabled = !verification; }
-    if (messageLabel) messageLabel.textContent = verification ? 'Actividad y motivo de la solicitud' : 'Mensaje';
-    if (messageField) messageField.placeholder = verification
+  const lista = document.getElementById('support-ticket-list');
+  const estado = document.getElementById('support-status');
+  const tema = formulario.elements.namedItem('topic');
+  const camposVerificacion = document.getElementById('support-business-fields');
+  const etiquetaMensaje = document.getElementById('support-message-label');
+  const campoMensaje = formulario.elements.namedItem('message');
+  const actualizarCamposVerificacion = () => {
+    const verificacion = tema?.value === 'business_verification';
+    if (camposVerificacion) { camposVerificacion.hidden = !verificacion; camposVerificacion.disabled = !verificacion; }
+    if (etiquetaMensaje) etiquetaMensaje.textContent = verificacion ? 'Actividad y motivo de la solicitud' : 'Mensaje';
+    if (campoMensaje) campoMensaje.placeholder = verificacion
       ? 'Contanos qué servicios ofrecen y por qué solicitan la verificación.'
       : 'Contanos qué necesitás revisar.';
-    if (verification && !sigturGetSession()?.token && status)
-      status.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
-    else if (status && status.textContent.startsWith('Iniciá sesión')) status.textContent = 'Listo';
+    if (verificacion && !obtenerSesionSigtur()?.token && estado)
+      estado.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
+    else if (estado && estado.textContent.startsWith('Iniciá sesión')) estado.textContent = 'Listo';
   };
-  topic?.addEventListener('change', updateVerificationFields);
-  form.addEventListener('reset', () => window.setTimeout(updateVerificationFields, 0));
-  updateVerificationFields();
+  tema?.addEventListener('change', actualizarCamposVerificacion);
+  formulario.addEventListener('reset', () => window.setTimeout(actualizarCamposVerificacion, 0));
+  actualizarCamposVerificacion();
 
-  const render = tickets => {
-    if (!list) return;
-    list.innerHTML = tickets.length ? tickets.map(ticket => `<article class="support-ticket"><div><strong>${escapeText(ticket.topic)}</strong><span>${escapeText(ticket.name)} · ${escapeText(ticket.email)}</span></div><p>${escapeText(ticket.message)}</p><small>${escapeText(new Date(ticket.created_at).toLocaleString('es-UY'))} · ${escapeText(ticket.status)}</small></article>`).join('') : '<p class="empty-state">Todavía no hay tickets.</p>';
+  const representar = tickets => {
+    if (!lista) return;
+    lista.innerHTML = tickets.length ? tickets.map(tique => `<article class="support-ticket"><div><strong>${escaparTexto(tique.topic)}</strong><span>${escaparTexto(tique.name)} · ${escaparTexto(tique.email)}</span></div><p>${escaparTexto(tique.message)}</p><small>${escaparTexto(new Date(tique.created_at).toLocaleString('es-UY'))} · ${escaparTexto(tique.status)}</small></article>`).join('') : '<p class="empty-state">Todavía no hay tickets.</p>';
   };
-  const loadMine = async () => {
-    if (!sigturGetSession()?.token || !list) return;
-    list.textContent = 'Cargando tus consultas…';
-    try { const result = await sigturApiFetch('/api/soporte/mios?page=1&pageSize=5'); render(result.data || []); }
-    catch { list.textContent = 'No se pudieron cargar tus consultas.'; }
+  const cargarPropios = async () => {
+    if (!obtenerSesionSigtur()?.token || !lista) return;
+    lista.textContent = 'Cargando tus consultas…';
+    try { const resultado = await solicitarApiSigtur('/api/soporte/mios?page=1&pageSize=5'); representar(resultado.data || []); }
+    catch { lista.textContent = 'No se pudieron cargar tus consultas.'; }
   };
-  loadMine();
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const data = new FormData(form);
-    const verification = data.get('topic') === 'business_verification';
-    const ticket = {
+  cargarPropios();
+  formulario.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formulario);
+    const verificacion = datos.get('topic') === 'business_verification';
+    const tique = {
       // crypto.randomUUID genera un id único, el fallback es Date.now() para browsers viejos
-      name: String(data.get('name') || '').trim(),
-      email: String(data.get('email') || '').trim(),
-      topic: String(topic?.selectedOptions?.[0]?.textContent || 'General').trim(),
-      message: String(data.get('message') || '').trim(),
-      ticket_type: verification ? 'business_verification' : 'general',
-      details: verification ? {
-        organization_type: data.get('organization_type'),
-        legal_name: data.get('legal_name'),
-        public_name: data.get('public_name'),
-        registration_number: data.get('registration_number'),
-        phone: data.get('phone'),
-        website: data.get('website'),
-        evidence_url: data.get('evidence_url'),
-        address: data.get('address'),
-        locality: data.get('locality'),
-        authorization: data.get('authorization') === 'on'
+      name: String(datos.get('name') || '').trim(),
+      email: String(datos.get('email') || '').trim(),
+      topic: String(tema?.selectedOptions?.[0]?.textContent || 'General').trim(),
+      message: String(datos.get('message') || '').trim(),
+      ticket_type: verificacion ? 'business_verification' : 'general',
+      details: verificacion ? {
+        organization_type: datos.get('organization_type'),
+        legal_name: datos.get('legal_name'),
+        public_name: datos.get('public_name'),
+        registration_number: datos.get('registration_number'),
+        phone: datos.get('phone'),
+        website: datos.get('website'),
+        evidence_url: datos.get('evidence_url'),
+        address: datos.get('address'),
+        locality: datos.get('locality'),
+        authorization: datos.get('authorization') === 'on'
       } : {}
     };
-    if (!ticket.name || !ticket.email || !ticket.message) {
-      if (status) status.textContent = 'Completa los campos requeridos';
+    if (!tique.name || !tique.email || !tique.message) {
+      if (estado) estado.textContent = 'Completa los campos requeridos';
       return;
     }
-    if (verification && !sigturGetSession()?.token) {
-      if (status) status.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
+    if (verificacion && !obtenerSesionSigtur()?.token) {
+      if (estado) estado.textContent = 'Iniciá sesión con la cuenta que querés verificar para enviar esta solicitud.';
       return;
     }
-    if (status) status.textContent = 'Enviando consulta…';
-    try { const result = await sigturApiFetch('/api/soporte', { method: 'POST', body: JSON.stringify(ticket) }); form.reset(); updateVerificationFields(); if (status) status.textContent = `Consulta recibida (${result.data.id.slice(0, 8)}).`; await loadMine(); }
-    catch (error) { if (status) status.textContent = error.message || 'No se pudo enviar la consulta. Intentá nuevamente.'; }
+    if (estado) estado.textContent = 'Enviando consulta…';
+    try { const resultado = await solicitarApiSigtur('/api/soporte', { method: 'POST', body: JSON.stringify(tique) }); formulario.reset(); actualizarCamposVerificacion(); if (estado) estado.textContent = `Consulta recibida (${resultado.data.id.slice(0, 8)}).`; await cargarPropios(); }
+    catch (fallo) { if (estado) estado.textContent = fallo.message || 'No se pudo enviar la consulta. Intentá nuevamente.'; }
   });
 }

@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { requiereSesion } from "../servicios/verificacion.js";
 import {
-  listar,
-  plan,
-  evento,
+  listarReservas,
+  crearPlan,
+  crearReservaEvento,
   cancelarPlan,
   cancelarEvento,
 } from "../controladores/controlador_reservas.js";
 
 const router = Router();
 router.use(requiereSesion);
-router.get("/", listar);
-router.post("/planes", plan);
+router.get("/", listarReservas);
+router.post("/planes", crearPlan);
 router.delete("/planes/:id", cancelarPlan);
-router.post("/eventos", evento);
+router.post("/eventos", crearReservaEvento);
 router.delete("/eventos/:id", cancelarEvento);
 export default router;
