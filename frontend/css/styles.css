@@ -9609,3 +9609,80 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
   body.page-home .hero-copy { display: flex; flex-direction: column; align-items: flex-start; }
   body.page-home .weather-widget { margin: 20px 0 14px; }
 }
+
+/* Gastronomía de la portada: tarjetas uniformes y ficha centrada. */
+body.page-home {
+  --color-fondo-modal-gastronomia: #102a38;
+  --color-texto-modal-gastronomia: #edf8f7;
+  --color-detalle-modal-gastronomia: #c3d8dc;
+  --color-borde-modal-gastronomia: #3b6a70;
+}
+body.page-home .gastro-section { padding-block: clamp(52px, 7vw, 88px); }
+body.page-home .food-grid { align-items: stretch; gap: clamp(14px, 2vw, 24px); }
+body.page-home .food-card {
+  min-width: 0;
+  aspect-ratio: 1.18 / 1;
+  border: 1px solid rgba(202, 231, 234, .2);
+  border-radius: 22px;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+body.page-home .food-card:hover { transform: translateY(-3px); border-color: rgba(112, 223, 206, .6); box-shadow: 0 20px 40px rgba(0, 13, 22, .28); }
+body.page-home .food-card-label { display: grid; justify-items: start; gap: 9px; padding: clamp(16px, 2vw, 24px); }
+body.page-home .food-card-btn {
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+body.page-home .food-card-desc { max-width: 34ch; margin: 0; font-size: .9rem; line-height: 1.55; }
+body.page-home .food-card[role="button"]:focus-visible { outline: 3px solid #70dfce; outline-offset: 4px; }
+body.page-home dialog.food-info-dialog[open] {
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: calc(100vw - 32px) !important;
+  height: fit-content !important;
+  max-height: min(82dvh, 720px) !important;
+  margin: auto !important;
+  padding: 0 !important;
+  overflow: auto !important;
+  border: 1px solid var(--color-borde-modal-gastronomia) !important;
+  border-radius: 22px !important;
+  background: var(--color-fondo-modal-gastronomia) !important;
+  color: var(--color-texto-modal-gastronomia) !important;
+  color-scheme: dark;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .48) !important;
+}
+body.page-home dialog.food-info-dialog::backdrop { background: rgba(3, 16, 24, .72); backdrop-filter: blur(6px); }
+body.page-home .food-info-dialog article { position: relative; padding: clamp(24px, 5vw, 34px); background: linear-gradient(145deg, #143845, #102633); color: var(--color-texto-modal-gastronomia); }
+body.page-home .food-info-dialog p { margin: 0 48px 7px 0; color: #72ddcd; font-size: .72rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+body.page-home .food-info-dialog h2 { margin: 0 48px 14px 0; color: #f3fbfa; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.65rem, 5vw, 2.2rem); line-height: 1.15; }
+body.page-home .food-info-dialog article div { color: var(--color-detalle-modal-gastronomia); font-size: 1rem; line-height: 1.7; }
+body.page-home .food-info-dialog button {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  display: grid !important;
+  width: 40px !important;
+  height: 40px !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1px solid #47757b !important;
+  border-radius: 50% !important;
+  background: #193f4b !important;
+  color: #a8eee4 !important;
+  cursor: pointer;
+  font: 1.45rem/1 sans-serif !important;
+}
+body.page-home .food-info-dialog button:hover { border-color: #70dfce !important; background: #087f72 !important; color: #fff !important; }
+@media (max-width: 760px) { body.page-home .food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) {
+  body.page-home .food-grid { grid-template-columns: 1fr; }
+  body.page-home .food-card { aspect-ratio: 1.35 / 1; }
+  body.page-home dialog.food-info-dialog[open] { max-height: calc(100dvh - 24px) !important; border-radius: 18px !important; }
+}
