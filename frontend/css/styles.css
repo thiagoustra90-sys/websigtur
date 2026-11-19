@@ -9586,7 +9586,7 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
     align-items: center;
     column-gap: clamp(26px, 5vw, 72px);
     row-gap: 0;
-    padding: clamp(160px, 19vh, 200px) clamp(28px, 6vw, 84px) 52px;
+    padding: clamp(160px, 19vh, 200px) clamp(16px, 2vw, 30px) 52px clamp(28px, 6vw, 84px);
   }
   body.page-home .hero-copy { grid-area: copy; display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
   body.page-home .hero-title,
@@ -9598,7 +9598,7 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
     justify-self: end;
     align-self: center;
     width: min(100%, 390px);
-    margin: 0;
+    margin: clamp(22px, 4vh, 42px) 0 0;
   }
 }
 @media (max-width: 700px) {
