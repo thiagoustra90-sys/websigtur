@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const total = diapositivas.length;
       let temporizadorAutomatico;
       const carrusel = pista.closest('.carrusel');
+      pista.id = 'inicio-evento-carrusel';
       const detenerRotacion = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
 
       // creamos un puntito por cada slide y lo agregamos al DOM
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         punto.type = 'button';
         punto.className = 'punto' + (i === 0 ? ' activo' : '');
         punto.setAttribute('aria-label', `Mostrar evento ${i + 1}`);
-        punto.setAttribute('aria-controls', 'home-event-carousel');
+        punto.setAttribute('aria-controls', pista.id);
         punto.addEventListener('click', () => irA(i));
         puntosElemento.appendChild(punto);
       });
@@ -146,30 +147,25 @@ document.addEventListener('DOMContentLoaded', () => {
       carrusel?.setAttribute('role', 'region');
       carrusel?.setAttribute('aria-roledescription', 'carrusel');
       carrusel?.setAttribute('aria-label', 'Eventos destacados');
-      pista.id = 'inicio-evento-carrusel';
       carrusel?.addEventListener('focusout', evento => { if (!carrusel.contains(evento.relatedTarget)) restablecerRotacion(); });
       restablecerRotacion();
     }
 
-    // --- ANIMACIÓN DE ENTRADA DE LAS CARDS ---
-    // gonza: IntersectionObserver es una API del browser que avisa
-    // cuando un elemento entra en el viewport. Mucho mejor que calcular
-    // posición con scroll, no frena la página.
+    // --- Aparición progresiva de los bloques del inicio ---
     const elementosRevelar = document.querySelectorAll('.caracteristica-elemento, .alojamiento-tarjeta, .comida-tarjeta, .eventos-izquierda, .carrusel');
-    if ('IntersectionObserver' in window) {
-      const observadorInterseccion = new IntersectionObserver((entradas) => {
+    const permiteAnimaciones = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if ('IntersectionObserver' in window && permiteAnimaciones) {
+      const observadorInterseccion = new IntersectionObserver((entradas, observador) => {
         entradas.forEach(entrada => {
           if (entrada.isIntersecting) {
-            entrada.target.classList.add('visible');
-            observadorInterseccion.unobserve(entrada.target); // una vez que apareció, dejamos de observarlo
+            entrada.target.classList.add('inicio-elemento-visible');
+            observador.unobserve(entrada.target);
           }
         });
-      }, { threshold: 0.12 }); // se activa cuando el 12% del elemento es visible
+      }, { threshold: 0.05, rootMargin: '0px 0px 64px 0px' });
 
       elementosRevelar.forEach(elementoDom => {
-        elementoDom.style.opacity = '0';
-        elementoDom.style.transform = 'translateY(28px)';
-        elementoDom.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        elementoDom.classList.add('inicio-elemento-revelar');
         observadorInterseccion.observe(elementoDom);
       });
     }

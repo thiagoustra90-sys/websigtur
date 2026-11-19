@@ -6376,6 +6376,66 @@ body.pagina-turismo .restaurante-cuadricula {
   max-width: 100%;
 }
 
+/* El contenido del inicio permanece visible y el carrusel conserva buen contraste en modo claro. */
+@media (prefers-reduced-motion: no-preference) {
+  body.pagina-inicio .inicio-elemento-revelar {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .48s ease, transform .48s ease;
+  }
+
+  body.pagina-inicio .inicio-elemento-revelar.inicio-elemento-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-seccion {
+  background: linear-gradient(145deg, #f3f7f5, #eaf1ef);
+  color: #17332f;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-titulo {
+  color: #102a43;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-texto {
+  color: #29443f;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-seccion .seccion-ver-mas,
+body.pagina-inicio:not(.tema-oscuro) .eventos-seccion .boton-leer-mas {
+  color: #075f56;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-seccion .boton-leer-mas {
+  border-color: #075f56;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .eventos-seccion :is(.seccion-ver-mas, .boton-leer-mas):hover {
+  opacity: 1;
+  color: #043f39;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .carrusel-boton {
+  border: 1px solid rgba(255, 255, 255, .82);
+  background: rgba(8, 40, 52, .82);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(4, 25, 34, .28);
+}
+
+body.pagina-inicio:not(.tema-oscuro) .carrusel-boton:hover {
+  background: #075f56;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .carrusel-puntos .punto {
+  background: #60727d;
+}
+
+body.pagina-inicio:not(.tema-oscuro) .carrusel-puntos .punto.activo {
+  background: #075f56;
+}
+
 body.cuenta-redisenada {
   overflow-x: hidden;
 }
