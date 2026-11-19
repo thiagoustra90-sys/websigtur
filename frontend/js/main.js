@@ -2537,13 +2537,16 @@ async function configurarInteraccionesEventos() {
     }
     const controles = document.createElement('div');
     controles.className = 'event-interaction-tools';
-    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">${iconoEvento('culture')}<span>Ver ficha</span></button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
+    const idPanelInteraccion = `panel-interaccion-${crearIdentificadorUrl(evento.id) || 'evento'}`;
+    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">${iconoEvento('culture')}<span>Ver ficha</span></button><button class="event-tool" type="button" data-event-comments aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
     fila.appendChild(controles);
 
     const panelActual = document.createElement('div');
     panelActual.className = 'event-interaction-panel';
+    panelActual.id = idPanelInteraccion;
+    panelActual.setAttribute('aria-labelledby', `${idPanelInteraccion}-titulo`);
     panelActual.hidden = true;
-    panelActual.innerHTML = `<div class="event-panel-head"><strong>${escaparHtml(evento.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
+    panelActual.innerHTML = `<div class="event-panel-head"><div class="event-panel-heading"><span class="event-panel-context" data-panel-context>Foro del evento</span><strong id="${idPanelInteraccion}-titulo">${escaparHtml(evento.title)}</strong></div><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" aria-label="Escribí un comentario" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
     fila._panelInteraccion = panelActual;
     const contenedorPaneles = fila.closest('.event-carousel-shell')?.querySelector('.event-interaction-panels');
     if (contenedorPaneles) contenedorPaneles.append(panelActual);
@@ -2581,15 +2584,27 @@ async function configurarInteraccionesEventos() {
       if (!botonComentarios && !reservaBoton) return;
       clicEvento.stopPropagation();
       const esReserva = Boolean(reservaBoton);
+      const activoBoton = esReserva ? reservaBoton : botonComentarios;
+      const estabaExpandido = activoBoton.getAttribute('aria-expanded') === 'true';
+      if (!estabaExpandido) {
+        contenedorPaneles?.querySelectorAll('.event-interaction-panel:not([hidden])').forEach(panelAbierto => {
+          if (panelAbierto === panelActual) return;
+          panelAbierto.hidden = true;
+          document.querySelectorAll(`[aria-controls="${panelAbierto.id}"]`).forEach(boton => boton.setAttribute('aria-expanded', 'false'));
+        });
+      }
       panelActual.hidden = false;
       panelActual.querySelector('.event-comments-view').hidden = esReserva;
       panelActual.querySelector('.event-reservation-view').hidden = !esReserva;
-      const activoBoton = esReserva ? reservaBoton : botonComentarios;
-      const estabaExpandido = activoBoton.getAttribute('aria-expanded') === 'true';
+      panelActual.querySelector('[data-panel-context]').textContent = esReserva ? 'Reserva del evento' : 'Foro del evento';
       fila.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
       activoBoton.setAttribute('aria-expanded', String(!estabaExpandido));
       panelActual.hidden = estabaExpandido;
-      if (!esReserva && !estabaExpandido) await cargarComentarios(panelActual, evento.id);
+      if (!estabaExpandido) {
+        const movimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        requestAnimationFrame(() => panelActual.scrollIntoView({ behavior: movimiento, block: 'nearest' }));
+        if (!esReserva) await cargarComentarios(panelActual, evento.id);
+      }
     });
 
     panelActual.addEventListener('click', async (clicEvento) => {
@@ -2642,7 +2657,11 @@ async function configurarInteraccionesEventos() {
           await cargarComentarios(panelActual, evento.id); return;
         }
         if (clicEvento.target.closest('[data-comment-reply]')) {
-          comentario.querySelector('.event-reply-form').hidden = false;
+          const formularioRespuesta = comentario.querySelector('.event-reply-form');
+          const nombreDestinatario = comentario.querySelector('.comment-author strong')?.textContent || 'este usuario';
+          formularioRespuesta.hidden = false;
+          formularioRespuesta.querySelector('textarea')?.setAttribute('aria-label', `Responder a ${nombreDestinatario}`);
+          formularioRespuesta.querySelector('textarea')?.focus();
         }
         if (clicEvento.target.closest('[data-submit-reply]')) {
           const contenido = comentario.querySelector('textarea').value;
