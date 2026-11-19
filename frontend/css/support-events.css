@@ -6,6 +6,143 @@ body.page-soporte {
   --utility-muted: #61746f;
 }
 
+body.page-admin {
+  --admin-accent: #087f72;
+  --admin-accent-hover: #06685e;
+  --admin-border: #d8e7e3;
+}
+
+/* Accesos de soporte: filas limpias con una acción clara al extremo. */
+body.page-soporte .pill-list { display: grid; gap: 9px; }
+body.page-soporte .pill-list > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--utility-border);
+  border-radius: 12px;
+  background: #f8fbfa;
+  color: #35544e;
+  font-size: .9rem;
+}
+body.page-soporte .pill-list a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid #c6e2dc;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--utility-accent);
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+body.page-soporte .pill-list a:hover { border-color: var(--utility-accent); background: #eaf7f4; }
+
+/* Campos de búsqueda/filtro y botones del panel de administración. */
+body.page-admin .admin-panel > label {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0;
+  color: #35544e;
+  font-size: .88rem;
+  font-weight: 800;
+}
+body.page-admin .admin-panel > label input,
+body.page-admin .admin-panel > label select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 11px;
+  background: #fff;
+  color: #203d38;
+  font: 500 1rem/1.4 'Nunito', sans-serif;
+}
+body.page-admin .admin-panel > label :is(input, select):focus {
+  border-color: var(--admin-accent);
+  outline: 3px solid rgb(8 127 114 / 14%);
+}
+body.page-admin .admin-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+body.page-admin .admin-actions .glass-action,
+body.page-admin .admin-panel .admin-pagination button,
+body.page-admin .admin-users-list button,
+body.page-admin .admin-event-actions button,
+body.page-admin .button-row button,
+body.page-admin .admin-event-form-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid #cfe2dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #17665c;
+  cursor: pointer;
+  font: 800 .84rem/1.2 'Nunito', sans-serif;
+  text-align: center;
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+}
+body.page-admin .admin-actions .glass-action:hover,
+body.page-admin .admin-panel .admin-pagination button:hover,
+body.page-admin .admin-users-list button:hover,
+body.page-admin .admin-event-actions button:hover,
+body.page-admin .button-row button:hover,
+body.page-admin .admin-event-form-actions button:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgb(18 64 57 / 12%); }
+body.page-admin .admin-actions .glass-action:first-child,
+body.page-admin .button-row .btn-primary,
+body.page-admin .admin-event-form-actions .btn-primary { border-color: var(--admin-accent); background: var(--admin-accent); color: #fff; }
+body.page-admin .admin-panel .admin-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+body.page-admin .admin-panel .admin-pagination span { color: #61746f; font-size: .82rem; font-weight: 700; }
+body.page-admin .admin-users-list > li { gap: 12px; min-width: 0; }
+body.page-admin .admin-users-list > li > span { min-width: 0; overflow-wrap: anywhere; }
+body.page-admin .admin-users-list button { flex: 0 0 auto; min-height: 36px; padding: 7px 10px; }
+body.page-admin .admin-event-map {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  min-height: 260px;
+  isolation: isolate;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 40%);
+}
+body.page-admin .admin-event-map .leaflet-control-zoom a { color: #174b42; }
+body.page-admin .admin-event-map .leaflet-control-attribution { font-size: 10px; }
+body.page-admin .admin-event-coordinates { gap: 12px; }
+body.page-admin .admin-event-coordinates label { display: grid; gap: 5px; }
+body.page-admin :is(.admin-actions .glass-action, .admin-pagination button, .admin-users-list button, .admin-event-actions button, .button-row button, .admin-event-form-actions button):focus-visible { outline: 3px solid #f0aa35; outline-offset: 3px; }
+
+body.theme-dark.page-admin .admin-panel > label { color: #d8f0eb; }
+body.theme-dark.page-admin .admin-panel > label input,
+body.theme-dark.page-admin .admin-panel > label select { border-color: #355762; background: #142f3a; color: #e9f5f2; }
+body.theme-dark.page-admin .admin-actions .glass-action,
+body.theme-dark.page-admin .admin-panel .admin-pagination button,
+body.theme-dark.page-admin .admin-users-list button,
+body.theme-dark.page-admin .admin-event-actions button,
+body.theme-dark.page-admin .button-row .btn-secondary,
+body.theme-dark.page-admin .admin-event-form-actions .btn-secondary { border-color: #3b6268; background: #173642; color: #c1eee5; }
+body.theme-dark.page-admin .button-row .btn-primary,
+body.theme-dark.page-admin .admin-event-form-actions .btn-primary { border-color: #18a99a; background: #18a99a; color: #062322; }
+body.theme-dark.page-admin .admin-panel .admin-pagination span { color: #b8ceca; }
+body.theme-dark.page-soporte .pill-list > span { border-color: #355762; background: #142f3a; color: #d1e4df; }
+body.theme-dark.page-soporte .pill-list a { border-color: #3b6268; background: #173642; color: #c1eee5; }
+
+@media (max-width: 560px) {
+  body.page-admin .admin-actions { grid-template-columns: 1fr; }
+  body.page-admin .admin-actions .glass-action { width: 100%; }
+  body.page-admin .admin-users-list > li { align-items: flex-start; flex-wrap: wrap; }
+  body.page-admin .admin-users-list button { margin-left: auto; }
+  body.page-admin .admin-event-map { min-height: 230px; }
+  body.page-soporte .pill-list > span { padding: 9px 10px; }
+}
+
 body.page-soporte .support-action-bar,
 body.page-soporte .button-row { align-items: center; }
 

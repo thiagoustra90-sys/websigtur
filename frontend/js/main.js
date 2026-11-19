@@ -2801,7 +2801,10 @@ async function configurarPaginaAdministracion() {
         mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15));
       }
     }));
-    window.setTimeout(() => mapaEvento.invalidateSize(), 0);
+    const recalcularTamanoMapa = () => mapaEvento.invalidateSize({ pan: false });
+    window.requestAnimationFrame(() => window.requestAnimationFrame(recalcularTamanoMapa));
+    window.setTimeout(recalcularTamanoMapa, 250);
+    if ('ResizeObserver' in window) new ResizeObserver(recalcularTamanoMapa).observe(elementoMapaEvento);
   }
   const usuariosLista = document.getElementById('admin-users-list');
   const listaComentarios = document.getElementById('admin-comments-list');
