@@ -145,6 +145,12 @@ body.theme-dark.page-admin .admin-event-actions .admin-event-delete:hover { bord
 body.theme-dark.page-admin .button-row .btn-primary,
 body.theme-dark.page-admin .admin-event-form-actions .btn-primary { border-color: #18a99a; background: #18a99a; color: #062322; }
 body.theme-dark.page-admin .admin-panel .admin-pagination span { color: #b8ceca; }
+body.theme-dark.page-admin .admin-users-list > li {
+  border-color: #355762;
+  background: #142f3a;
+  color: #edf8f5;
+}
+body.theme-dark.page-admin .admin-users-list > li > span { color: #edf8f5; }
 body.theme-dark.page-soporte .pill-list > span { border-color: #355762; background: #142f3a; color: #d1e4df; }
 body.theme-dark.page-soporte .pill-list a { border-color: #3b6268; background: #173642; color: #c1eee5; }
 
