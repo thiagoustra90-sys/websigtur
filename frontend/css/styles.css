@@ -1,4 +1,4 @@
-/* Shared SIGTUR styles and page-specific component rules. */
+/* Estilos compartidos de SIGTUR y reglas específicas de cada página. */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito:wght@300;400;600;700;800&display=swap');
 @import url('https://fonts.cdnfonts.com/css/brittany-signature');
 
@@ -28,28 +28,13 @@ body.pagina-turismo { font-family: 'Montserrat-Light', 'Montserrat', sans-serif;
   --texto-atenuado-oscuro: #B8C4CE;
 }
 
-/* ------------------------------------------------------------
-   ¿Qué es @scope? Es una at-rule de CSS relativamente nueva
-   (soportada en navegadores modernos, cuidado si necesitan
-   compatibilidad con navegadores viejos) que limita todas las
-   reglas de adentro a que SOLO apliquen dentro de un elemento
-   que matchee el selector — acá, "body.pagina-inicio". Es una forma
-   de simular "módulos" de CSS sin tener que anteponer
-   ".pagina-inicio" a mano en cada selector de adentro del bloque
-   (aunque en la práctica, mirando el resto del archivo, en
-   muchos lugares SÍ se antepone "body.pagina-XXX" manualmente
-   igual, así que el uso de @scope acá es medio parcial/mixto).
-   Ojo con este detalle si van a copiar bloques de CSS entre
-   secciones: si el código depende de estar "adentro" del scope,
-   sacarlo de acá y pegarlo suelto en otra parte del archivo
-   puede dejar de aplicar
------------------------------------------------------------- */
+/* @scope limita los selectores de este bloque al body de inicio. */
 @scope (body.pagina-inicio) {
 /* ============================================
    VPI ” Main Stylesheet 
    ============================================ */
 
-/* ---------- Reset & Base ---------- */
+/* ---------- Base y normalización ---------- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -342,7 +327,7 @@ ul, ol { list-style: none; }
 a { text-decoration: none; color: inherit; }
 img { display: block; max-width: 100%; }
 
-/* ---------- tipografia ---------- */
+/* ---------- Tipografía ---------- */
 .seccion-rotulo {
   font-family: 'Montserrat-SemiBold', sans-serif;
   font-size: 13px;
@@ -352,7 +337,7 @@ img { display: block; max-width: 100%; }
   margin-bottom: 8px;
 }
 
-/* ---------- Navbar ---------- */
+/* ---------- Navegación ---------- */
 .barra-navegacion {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -429,7 +414,7 @@ img { display: block; max-width: 100%; }
   background: rgba(255,255,255,0.4);
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Portada ---------- */
 .portada {
   position: relative;
   width: 100%;
@@ -449,7 +434,7 @@ img { display: block; max-width: 100%; }
   z-index: 0;
 }
 
-/* efecto dramatico y sutil sobre un gradiente en el fondo*/
+/* Oscurece el fondo con un degradado para mejorar la lectura del texto. */
 .portada-fondo::after {
   content: '';
   position: absolute;
@@ -523,7 +508,7 @@ img { display: block; max-width: 100%; }
   letter-spacing: -0.01em;
 }
 
-/* ---------- Features Strip ---------- */
+/* ---------- Accesos principales ---------- */
 .caracteristicas {
   background: linear-gradient(90deg, #f1f2de 0%, #b0b0af 100%);
   padding: 56px 64px;
@@ -567,7 +552,7 @@ img { display: block; max-width: 100%; }
   margin: 0 auto;
 }
 
-  /* ---------- Ver Más seccion compartida ---------- */
+  /* ---------- Enlace compartido para ver más ---------- */
 .seccion-ver-mas {
   font-family: 'Montserrat-Bold', sans-serif;
   font-size: 14px;
@@ -579,7 +564,7 @@ img { display: block; max-width: 100%; }
 }
 .seccion-ver-mas:hover { opacity: 0.6; }
 
-/* ---------- Eventos Section ---------- */
+/* ---------- Sección de eventos ---------- */
 .eventos-seccion {
   background: #f7f5ef;
   padding: 64px 64px 80px;
@@ -718,7 +703,7 @@ img { display: block; max-width: 100%; }
   transform: scale(1.4);
 }
 
-/* ---------- Alojamiento Section ---------- */
+/* ---------- Sección de alojamientos ---------- */
 .alojamiento-seccion {
   background: #f7f5ef;
   padding: 64px 64px 80px;
@@ -769,7 +754,7 @@ img { display: block; max-width: 100%; }
   gap: 24px;
 }
 
-/* Property Card */
+/* Tarjetas de alojamiento */
 .alojamiento-tarjeta {
   border-radius: 12px;
   overflow: hidden;
@@ -900,7 +885,7 @@ img { display: block; max-width: 100%; }
   color: #888;
 }
 
-/* ---------- Gastronomía Section ---------- */
+/* ---------- Sección de gastronomía ---------- */
 .gastronomia-seccion {
   background: #f7f5ef;
   padding: 64px 64px 80px;
@@ -994,7 +979,7 @@ img { display: block; max-width: 100%; }
   background: rgba(255,255,255,0.25);
 }
 
-/* ---------- Footer ---------- */
+/* ---------- Pie de página ---------- */
 .pie-pagina {
   background: #1f1f1f;
   color: #fff;
@@ -1041,7 +1026,7 @@ img { display: block; max-width: 100%; }
   background: rgba(255,255,255,0.18);
 }
 
-/* Socials */
+/* Redes sociales */
 .pie-pagina-redes-sociales {
   max-width: 1400px;
   margin: 0 auto;
@@ -1132,23 +1117,14 @@ img { display: block; max-width: 100%; }
 }
 
 
-/* ------------------------------------------------------------
-   Arranca el @scope de la página de Eventos. Ojo: esta sección
-   define SU PROPIO "Reset & Base" y su propio set de variables
-   :root más abajo (revisen la línea siguiente), literalmente
-   repitiendo lo mismo que ya se declaró arriba para pagina-inicio.
-   No rompe nada (CSS banca variables :root redeclaradas, la
-   última en cascada gana), pero es codigo duplicado que se
-   podría haber puesto una sola vez afuera de los @scope, ya que
-   son los mismos valores de color en todas las páginas.
------------------------------------------------------------- */
+/* Estilos de la página de Eventos. */
 @scope (body.pagina-eventos) {
 /* ============================================================
    SIGTUR EVENTOS ” Main Stylesheet
    27/06/2026, error corregido con menu
    ============================================================ */
 
-/* ---------- Reset & Base ---------- */
+/* ---------- Base y normalización ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -1174,7 +1150,7 @@ img { display: block; max-width: 100%; }
   gap: 20px;
 }
 
-/* oila del fondo que cubre todo el menu principal */
+/* Capa translúcida detrás de la navegación. */
 .barra-navegacion::before {
   content: '';
   position: absolute;
@@ -1207,7 +1183,7 @@ img { display: block; max-width: 100%; }
 .navegacion-marca .marca-olas span:nth-child(2) { width: 80px; }
 .navegacion-marca .marca-olas span:nth-child(3) { width: 46px; margin-left: 12px; }
 
-/* barra de busqueda  */
+/* Buscador de la navegación. */
 .navegacion-busqueda {
   position: relative;
   flex: 1;
@@ -1236,7 +1212,7 @@ img { display: block; max-width: 100%; }
 }
 .navegacion-busqueda input::placeholder { color: #888; font-weight: 400; }
 
-/* botones? pila de navegacion */
+/* Enlaces principales de navegación. */
 .navegacion-enlaces {
   position: relative;
   display: flex;
@@ -1284,7 +1260,7 @@ img { display: block; max-width: 100%; }
   z-index: 0;
 }
 
-/* overlay cream redondo de figma */
+/* Capa clara decorativa bajo el contenido de la portada. */
 .portada-superpuesto {
   position: absolute;
   bottom: -120px;
@@ -1314,7 +1290,7 @@ img { display: block; max-width: 100%; }
   margin-bottom: 0;
 }
 
-/* decoracion ola (SVG adentro) */
+/* Onda decorativa de la portada. */
 .portada-olas {
   margin-top: -10px;
   margin-bottom: 0;
@@ -1360,7 +1336,7 @@ img { display: block; max-width: 100%; }
   align-items: start;
 }
 
-/* carta negra de evento */
+/* Tarjeta de evento. */
 .evento-tarjeta {
   background: #1c1c1c;
   border-radius: 49px;
@@ -1428,7 +1404,7 @@ img { display: block; max-width: 100%; }
   color: #000;
 }
 
-/* filtro y busqueda */
+/* Filtros y búsqueda. */
 .busqueda-filtro-barra {
   position: relative;
   margin-bottom: 32px;
@@ -1456,7 +1432,7 @@ img { display: block; max-width: 100%; }
 }
 .busqueda-pastilla input::placeholder { color: rgba(0,0,0,0.35); }
 
-/* categoria de filtrado */
+/* Categorías disponibles para filtrar. */
 .categoria-pestanas {
   display: flex;
   flex-wrap: wrap;
@@ -1519,7 +1495,7 @@ img { display: block; max-width: 100%; }
   box-shadow: 0 6px 28px rgba(0,0,0,0.11);
 }
 
-/* linea de acento a la izquierda */
+/* Borde de acento de la tarjeta. */
 .entrada-fila::before {
   content: '';
   position: absolute;
@@ -1529,7 +1505,7 @@ img { display: block; max-width: 100%; }
   border-radius: 0 4px 4px 0;
 }
 
-/* bloque de fecha */
+/* Fecha del evento. */
 .entrada-fecha {
   display: flex;
   flex-direction: column;
@@ -1554,7 +1530,7 @@ img { display: block; max-width: 100%; }
   color: #000;
 }
 
-/* Divider */
+/* Separador. */
 .entrada-separador {
   width: 3px;
   height: 80px;
@@ -1563,7 +1539,7 @@ img { display: block; max-width: 100%; }
   flex-shrink: 0;
 }
 
-/* Evento info */
+/* Información del evento. */
 .entrada-informacion {
   flex: 1;
   display: flex;
@@ -1599,7 +1575,7 @@ img { display: block; max-width: 100%; }
   color: #1d2939;
 }
 
-/* descriptor evento */
+/* Descripción del evento. */
 .entrada-insignia {
   display: inline-flex;
   align-items: center;
@@ -1622,7 +1598,7 @@ img { display: block; max-width: 100%; }
 .insignia-azul   { background: rgba(168, 189, 234, 1); color: rgba(15, 72, 232, 1); }
 .insignia-rosa   { background: rgba(255, 198, 224, 1); color: rgba(170, 36, 104, 1); }
 
-/* tiempo */
+/* Horario del evento. */
 .entrada-hora {
   font-family: 'Inter-Regular', sans-serif;
   font-size: 16px;
@@ -1640,7 +1616,7 @@ img { display: block; max-width: 100%; }
 .entrada-precio { color: #1d2939; font-size: 14px; }
 .entrada-ubicacion svg { width: 15px; height: 15px; }
 
-/* like corazon */
+/* Acción para guardar el evento. */
 .entrada-corazon {
   width: 52px;
   height: 52px;
@@ -1659,7 +1635,7 @@ img { display: block; max-width: 100%; }
 }
 .entrada-corazon:hover svg .corazon-relleno { fill: #e84040; }
 
-/* Ver mas boton */
+/* Acción para abrir la ficha completa. */
 .ver-mas-boton {
   display: block;
   max-width: 740px;
@@ -1751,7 +1727,7 @@ img { display: block; max-width: 100%; }
   text-align: center;
 }
 
-/* carousel puntos */
+/* Indicadores del carrusel. */
 .carrusel-puntos {
   display: flex;
   justify-content: center;
@@ -1854,7 +1830,7 @@ img { display: block; max-width: 100%; }
   background: rgba(110,110,110,1);
 }
 
-/* istado iconos sociales */
+/* Listado de iconos sociales. */
 .pie-pagina-redes-sociales {
   max-width: 1250px;
   margin: 0 auto;
@@ -1944,7 +1920,7 @@ img { display: block; max-width: 100%; }
   cursor: pointer;
 }
 
-/* transcicion pag1 a pag2 */
+/* Transición entre secciones de la portada. */
 .navegacion-page2 {
   position: relative;
   background: rgba(22,179,163,0.15);
@@ -1955,18 +1931,13 @@ img { display: block; max-width: 100%; }
 }
 
 
-/* ------------------------------------------------------------
-   @scope de Turismo. Mismo patrón que arriba: reset + :root
-   repetidos. A esta altura ya es un patrón clarísimo del
-   archivo, así que no lo volvemos a marcar en cada @scope que
-   seguimos encontrando (LUGARES, más abajo, hace lo mismo).
------------------------------------------------------------- */
+/* Estilos de la página de Turismo. */
 @scope (body.pagina-turismo) {
 /* ============================================================
    SIGTUR ” TURISMO
    ============================================================ */
 
-/* ---------- Reset & Base ---------- */
+/* ---------- Base y normalización ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -2320,7 +2291,7 @@ button { font-family: inherit; }
    SIGTUR ” LUGARES
    ============================================================ */
 
-/* ---------- Reset & Base ---------- */
+/* ---------- Base y normalización ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -2646,16 +2617,7 @@ button { font-family: inherit; }
 
 
 
-/* ============================================================================
-   Acá termina la seguidilla de los 4 bloques @scope por página, y arranca
-   la parte del archivo que es COMPARTIDA entre todo el sitio (nombrado acá
-   "Global VPI paleta capas" — el nombre "VPI" aparece bastante en este
-   archivo, probablemente sea el nombre del equipo/proyecto interno de la
-   escuela UTU que vimos mencionado en el footer). De acá para abajo, casi
-   todo son selectores del tipo "body.pagina-administracion", "body.tema-oscuro",
-   "body.cuenta-redisenada", etc, es decir, cosas que aplican transversalmente
-   y no viven adentro de ningún @scope.
-   ============================================================================ */
+/* Reglas compartidas entre páginas: navegación, tema y paneles. */
 
 /* ============================================================
    Global VPI paleta capas
@@ -2788,21 +2750,7 @@ body.pagina-inicio .comida-tarjeta-boton { color: #fff; background: rgba(16, 42,
   body.pagina-turismo .restaurante-cuadricula { grid-template-columns: 1fr; }
 }
 
-/* ------------------------------------------------------------
-   Esta sección cubre 3 cosas bastante distintas bajo un mismo
-   título:
-   1) el menú circular que sale de tocar el logo (Login / Admin /
-      Soporte / cambio de tema) — como vimos antes, el HTML de
-      este menú NO existe en ningún archivo .html, lo arma
-      crearMenuLogotipo() en main.js e inyecta acá los estilos que
-      ya están preparados para recibirlo
-   2) el toggle de tema claro/oscuro (buscar "tema-oscuro" en este
-      archivo para ver TODOS los overrides de color que dispara
-      con solo cambiar una clase en el <body>)
-   3) los estilos base de las páginas "utilitarias" (.utilidad-pagina,
-      .utilidad-marco, .administracion-panel, .soporte-panel, etc) que
-      vimos usar admin.html y soporte.html
------------------------------------------------------------- */
+/* Menú del logotipo, cambio de tema y estilos de administración y soporte. */
 /* ============================================================
    LOGO MENU, THEME MODE AND UTILITY PAGES
    ============================================================ */
@@ -3537,18 +3485,7 @@ body.tema-oscuro .red-social-acceso {
   color: var(--texto-oscuro);
 }
 
-/* ------------------------------------------------------------
-   Todo el look de login.html vive acá: la grilla de fotos de
-   fondo, la tarjeta central, las pestanas de Ingresar/Registrarse,
-   los inputs, los botones sociales. El comentario original dice
-   "fix arreglado" (redundante, "fix" ya implica arreglo, pero
-   bueno, se entiende la urgencia con la que se escribió je).
-   Si el login se ve raro en algún navegador o tamaño de pantalla,
-   es acá donde hay que meter mano.
------------------------------------------------------------- */
-/* ============================================================
-   AUTH REMAKE, 26/06/2026 fix arreglado.
-   ============================================================ */
+/* Formularios de inicio de sesión y registro. */
 body.cuenta-redisenada {
   min-height: 100vh;
   overflow: hidden;
@@ -4103,7 +4040,7 @@ body.tema-oscuro.cuenta-redisenada .cuenta-campo input::placeholder {
   }
 }
 
-/* Final consistency overrides */
+/* Ajustes finales de consistencia. */
 .alojamiento-multimedia,
 .alojamiento-imagen-marcador-posicion,
 .restaurante-imagen-marcador-posicion {
@@ -4331,7 +4268,7 @@ body.tema-oscuro.pagina-turismo .alojamiento-corazon svg {
   }
 }
 
-/* Event dark mode and auth layout polish */
+/* Eventos en modo oscuro y ajustes de acceso. */
 body.tema-oscuro.pagina-eventos {
   background: #071a26;
   color: #f8fbfd;
@@ -4571,7 +4508,7 @@ body.tema-oscuro.cuenta-redisenada .apple-marca::before {
   }
 }
 
-/* main glassmorphic refresco de pagina, titulos de texto(playfair) y widget de clima ese */
+/* Superficies translúcidas, títulos y widget del clima. */
 body.pagina-inicio {
   --cristal-turquesa: 22, 179, 163;
   --cristal-rio: 14, 107, 120;
@@ -4880,7 +4817,7 @@ body.tema-oscuro.pagina-inicio .boton-leer-mas {
   }
 }
 
-/* Global glass typography refresh for inner pages */
+/* Tipografía y superficies de las páginas interiores. */
 body.pagina-eventos,
 body.pagina-turismo,
 body.pagina-lugares,
@@ -5391,25 +5328,9 @@ body.tema-oscuro .estado-pastilla {
   }
 }
 
-/* 
-   Glass morphism es un estilo de css, con los botones de estilo de cristal.
-   lo importante: esta sección se agregó DESPUÉS de que ya existían los
-   estilos "normales" de cards, navbars, etc en cada @scope de arriba, y
-   los está PISANDO A PROPÓSITO para unificar visualmente cosas que antes
-   se veían un poco distintas entre index/eventos/turismo/lugares (por
-   ejemplo, las prop-card de turismo capaz tenían un border-radius
-   ligeramente distinto al de las de la home, antes de este parche).
-   Si el corazón/precio/rating de una card se ve "raro" o con blur donde
-   no debería, ACÁ es adonde hay que venir a revisar antes que en la
-   sección original de esa card más arriba en el archivo — porque esta
-   sección de acá gana por estar más abajo.
-   */
+/* Ajustes compartidos para tarjetas, navegación y acciones. */
 
-/* ============================================================
-   Glass Morphism?  — valores armónicos en todas las páginas
-   ============================================================ */
-
-/* Variables globales del sistema glass */
+/* Variables globales de las superficies translúcidas. */
 :root {
   --cristal-desenfoque:         blur(18px) saturate(1.28);
   --borde-cristal-general:       1px solid rgba(255, 255, 255, 0.52);
@@ -5421,7 +5342,7 @@ body.tema-oscuro .estado-pastilla {
   --redondeo-cristal-general:       20px;
 }
 
-/* Cards de luz: prop-card / restaurant-card / lugar-card / event-ticket */
+/* Tarjetas de alojamientos, restaurantes, lugares y eventos. */
 body.pagina-inicio     .alojamiento-tarjeta,
 body.pagina-turismo  .alojamiento-tarjeta,
 body.pagina-turismo  .restaurante-tarjeta,
@@ -5441,7 +5362,7 @@ body.pagina-turismo .restaurante-informacion {
   backdrop-filter: none;
 }
 
-/* Cards oscuras: evento-tarjeta / destacado-tarjeta */
+/* Tarjetas de eventos en modo oscuro. */
 body.pagina-eventos .evento-tarjeta,
 body.pagina-eventos .destacado-tarjeta {
   border-radius:   var(--redondeo-cristal-general);
@@ -5452,7 +5373,7 @@ body.pagina-eventos .destacado-tarjeta {
   -webkit-backdrop-filter: var(--cristal-desenfoque);
 }
 
-/* Ticket rows */
+/* Filas de la agenda. */
 body.pagina-eventos .entrada-fila {
   border-radius:   var(--redondeo-cristal-general);
   border:          var(--borde-cristal-general);
@@ -5462,7 +5383,7 @@ body.pagina-eventos .entrada-fila {
   -webkit-backdrop-filter: var(--cristal-desenfoque);
 }
 
-/* Navbars — valor único para todas las páginas */
+/* Navegación compartida por todas las páginas. */
 body.pagina-inicio     .barra-navegacion::before,
 body.pagina-eventos  .barra-navegacion,
 body.pagina-turismo  .barra-navegacion,
@@ -5478,7 +5399,7 @@ body.pagina-cuenta  .barra-navegacion {
   -webkit-backdrop-filter: blur(20px) saturate(1.30);
 }
 
-/* Nav links — mismos en todas las páginas */
+/* Enlaces de navegación compartidos. */
 body.pagina-inicio     .navegacion-enlaces a,
 body.pagina-eventos  .navegacion-enlaces a,
 body.pagina-turismo  .navegacion-enlaces a,
@@ -5508,7 +5429,7 @@ body.pagina-lugares  .navegacion-enlaces a.activo {
   transform:       translateY(-1px);
 }
 
-/* Carousel (index) unificado */
+/* Carrusel unificado de la portada. */
 body.pagina-inicio .carrusel {
   border:          var(--borde-cristal-general);
   background:      var(--cristal-fondo-claro);
@@ -5517,7 +5438,7 @@ body.pagina-inicio .carrusel {
   -webkit-backdrop-filter: var(--cristal-desenfoque);
 }
 
-/* Mapa section (lugares) */
+/* Acceso al mapa desde Lugares. */
 body.pagina-lugares .mapa-seccion {
   border:          var(--borde-cristal-general);
   box-shadow:      var(--sombra-cristal-general);
@@ -5525,7 +5446,7 @@ body.pagina-lugares .mapa-seccion {
   -webkit-backdrop-filter: var(--cristal-desenfoque);
 }
 
-/* Dark mode — override card de fondo (background) */
+/* Fondos de las tarjetas en modo oscuro. */
 body.tema-oscuro .alojamiento-tarjeta,
 body.tema-oscuro .restaurante-tarjeta,
 body.tema-oscuro .lugar-tarjeta,
@@ -5540,21 +5461,9 @@ body.tema-oscuro .restaurante-informacion {
   background: rgba(16,42,67,0.80);
 }
 
-/* ------------------------------------------------------------
-   Bloque grande de @media (max-width: ...) agregado en una
-   pasada de arreglos de mobile, fechado 27/06/2026. Cubre
-   navbar, grids que pasan a 1 columna, paddings más chicos,
-   etc, repetido para cada @page-XXX. Es un buen lugar para
-   buscar si algo se ve mal específicamente en celular pero
-   bien en desktop.
------------------------------------------------------------- */
-/* 
-   ARREGLOS MOBILE (agregado 27/06/2026)
-   Navbar que no se rompe, grillas a 1 columna y paddings
-   mas chicos en pantallas de celular.
-   */
+/* En pantallas pequeñas, la navegación y las grillas se reorganizan. */
 
-/* ---------- INDEX (pagina-inicio) ---------- */
+/* ---------- Portada ---------- */
 @media (max-width: 900px) {
   body.pagina-inicio .barra-navegacion {
     flex-wrap: wrap;
@@ -5618,7 +5527,7 @@ body.tema-oscuro .restaurante-informacion {
   }
 }
 
-/* ---------- EVENTOS (pagina-eventos) ---------- */
+/* ---------- Eventos ---------- */
 @media (max-width: 900px) {
   body.pagina-eventos .barra-navegacion {
     flex-wrap: wrap;
@@ -5685,7 +5594,7 @@ body.tema-oscuro .restaurante-informacion {
   }
 }
 
-/* ---------- LOGIN / AUTH chico ajuste extra ---------- */
+/* ---------- Ajustes adicionales de acceso ---------- */
 @media (max-width: 380px) {
   .cuenta-tarjeta {
     padding: 28px 18px 24px;
@@ -5696,7 +5605,7 @@ body.tema-oscuro .restaurante-informacion {
   }
 }
 
-/* ---------- Hero title alignment fix ---------- */
+/* Alineación del título de portada. */
 body.pagina-inicio .portada,
 body.pagina-eventos .portada {
   box-sizing: border-box;
@@ -5820,7 +5729,7 @@ body.pagina-eventos .portada-titulo {
   }
 }
 
-/* ---------- pagina de adentro con un pasada de comforte: turismo / eventos / lugares ---------- */
+/* ---------- Espaciado de Turismo, Eventos y Lugares ---------- */
 body.pagina-eventos .barra-navegacion,
 body.pagina-turismo .barra-navegacion,
 body.pagina-lugares .barra-navegacion {
@@ -6187,7 +6096,7 @@ body.pagina-lugares .lugar-descripcion {
   }
 }
 
-/* ---------- acordiones footer movil, arreglado por quinta vez 27/06/2026 ---------- */
+/* ---------- Acordeones del pie en móvil ---------- */
 .pie-pagina-columna-titulo {
   user-select: none;
 }
@@ -6292,7 +6201,7 @@ body.pagina-lugares .lugar-descripcion {
   }
 }
 
-/* ---------- Chrome horizontal overflow guard ---------- */
+/* ---------- Evita el desbordamiento horizontal ---------- */
 html,
 body {
   width: 100%;
@@ -6572,19 +6481,7 @@ body.cuenta-redisenada .cuenta-fila-cuadricula {
 }
 }
 
-/* ------------------------------------------------------------
-   Fix puntual de z-index/stacking del logo-menu para que no
-   quede tapado por otros elementos en mobile. Nombre con fecha
-   (25/06/2026) como buena parte de los parches de esta última
-   sección del archivo — es una forma simple de tener un
-   changelog "pobre" directo en el CSS sin usar git blame.
------------------------------------------------------------- */
-/* ============================================================
-   FIX 25/06/2026: logo-menu siempre encima de todo (incluye mobile)
-   backdrop-filter en prop-card / food-card crea stacking
-   contexts que tapan el menú del logo. Con position:fixed
-   y z-index alto, sale de cualquier contexto de apilamiento, deberia funcionar...
-   ============================================================ */
+/* El menú queda por encima de las tarjetas y capas superpuestas. */
 .logotipo-menu {
   position: fixed !important;
   top: 80px !important;
@@ -6599,22 +6496,8 @@ body.cuenta-redisenada .cuenta-fila-cuadricula {
   }
 }
 
-/* ------------------------------------------------------------
-   Los últimos 3 bloques del archivo (líneas ~6271 en adelante)
-   son todos ajustes de FOOTER hechos el mismo día (11/07/2026)
-   para calzar pixel-perfect con un diseño de Figma actualizado:
-   la tarjeta de "Soporte", el layout general de columnas, y los
-   iconos sociales. Si tocan el footer, es MUY probable que la
-   regla que gana esté en uno de estos 3 bloques finales, no en
-   el ".pie-pagina" original de más arriba en cada @scope — de nuevo,
-   por la regla de "el que está más abajo en el archivo gana".
------------------------------------------------------------- */
-/* ============================================================
-   FOOTER — tarjeta de Soporte (sync con Figma, 11/07/2026)
-   agrega la tarjeta naranja "¿Tienes alguna sugerencia?" al
-   lado de las columnas de links, sin tocar el acordeon mobile
-   que ya vive en .pie-pagina-columna / configurarAcordeonesPie()
-   ============================================================ */
+/* Ajustes del pie: soporte, columnas y redes sociales. */
+/* Tarjeta de soporte junto a las columnas del pie. */
 .pie-pagina-superior-fila {
   max-width: 1400px;
   margin: 0 auto;
@@ -6724,11 +6607,7 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
   }
 }
 
-/* ============================================================
-   FOOTER — layout ajustado a Figma (sync 11/07/2026)
-   saca columna SIGTUR, fila de YouTube y legal links; agrega
-   Contactanos e iconos sociales circulares con glifo blanco
-   ============================================================ */
+/* Distribución de columnas, contacto y enlaces legales del pie. */
 .pie-pagina-principal {
   display: flex;
   flex-direction: column;
@@ -6824,11 +6703,7 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
   }
 }
 
-/* ============================================================
-   FOOTER — iconos sociales exactos de Figma (11/07/2026)
-   tamaños pixel-perfect para los iconos de Instagram, Facebook,
-   Twitter y YouTube usados en .pie-pagina-redes-sociales .red-social-icono
-   ============================================================ */
+/* Tamaños de los iconos sociales del pie. */
 .red-social-icono {
   display: inline-flex;
   align-items: center;
@@ -7021,11 +6896,7 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
   .perfil-pie-pagina { flex-direction: column; padding: 18px; }
 }
 
-/* ============================================================
-   MODO OSCURO — pulido final de páginas principales
-   Este bloque queda al final para ganar a los estilos heredados de
-   las secciones que todavía declaran fondos y textos claros.
-   ============================================================ */
+/* Colores y superficies de las páginas principales en modo oscuro. */
 body.tema-oscuro.pagina-inicio,
 body.tema-oscuro.pagina-eventos,
 body.tema-oscuro.pagina-turismo,
@@ -7454,7 +7325,7 @@ body.pagina-eventos .evento-reserva-vista select {
 .evento-respuesta-formulario textarea { flex: 1; border: 1px solid #cfe0dc; border-radius: 7px; padding: 6px; font: inherit; }
 @media (max-width: 650px) { .mensaje-directo-disposicion { grid-template-columns: 1fr; } .mensaje-directo-contactos { border-right: 0; border-bottom: 1px solid #d8e9e5; } .mensaje-directo-formulario { flex-direction: column; } .mensaje-directo-formulario button { padding: 9px; } }
 
-/* Instagram-inspired DM surface */
+/* Superficie de los mensajes directos. */
 .perfil-mensajes { margin: 24px 0; padding: 0 28px 28px; }
 .perfil-mensajes .perfil-seccion-encabezado { margin-bottom: 14px; }
 .mensaje-directo-disposicion { grid-template-columns: 280px minmax(0, 1fr); min-height: 520px; border: 1px solid #e4e7ec; border-radius: 18px; background: #fff; box-shadow: 0 18px 45px rgba(30, 41, 59, .09); }
@@ -7477,8 +7348,7 @@ body.pagina-eventos .evento-reserva-vista select {
 .mensaje-directo-estado { min-height: 20px; margin: 6px 8px 0; }
 .evento-comentario-acciones .peligro, .interaccion-boton.peligro, [data-administracion-eliminar-comentario] { color: #b42318 !important; }
 
-/* Dark mode for the newer social surfaces. Keep text cool-white and use
-   teal/coral accents so controls remain distinct from the dark canvas. */
+/* En modo oscuro, las superficies sociales mantienen capas y texto legible. */
 body.tema-oscuro .perfil-mensajes,
 body.tema-oscuro .perfil-contenido {
   color: #f4f7fb;
@@ -7680,7 +7550,7 @@ body.perfil-pagina {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Correct asset paths and keep each landing hero on its own photograph. */
+/* Cada portada conserva su imagen de fondo correspondiente. */
 body.pagina-inicio .portada-fondo {
   background-image: url('../imagenes/index/Rectangle10.webp');
   background-position: center 42%;
@@ -7772,7 +7642,7 @@ body.pagina-turismo {
   background: #fff;
 }
 
-/* Main navigation: same glass treatment and touch targets on content pages. */
+/* Navegación translúcida y áreas táctiles uniformes en páginas interiores. */
 body.pagina-inicio .barra-navegacion,
 body.pagina-eventos .barra-navegacion,
 body.pagina-turismo .barra-navegacion,
@@ -7878,7 +7748,7 @@ body.pagina-lugares .navegacion-busqueda input::placeholder {
   color: rgba(255, 255, 255, .76);
 }
 
-/* Content rhythm, calmer alternating surfaces and consistent card geometry. */
+/* Espaciado del contenido y medidas uniformes para las tarjetas. */
 body.pagina-inicio .caracteristicas,
 body.pagina-inicio .eventos-seccion,
 body.pagina-inicio .alojamiento-seccion,
@@ -8021,7 +7891,7 @@ body.pagina-lugares .pie-pagina {
   background: #102a43;
 }
 
-/* Account, utility and profile screens use the same surfaces and accent. */
+/* Cuentas, páginas de sistema y perfil comparten superficies y acentos. */
 .utilidad-pagina {
   background: linear-gradient(145deg, #f1f8f6 0%, #f7f8f6 55%, #f8f4eb 100%);
 }
@@ -8084,7 +7954,7 @@ body.pagina-lugares .pie-pagina {
 .mensaje-directo-burbuja.saliente { border-radius: 18px 18px 5px 18px; }
 .mensaje-directo-formulario button { border-radius: 999px; }
 
-/* Dark theme keeps the same teal identity with softer, layered surfaces. */
+/* El modo oscuro conserva la paleta turquesa con superficies superpuestas. */
 body.tema-oscuro.pagina-inicio,
 body.tema-oscuro.pagina-eventos,
 body.tema-oscuro.pagina-turismo,
@@ -8156,7 +8026,7 @@ body.tema-oscuro .cuenta-pestana.activo {
   color: #8de0d4;
 }
 
-/* Responsive navigation and page gutters shared by the main sections. */
+/* Navegación adaptable y márgenes compartidos por las secciones principales. */
 @media (max-width: 900px) {
   body.pagina-inicio .barra-navegacion,
   body.pagina-eventos .barra-navegacion,
@@ -8409,7 +8279,7 @@ body.tema-oscuro .alojamiento-direccion, body.tema-oscuro .restaurante-direccion
 body.pagina-soporte .barra-navegacion { border-bottom: 1px solid rgba(10, 96, 102, .1); box-shadow: 0 8px 25px rgba(9, 72, 69, .06); }
 body.pagina-soporte .utilidad-marco { max-width: 1120px; }
 
-/* Final responsive and accessibility pass. */
+/* Ajustes finales de adaptación y accesibilidad. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid #f2ad35;
   outline-offset: 3px;
@@ -8879,8 +8749,7 @@ body.tema-oscuro .administracion-usuarios-lista button {
   color: #ff9c91;
 }
 
-/* Pulido final: medios de Turismo y widgets modales. Estas reglas quedan al
-   final para prevalecer sobre estilos heredados de las tarjetas. */
+/* Ajustes de medios y modales de Turismo que prevalecen sobre estilos anteriores. */
 body.pagina-turismo .alojamiento-multimedia { display: block; min-height: 230px; aspect-ratio: 4 / 3; }
 body.pagina-turismo .alojamiento-multimedia .alojamiento-imagen,
 body.pagina-turismo .restaurante-imagen-marcador-posicion .restaurante-imagen { display: block; width: 100% !important; height: 100% !important; min-height: 100%; object-fit: cover !important; object-position: center; }
@@ -8928,9 +8797,7 @@ body.tema-oscuro .turismo-curiosidad p { color: #d6ebe7; }
 body.tema-oscuro .turismo-propietario-aviso { border-color: #315d65; background: linear-gradient(110deg, #102c38, #182b35); color: #c4d8dc; }body.tema-oscuro .turismo-propietario-aviso strong, body.tema-oscuro .turismo-propietario-aviso a { color: #8de0d4; }body.tema-oscuro .administracion-crear-evento { border-color: #18a99a; background: #18a99a; color: #04191d; }
 @media (max-width: 560px) { .turismo-propietario-aviso a { width: 100%; margin-left: 0; }.administracion-crear-evento { margin: 8px 0 0; } }
 
-/* ============================================================
-   AUTH QOL — refinamiento visual responsive de la pantalla de cuenta
-   ============================================================ */
+/* Ajustes visuales adaptables para la pantalla de cuenta. */
 body.cuenta-redisenada .cuenta-escenario { background: #071a26; }
 body.cuenta-redisenada .cuenta-tarjeta {
   width: min(480px, calc(100vw - 32px));
@@ -8950,7 +8817,7 @@ body.cuenta-redisenada .cuenta-campo { margin-bottom: 12px; }
 body.cuenta-redisenada .cuenta-campo label { font-size: 13px; line-height: 1.3; }
 body.cuenta-redisenada .cuenta-campo input { height: 46px; border-radius: 12px; font-size: 15px; }
 
-/* AUTH PASSWORD FIELD FIX */
+/* Campos de contraseña en las vistas de acceso. */
 body.cuenta-redisenada .cuenta-contenedor-contrasena { width: 100%; }
 body.cuenta-redisenada .cuenta-contenedor-contrasena input {
   box-sizing: border-box;
@@ -9012,7 +8879,7 @@ body.cuenta-redisenada .cuenta-red-social:focus-visible { outline: 3px solid rgb
   body.cuenta-redisenada * { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
 
-/* AUTH QOL */
+/* Mejoras de uso en los formularios de acceso. */
 body.cuenta-redisenada .cuenta-escenario { background: #071a26; }
 body.cuenta-redisenada .cuenta-tarjeta { width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); border-radius: 26px; padding: 32px 36px 26px; background: rgba(8, 20, 29, .88); box-shadow: 0 28px 80px rgba(0,0,0,.46); }
 body.cuenta-redisenada .cuenta-cerrar { top:24px; right:24px; width:38px; height:38px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07); color:#dce7ed; }
@@ -9332,7 +9199,7 @@ body.tema-oscuro textarea::placeholder {
   opacity: 1;
 }
 
-/* Shared control and list feedback foundations used across pages. */
+/* Estados comunes de controles y listas. */
 :root {
   --redondeo-control: 12px;
   --altura-minima-control: 44px;
@@ -9401,7 +9268,7 @@ body.tema-oscuro .interfaz-lista-estado.estado-error { color: #ffc2bd; backgroun
   }
 }
 
-/* Event cards: consistent hierarchy for featured cards and the agenda. */
+/* Jerarquía compartida entre destacados y filas de la agenda. */
 body.pagina-eventos .destacados-cuadricula { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 18px; align-items: stretch; }
 body.pagina-eventos .evento-tarjeta {
   display: flex;
@@ -9518,7 +9385,7 @@ body.tema-oscuro.pagina-eventos .entrada-fila-remoto .entrada-insignia { backgro
   body.pagina-eventos .entrada-fila-remoto .entrada-titulo { font-size: .92rem; }
 }
 
-/* Admin event editing controls */
+/* Controles para editar eventos desde Administración. */
 .administracion-evento-elemento { border-left: 3px solid var(--color-evento-administracion, #16b3a3); }
 .administracion-evento-acciones,
 .administracion-evento-formulario-acciones { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -9643,7 +9510,7 @@ body.pagina-lugares .lugar-acciones :is(.lugar-accion-enlace, .ver-detalles-boto
   body.pagina-lugares .lugar-acciones { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--color-borde-lugar); }
 }
 
-/* Home: reserva espacio para el navbar y alinea el clima junto a las acciones. */
+/* Portada: reserva espacio para la navegación y alinea el clima con las acciones. */
 @media (min-width: 541px) {
   body.pagina-inicio .portada {
     min-height: max(820px, 100svh);
@@ -9800,10 +9667,12 @@ body.pagina-inicio .comida-informacion-dialogo .ficha-gastronomia-cerrar { top: 
   margin-left: 2px;
 }
 
+/* Los SVG de Creative Commons se aclaran para contrastar con el pie oscuro. */
 .pie-pagina-licencia-iconos img {
   display: block;
   width: 18px;
   height: 18px;
+  filter: brightness(0) invert(1);
 }
 
 @media (max-width: 760px) {

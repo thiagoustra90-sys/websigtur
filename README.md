@@ -29,7 +29,7 @@ Desarrollar soluciones tecnológicas que conecten personas, destinos y servicios
 
 ## Base de datos
 
-Las migraciones obligatorias y su orden se describen en `supabase/MIGRACIONES.md`. Usa Supabase CLI (`supabase db push`) para aplicar el historial versionado; no ejecutes manualmente archivos SQL antiguos de `database/legacy/`. Los datos de desarrollo est?n separados en `database/seeds/desarrollo.sql`.
+Las migraciones obligatorias y su orden se describen en `supabase/MIGRACIONES.md`. Usa Supabase CLI (`supabase db push`) para aplicar el historial versionado; no ejecutes manualmente archivos SQL antiguos de `database/legacy/`. Los datos de desarrollo están separados en `database/seeds/desarrollo.sql`.
 
 ## Despliegue y autenticación
 
@@ -109,9 +109,14 @@ Prueba el servidor en `http://localhost:3000/health`. Para usar XAMPP, ejecuta `
 - Health check: `npm --prefix backend run health`
 - Dependencias: `npm --prefix backend audit --omit=dev`
 
-## Convenciones de c?digo
+## Convenciones de código
 
-El idioma, formato de nombres y estrategia de compatibilidad de API est?n definidos en [docs/convenciones_codigo.md](docs/convenciones_codigo.md).
+El idioma, formato de nombres y estrategia de compatibilidad de API están definidos en [docs/convenciones_codigo.md](docs/convenciones_codigo.md).
 
 
-El orden de migraci?n segura por m?dulos y sus pruebas de contrato est?n en [docs/migracion_nombres.md](docs/migracion_nombres.md).
+El orden de migración segura por módulos y sus pruebas de contrato están en [docs/migracion_nombres.md](docs/migracion_nombres.md).
+
+
+## Guías para trabajar en el proyecto
+
+La [guía del frontend](docs/guia_frontend.md) ubica las páginas, los estilos y los scripts que suelen cambiar juntos. La [arquitectura](docs/arquitectura.md) resume cómo se conectan el sitio, la API y Supabase.

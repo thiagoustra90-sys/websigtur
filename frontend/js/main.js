@@ -69,19 +69,19 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarConfiguracionPublica();
   configurarAcordeonesPie();
 
-  // --- HOME (index.html) ---
+  // --- Portada ---
   if (cuerpo.classList.contains('pagina-inicio')) {
     configurarPlanificacionTuristica();
     configurarInformacionGastronomica();
 
-    // El navbar cambia de estilo al pasar 60 px; la clase .desplazado se define en CSS.
+    // La barra de navegación cambia de estilo al pasar 60 px; la clase .desplazado se define en CSS.
     const barraNavegacion = document.getElementById('barra-navegacion');
     if (barraNavegacion) window.addEventListener('scroll', () => barraNavegacion.classList.toggle('desplazado', window.scrollY > 60));
 
     // El clima se carga en segundo plano para no frenar el resto de la portada.
     configurarClimaInicio();
 
-    // --- CAROUSEL DE EVENTOS (el que está en el medio de la home) ---
+    // --- Carrusel de eventos destacados ---
     const pista = document.querySelector('.carrusel-pista');
     const diapositivas = document.querySelectorAll('.carrusel-diapositiva');
     const puntosElemento = document.querySelector('.carrusel-puntos');
@@ -836,7 +836,7 @@ async function configurarClimaInicio() {
   }
 }
 
-// El token se conserva entre páginas, pero el perfil solo se muestra después de validarlo con la API.
+// La API valida los tokens; el almacenamiento local solo conserva la sesión entre páginas.
 const raizXampp = window.location.pathname.split('/frontend/html/')[0];
 const SIGTUR_ES_SERVIDOR_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const SIGTUR_BASE_XAMPP = SIGTUR_ES_SERVIDOR_LOCAL && raizXampp !== window.location.pathname ? `${window.location.origin}${raizXampp}/frontend/html` : '';
@@ -856,7 +856,7 @@ function limpiarMensajeAutenticacion(mensaje, alternativa) {
   return texto;
 }
 
-// La sesión guardada no se considera válida hasta que el servidor confirme el token.
+// Esta pestaña solo muestra el perfil después de confirmar el token con el servidor.
 function obtenerSesionSigtur() {
   try {
     const sesion = JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION)) || null;
@@ -1030,7 +1030,7 @@ async function solicitarApiSigtur(ruta, opciones = {}, reintentoTrasRenovacion =
     throw new Error('No se pudo conectar al servidor. Verifica la URL publica del backend.');
   }
   let datosEnviados = null;
-  try { datosEnviados = await respuesta.json(); } catch { /* Empty response. */ }
+  try { datosEnviados = await respuesta.json(); } catch { /* La respuesta no incluye un cuerpo JSON. */ }
 
   if (respuesta.status === 401 && !reintentoTrasRenovacion && !esRenovacion && sesion?.refreshToken) {
     const sesionRenovada = await renovarSesionSigtur();
@@ -1632,6 +1632,7 @@ async function configurarMensajeria() {
     if (botonAdjunto) botonAdjunto.disabled = !habilitado || enviandoMensaje || enviandoAudio;
     if (entradaAdjunto) entradaAdjunto.disabled = !habilitado || enviandoMensaje || enviandoAudio;
   };
+  // Avisamos a otras pestañas por BroadcastChannel y dejamos localStorage como alternativa.
   const notificarSincronizacionMensajes = (usuarioIdentificador = null) => {
     const datosEnviados = { type: 'messaging-sync', userId: usuarioIdentificador, ts: Date.now() };
     if ('BroadcastChannel' in window) {
@@ -1642,10 +1643,11 @@ async function configurarMensajeria() {
     try {
       localStorage.setItem('sigtur-mensajes-sync', JSON.stringify(datosEnviados));
     } catch {
-      // BroadcastChannel ya notificó a las otras pestañas; este aviso es un respaldo.
+      // Si el almacenamiento está bloqueado, la recarga periódica mantiene la lista al día.
     }
   };
 
+  // Al recibir un aviso, recargamos las conversaciones y el hilo que esté abierto.
   const gestionarSincronizacionMensajes = async (evento) => {
     const datosEnviados = evento?.data || (evento?.key === 'sigtur-mensajes-sync' ? JSON.parse(evento.newValue || 'null') : null);
     if (!datosEnviados || !datosEnviados.ts) return;
@@ -2708,7 +2710,7 @@ async function configurarInteraccionesEventos() {
   });
 }
 
-// El panel permanece oculto hasta que el servidor confirma el rol de administrador.
+// Configura los controles y las listas del panel de administración.
 async function configurarPaginaAdministracion() {
   const formulario = document.getElementById('administracion-ajustes-formulario');
   if (!formulario) return;

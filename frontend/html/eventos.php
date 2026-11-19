@@ -1,35 +1,27 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <!--
-    eventos.php — página completa de eventos, distinta del preview
-    que hay en la home. Extra fuentes de font.css + estilos generales
-    de styles.css, nada más raro en el head (a diferencia de index.php
-    que tiene un <style> pegado con overrides de navbar).
-  -->
+  <!-- Agenda completa de eventos; la portada muestra una selección destacada. -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eventos - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-cc-iconos-legibles" />
   <link rel="stylesheet" href="../css/comment-media.css" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 <body class="pagina-eventos">
 
-<!-- 
-     NAVBAR (misma estructura que index.php, ojo que acá SÍ le
-     ponemos class="activo" al link de Eventos a mano, no es JS)
--->
+<!-- Navegación principal; Eventos queda marcado como activo en esta página. -->
 <header>
   <nav class="barra-navegacion">
 
-    <!-- Logo -->
+    <!-- Logo de SIGTUR. -->
     <a class="navegacion-logotipo" href="index.php" aria-label="Inicio">
       <img src="../imagenes/logo-salto.svg" alt="Explora Salto" />
     </a>
 
-    <!-- Search -->
+    <!-- Buscador de eventos. -->
     <div class="navegacion-busqueda">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -37,7 +29,7 @@
       <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
     </div>
 
-    <!-- Nav links -->
+    <!-- Enlaces principales de navegación. -->
     <div class="navegacion-enlaces">
       <a href="eventos.php" class="activo">Eventos</a>
       <a href="turismo.php">Turismo</a>
@@ -48,13 +40,7 @@
 </header>
 
 
-<!-- 
-     HERO
-     Simple: título + una decoración de olas en SVG con gradiente
-     (los ids wg1/wg2 son locales a este svg, si copian este bloque
-     a otra página y ya existe un wg1 ahí, se pisan los gradientes
-     asique renombren los ids si van a duplicarlo)
- -->
+<!-- Portada de eventos y ola decorativa. Los identificadores del gradiente son locales a este SVG. -->
 <section class="portada">
   <div class="portada-fondo"></div>
   <div class="portada-superpuesto"></div>
@@ -62,7 +48,7 @@
   <div class="portada-contenido">
     <h1 class="portada-titulo">EVENTOS</h1>
 
-    <!-- Teal wave decoration (matches Figma vectors 54_499, 54_500, 54_501) -->
+    <!-- Ola decorativa de la portada. -->
     <div class="portada-olas">
       <svg viewBox="0 0 640 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:clamp(260px,45vw,640px); height:auto; margin-top:-4px;">
         <path d="M8 38 C80 10, 180 52, 280 26 S440 0, 560 30 S610 50, 632 32"
@@ -87,12 +73,7 @@
 </section>
 
 
-<!--
-     DESTACADOS  –  5 cartas oscuras
-     Nota: son 3 cards forzadas. Cada
-     .evento-tarjeta tiene su propio border-radius/margin inline en vez
-     de estar en el CSS, raro pero así vino.
--->
+<!-- Eventos destacados. -->
 <section class="destacados-seccion">
 
   <div class="destacados-encabezado">
@@ -101,7 +82,7 @@
   </div>
 
   <div class="destacados-cuadricula">
-    <!-- Card 3 – Vacaciones de Julio en Energimundo -->
+    <!-- Tarjeta 3 – Vacaciones de Julio en Energimundo -->
     <div class="evento-tarjeta" style="border-radius:49px; margin-top:12px;">
       <img class="evento-tarjeta-imagen" src="../imagenes/eventos/energimundo.webp" alt="Vacaciones de Julio en Energimundo" loading="lazy" decoding="async" />
       <p class="evento-tarjeta-fecha" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">27 Jun</p>
@@ -109,7 +90,7 @@
       <p class="evento-tarjeta-subtitulo">Familiar | Salto Grande · Energimundo</p>
     </div>
 
-    <!-- Card 4 – Rally de Salto -->
+    <!-- Tarjeta 4 – Rally de Salto -->
     <div class="evento-tarjeta" style="border-radius:49px; margin-top:12px;">
       <img class="evento-tarjeta-imagen" src="../imagenes/eventos/rally.webp" alt="4ª Fecha Rally de Salto" loading="lazy" decoding="async" />
       <p class="evento-tarjeta-fecha" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">26 Jun</p>
@@ -117,7 +98,7 @@
       <p class="evento-tarjeta-subtitulo">Deportivo | Del 26 al 28 de junio · Entrada libre</p>
     </div>
 
-    <!-- Card 5 – Muestra Academia de Danzas de Lucía Tenca -->
+    <!-- Tarjeta 5 – Muestra Academia de Danzas de Lucía Tenca -->
     <div class="evento-tarjeta" style="border-radius:49px; margin-top:12px;">
       <img class="evento-tarjeta-imagen" src="../imagenes/eventos/muestradanza.webp" alt="Muestra Academia de Danzas de Lucía Tenca" loading="lazy" decoding="async" />
       <p class="evento-tarjeta-fecha" style="font-size:0.75rem;opacity:0.65;margin:6px 14px 0;">25 Jun</p>
@@ -129,24 +110,14 @@
 </section>
 
 
-<!--
-     PROXIMOS EVENTOS
-     Acá viven 2 sistemas de filtro que trabajan juntos:
-     1) el buscador (.busqueda-pastilla input) filtra por texto en vivo
-        (ver el listener 'input' en main.js, sin botón de submit)
-     2) las las pestanas de categoria filtran por data-categoria-evento (click en un pestana)
-     Los .entrada-fila llevan un data-categoria-evento="..." que tiene que matchear
-     el data-categoria-evento del botón, si agregan una categoría nueva acuerdense
-     de agregar el botón Y el data-categoria-evento en los tickets, si no el
-     filtro los esconde a todos.
--->
+<!-- El buscador filtra por texto y las pestañas por data-categoria-evento; ambos se conectan en main.js. -->
 <section class="próximos-seccion">
 
   <div class="próximos-encabezado">
     <h2>Próximos eventos</h2>
   </div>
 
-  <!-- filtro -->
+  <!-- Búsqueda de eventos. -->
   <div class="busqueda-filtro-barra">
     <div class="busqueda-pastilla">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -156,7 +127,7 @@
     </div>
   </div>
 
-  <!-- pestanas de categoria -->
+  <!-- Filtros por categoría. -->
   <div class="categoria-pestanas">
     <button class="categoria-pestana activo" data-categoria-evento="todos">Todos</button>
     <button class="categoria-pestana" data-categoria-evento="musica">Música</button>
@@ -168,10 +139,10 @@
     <button class="categoria-pestana" data-categoria-evento="infantiles">Infantiles</button>
   </div>
 
-  <!-- Evento Ticket Rows -->
+  <!-- Agenda de eventos. -->
   <div class="evento-entradas">
 
-    <!-- Ticket 1 – Maratón Internacional -->
+    <!-- Evento 1 – Maratón Internacional -->
     <div class="entrada-fila" data-categoria-evento="deportes">
       <div class="entrada-fecha">
         <span class="dia">03</span>
@@ -198,7 +169,7 @@
       </button>
     </div>
 
-    <!-- Ticket 2 – Festival Primavera -->
+    <!-- Evento 2 – Festival Primavera -->
     <div class="entrada-fila" data-categoria-evento="musica">
       <div class="entrada-fecha">
         <span class="dia">03</span>
@@ -225,7 +196,7 @@
       </button>
     </div>
 
-    <!-- Ticket 3 – Expo Salto Productivo -->
+    <!-- Evento 3 – Expo Salto Productivo -->
     <div class="entrada-fila" data-categoria-evento="feria">
       <div class="entrada-fecha">
         <span class="dia">03</span>
@@ -254,27 +225,13 @@
 
   </div>
 
-  <!-- Ver mas button -->
+  <!-- Control para mostrar más eventos. -->
   <a href="eventos.php#anteriores-pestanas" class="ver-mas-boton">Ver más próximos eventos</a>
 
 </section>
 
 
-<!-- 
-     FEATURED CAROUSEL – Noche de Milonga / Feria del Libro / Paddle
-
-     ESTE es el carousel con loop infinito de verdad (goTo/next en
-     main.js, bloque "pagina-eventos"). Fijate que hay 6 .destacado-diapositiva
-     acá abajo pero solo 3 son reales: las slides 4, 5 y 6 tienen
-     aria-hidden="true" y son CLONES estáticos escritos a mano en el
-     HTML (versión vieja del fix). Desde el 11/07 el JS ADEMÁS clona
-     dinámicamente por su cuenta (setupClones()), o sea que ahora
-     mismo puede haber doble clonado si no se limpió esto. Si el
-     carousel se ve con más huecos de la cuenta o salta raro, lo
-     primero que hay que revisar es ESTO: sacar los slides 4/5/6
-     manuales de acá abajo y dejar que el JS se encargue solo, para
-     no duplicar el trabajo.
--->
+<!-- Carrusel de eventos destacados. main.js agrega las copias necesarias para el desplazamiento continuo. -->
 <section class="carrusel-seccion">
 
   <div class="encabezado-seccion">
@@ -285,7 +242,7 @@
   <div class="destacado-carrusel">
     <div class="destacado-pista">
 
-      <!-- Slide 1 – Noche de Milonga -->
+      <!-- Diapositiva 1 – Noche de Milonga -->
       <div class="destacado-diapositiva">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -296,7 +253,7 @@
         </div>
       </div>
 
-      <!-- Slide 2 – Feria del Libro Salteño -->
+      <!-- Diapositiva 2 – Feria del Libro Salteño -->
       <div class="destacado-diapositiva">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -307,7 +264,7 @@
         </div>
       </div>
 
-      <!-- Slide 3 – Torneo de Paddle Nocturno -->
+      <!-- Diapositiva 3 – Torneo de Paddle Nocturno -->
       <div class="destacado-diapositiva">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -318,7 +275,7 @@
         </div>
       </div>
 
-      <!-- Slide 4 (clone para loop suave) -->
+      <!-- Diapositiva 4 (clone para loop suave) -->
       <div class="destacado-diapositiva" aria-hidden="true">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/maxv.jpg" alt="Noche de Milonga" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -329,7 +286,7 @@
         </div>
       </div>
 
-      <!-- Slide 5 (clone) -->
+      <!-- Diapositiva 5: copia para el bucle del carrusel. -->
       <div class="destacado-diapositiva" aria-hidden="true">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/porco.jpg" alt="Feria del Libro Salteño" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -340,7 +297,7 @@
         </div>
       </div>
 
-      <!-- Slide 6 (clone) -->
+      <!-- Diapositiva 6: copia para el bucle del carrusel. -->
       <div class="destacado-diapositiva" aria-hidden="true">
         <div class="destacado-tarjeta" style="overflow:hidden;position:relative;">
           <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Torneo de Paddle Nocturno" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.4;border-radius:inherit;" loading="lazy" decoding="async" />
@@ -351,23 +308,16 @@
         </div>
       </div>
 
-    </div><!-- /destacado-pista -->
-  </div><!-- /feat-carousel -->
+    </div><!-- Fin de la pista de destacados. -->
+  </div><!-- Fin del carrusel de destacados. -->
 
-  <!-- puntos de páginas carousel -->
+  <!-- Indicadores del carrusel. -->
   <div class="carrusel-puntos"></div>
 
 </section>
 
 
-<!-- 
-     EVENTOS ANTERIORES
-     Mismo componente de categoria-pestanas que "Próximos eventos" de
-     más arriba, pero OJO: id="anteriores-pestanas" acá es el ancla que
-     usan un montón de links del sitio (footer, "Ver más", etc) para
-     mandar directo a esta sección. Si la mueven o le cambian el id
-     hay que actualizar TODOS esos href="eventos.php#anteriores-pestanas".
--->
+<!-- El id anteriores-pestanas es el destino de los enlaces a esta sección. -->
 <section class="anteriores-seccion">
 
   <div class="anteriores-encabezado">
@@ -375,7 +325,7 @@
     <a href="eventos.php" class="ver-mas-enlace">Todos los eventos</a>
   </div>
 
-  <!-- Pestanas para eventos anteriores -->
+  <!-- Filtros de eventos anteriores. -->
   <div class="categoria-pestanas" id="anteriores-pestanas">
     <button class="categoria-pestana activo" data-categoria-evento="todos">Todos</button>
     <button class="categoria-pestana" data-categoria-evento="musica">Música</button>
@@ -571,18 +521,12 @@
       </button>
     </div>
 
-  </div><!-- /event-tickets anteriores -->
+  </div><!-- Fin de la lista de eventos anteriores. -->
 
 </section>
 
 
-<!-- 
-     FOOTER (copia exacta del de index.php, ver ese archivo para
-     la explicación completa de cada bloque. Recuerden: NO HAY
-     includes en HTML plano, así que esto es copy-paste manual en
-     las 4 páginas principales. Cambios acá => replicar a mano en
-     index / turismo / lugares también)
--->
+<!-- El pie se mantiene sincronizado con las otras páginas principales. -->
 <footer class="pie-pagina">
   <div class="pie-pagina-superior-fila">
     <div class="pie-pagina-columnas">

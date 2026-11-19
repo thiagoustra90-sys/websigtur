@@ -1,73 +1,38 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
   turismo.php - página de turismo, con secciones de alojamientos, restaurantes y un poco de historia.
 -->
 <html lang="es">
 <head>
-  <!-- basico: charset utf-8 pq tenemos tildes y ñ por todos lados (Salto, Daymán, etc) -->
+
   <meta charset="UTF-8" />
 
-  <!-- esto es OBLIGATORIO para que se vea bien en celu. sin esto, mobile te renderiza
-       la página como si fuera desktop y despues hay que hacer zoom con los dedos. nadie
-       quiere eso en 2026 -->
+  <!-- Ajustes de visualización para dispositivos móviles. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!--
-    el título dice "Turismo ” SIGTUR Salto" -- esas comillas raras (”) en vez de un guión
-    normal (-) seguramente es un problema de encoding cuando se copió de otro lado (word? figma?).
-    quedó fulero pero funciona, arreglar cuando haya tiempo (o sea, nunca)
-    TODO: cambiar por "Turismo - SIGTUR Salto" o "Turismo · SIGTUR Salto"
-  -->
+
   <title>Turismo ” SIGTUR Salto</title>
 
-  <!--
-    Fuentes: acá NO se usa Google Fonts como en el index (con el preconnect y todo eso),
-    se usa un font.css local que debe tener los @font-face con las tipografías que están
-    en la carpeta "fuentes_locales" (sí, ese es el nombre real de la carpeta, no me
-    pregunten por qué, googlear "yolo naming conventions")
-  -->
+  <!-- Fuentes locales y tipografías de la página. -->
   <link rel="stylesheet" href="../css/font.css" />
 
-  <!-- la hoja de estilos principal. TODO el sitio comparte esta, no hay un turismo.css aparte.
-       las clases especificas de esta página (alojamientos-section, restaurantes-section, etc)
-       están todas mezcladas ahi adentro con las de index y lugares. buscar con Ctrl+F es tu amigo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
+  <!-- Hoja de estilos compartida y reglas propias de turismo. -->
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-cc-iconos-legibles" />
   <link rel="stylesheet" href="../css/turismo-ui.css?v=20261118-curiosidad" />
 </head>
 
-<!--
-  la clase "pagina-turismo" en el body es la que probablemente usa styles.css para
-  aplicar estilos especificos SOLO de esta página (tipo diferenciar el hero de turismo
-  del hero de eventos). Convención: page-<nombrepágina>. Fijate en las otras html,
-  seguro tienen la misma onda (pagina-eventos, pagina-lugares, etc)
--->
+<!-- La clase pagina-turismo activa los estilos de esta página. -->
 <body class="pagina-turismo">
 
-<!-- ============================================================
-     NAVBAR
-     ------------------------------------------------------------
-     la barra de arriba, se repite CASI igual en todas las páginas
-     (index, eventos, lugares, turismo, soporte...) - no hay un
-     sistema de "componentes" tipo React acá, esto es HTML puro y duro,
-     así que si hay que cambiar algo del navbar HAY QUE CAMBIARLO
-     A MANO EN CADA ARCHIVO. sí, es un embole, pero bueno, es lo que hay
-     sin un backend / templates.
-============================================================ -->
+<!-- Navegación principal de turismo. -->
 <header>
   <nav class="barra-navegacion">
-    <!-- logo + link a inicio. Ojo que dice index.php pero estamos en /html/ entonces
-         apunta bien a la carpeta hermana -->
+    <!-- Logo con enlace a la portada. -->
     <a class="navegacion-logotipo" href="index.php">
       <img src="../imagenes/turismo/logo-salto.svg" alt="Explora Salto" />
     </a>
 
-    <!--
-      buscador de la navbar. el ícono de lupa es un SVG inline (no un <img>),
-      dibujado a mano con paths. Esto es una lupita con un circulo (la cabeza)
-      y una lineita (el mango). Fijate que el placeholder tiene comillas tipográficas
-      dentro del string, medio raro pero bue, es solo un placeholder visual, no hace
-      nada todavía (no tiene JS enganchado que yo vea)
-    -->
+
     <div class="navegacion-busqueda">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -75,12 +40,7 @@
       <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
     </div>
 
-    <!--
-      links de navegación principales. Notar la clase "active" en el link de Turismo:
-      esto es HARDCODEADO, o sea, en cada página el link correspondiente tiene "active"
-      puesto a mano. No hay JS que detecte "en qué página estoy" y lo marque solo.
-      Si agregan una página nueva, no se olviden de marcar el active correcto ahi.
-    -->
+    <!-- El enlace de Turismo queda marcado como activo. -->
     <div class="navegacion-enlaces">
       <a href="eventos.php">Eventos</a>
       <a href="turismo.php" class="activo">Turismo</a>
@@ -90,14 +50,7 @@
 </header>
 
 
-<!-- ============================================================
-     HERO
-     ------------------------------------------------------------
-     la sección grande de arriba con el título gigante y el texto
-     de bienvenida. Cada página tiene su hero con su propio texto,
-     pero comparten la clase "hero" asi que el estilo (fondo, tamaños,
-     etc) sale del css general y solo cambia el contenido.
-============================================================ -->
+<!-- Portada de turismo. -->
 <section class="portada">
   <div class="portada-interior">
     <h1 class="portada-titulo">TURISMO</h1>
@@ -115,14 +68,7 @@
 </section>
 
 
-<!-- ============================================================
-     ALOJAMIENTOS RECOMENDADOS
-     ------------------------------------------------------------
-     Sección tipo "airbnb" con cards de hoteles/alojamientos.
-     Ojo con el id="alojamientos" -- se usa después en el footer
-     para el link "Hoteles" (turismo.php#alojamientos) asi que si
-     lo cambian de nombre, romper ese link también hay que arreglarlo.
-============================================================ -->
+<!-- El id alojamientos se usa como destino desde los enlaces del pie. -->
 <section class="alojamientos-seccion" id="alojamientos">
   <div class="alojamientos-interior">
 
@@ -139,21 +85,14 @@
       </div>
     </div>
 
-    <!--
-      grid de cards. Están 3 hardcodeadas a mano, no hay ningun loop ni JS
-      que las genere dinámicamente (esto no tiene backend, es todo estático).
-      Si mañana quieren un 4to alojamiento, hay que copiar y pegar todo el
-      bloque .prop-card de nuevo y cambiar los datos. re a pico y pala.
-    -->
+    <!-- Las tarjetas de alojamiento están definidas en este HTML. -->
     <div class="tarjetas-cuadricula">
 
-      <!-- CARD 1: Dayman -->
+      <!-- Tarjeta 1: Hotel Daymán. -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/lugares/363100652.jpg" alt="Dayman, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
-          <!-- el botoncito de corazon para "guardar/favorito". Por ahora es solo
-               visual, no tiene onclick ni nada -- fijate en main.js si hay algun
-               listener que le agrega el "like" con JS (buscar .alojamiento-corazon) -->
+          <!-- main.js sincroniza este botón con los lugares guardados de la cuenta. -->
           <button class="alojamiento-corazon" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -167,13 +106,10 @@
         </div>
       </div>
 
-      <!-- CARD 2: Hotel Los Cedros -->
+      <!-- Tarjeta 2: Hotel Los Cedros. -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
-          <!-- esta imagen viene de la carpeta de index (../imagenes/index/images.jpg),
-               no de turismo. seguramente reciclaron una imagen generica de "hotel"
-               que ya estaba subida en otro lado en vez de subir una nueva. funciona
-               igual, pero desprolijo desde lo organizativo -->
+
           <img class="alojamiento-imagen" src="../imagenes/index/images.jpg" alt="Hotel Los Cedros, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <button class="alojamiento-corazon" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -188,12 +124,7 @@
         </div>
       </div>
 
-      <!-- CARD 3: Gran Hotel (OJO: el nombre de archivo de la imagen dice
-           "don_pedro.jpg" con espacio en el nombre, y el texto visible dice
-           "Jose Pedro" -- no coinciden los nombres. no rompe nada porque el
-           navegador banca los espacios en la ruta, pero es un quilombo para
-           mantener. evitar espacios en nombres de archivo, mejor usar guiones:
-           don-pedro.jpg -->
+
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/index/don_pedro.jpg" alt="Gran Hotel, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
@@ -215,21 +146,12 @@
 </section>
 
 
-<!-- ============================================================
-     HISTORIA TURISTICA
-     ------------------------------------------------------------
-     seccion simple: titulo + una rayita ondulada decorativa (svg
-     con un path curvo) + un parrafo. nada de otro mundo, es la
-     típica seccion de "contexto/relleno" para dar onda editorial
-     a la página.
-============================================================ -->
+<!-- Historia y contexto de la ciudad. -->
 <section class="historia-seccion" id="historia">
   <div class="historia-interior">
     <h2>Historia Turística</h2>
 
-    <!-- esta ondita es puramente decorativa (un <path> con una curva bezier).
-         no significa nada, es un elemento de diseño nomas, como un separador
-         "con onda" en vez de una linea recta aburrida -->
+    <!-- Separador decorativo de la sección. -->
     <svg class="historia-ola" viewBox="0 0 220 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M2 16 C40 4, 80 22, 110 12 S170 0, 218 14" stroke="#3ecfbb" stroke-width="4" stroke-linecap="round" fill="none"/>
     </svg>
@@ -244,18 +166,12 @@
 </section>
 
 
-<!-- ============================================================
-     RESTAURANTES Y SABORES
-     ------------------------------------------------------------
-     otra grilla de cards, misma logica que alojamientos pero con
-     otro layout (restaurant-card en vez de prop-card). Tampoco
-     tiene loop, son 3 <article> a mano.
-============================================================ -->
+<!-- Restaurantes y sabores locales. -->
 <section class="restaurantes-seccion" id="restaurantes">
   <div class="restaurantes-interior">
 
     <div class="titulo-seccion">
-      <!-- icono de "olla/plato" para la sección de comida -->
+      <!-- Icono decorativo de gastronomía. -->
       <svg class="icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 8h14a3 3 0 0 1 0 6h-1"/><path d="M3 8v8a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8"/><path d="M7 2v3"/><path d="M11 2v3"/>
       </svg>
@@ -264,16 +180,11 @@
 
     <div class="restaurante-cuadricula">
 
-      <!-- se usa <article> en vez de <div> acá, que es mas correcto semánticamente
-           porque cada card es un "contenido independiente" (un restaurant).
-           buen uso de HTML semántico, a diferencia de las prop-card de arriba
-           que son <div>. inconsistencia menor pero no es grave -->
+
       <article class="restaurante-tarjeta">
         <div class="restaurante-imagen-marcador-posicion">
           <img class="restaurante-imagen" src="../imagenes/turismo/unnamed.jpg" alt="Parrilla en Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
-          <!-- el nombre de archivo "unnamed.jpg" es sospechoso, huele a que alguien
-               descargó la imagen de internet y nunca la renombró. funciona pero
-               en algún momento habria que ponerle un nombre descriptivo -->
+
           <span class="restaurante-insignia">Parrilla</span>
         </div>
         <div class="restaurante-informacion">
@@ -321,16 +232,7 @@
 </section>
 
 
-<!-- ============================================================
-     FOOTER
-     ------------------------------------------------------------
-     el pie de página, se repite en TODAS las páginas del sitio
-     (copy-paste city, de nuevo, no hay templates/includes). tiene:
-     1) columnas de links por categoria
-     2) una card de "soporte" a la derecha
-     3) iconos de redes sociales (puro SVG, sin libreria de iconos)
-     4) linea de copyright + legales abajo de todo
-============================================================ -->
+<!-- El pie se repite en las páginas principales; mantener sus cambios sincronizados. -->
 <footer class="pie-pagina">
   <div class="pie-pagina-superior-fila">
     <div class="pie-pagina-columnas">
@@ -340,10 +242,7 @@
         <ul>
           <li><a href="eventos.php">Eventos Destacados</a></li>
           <li><a href="eventos.php">Todos los Eventos</a></li>
-          <!-- ojo: los dos links de arriba van EXACTAMENTE al mismo lugar
-               (eventos.php), no hay anchors distintos ni filtros. son
-               practicamente el mismo link con texto diferente. revisar
-               si esto era intencional o quedó a medio hacer -->
+
           <li><a href="eventos.php#anteriores-pestanas">Eventos Posteriores</a></li>
         </ul>
       </div>
@@ -351,7 +250,7 @@
       <div class="pie-pagina-columna">
         <h4 class="pie-pagina-columna-titulo">TURISMO</h4>
         <ul>
-          <!-- estos si apuntan bien a los ids de esta misma página -->
+          <!-- Estos enlaces llevan a secciones de esta página. -->
           <li><a href="turismo.php#alojamientos">Hoteles</a></li>
           <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
           <li><a href="lugares.php">Lugares Turísticos</a></li>
@@ -362,9 +261,7 @@
       <div class="pie-pagina-columna">
         <h4 class="pie-pagina-columna-titulo">LUGARES</h4>
         <ul>
-          <!-- estos anchors (#plaza-artigas, #plaza-33, etc) tienen que existir
-               como id en lugares.php, sino el link no lleva a ningun lado
-               especifico, solo abre la página de arriba -->
+          <!-- Estos enlaces apuntan a fichas de lugares definidas en lugares.html. -->
           <li><a href="lugares.php#plaza-artigas">Plaza Artigas</a></li>
           <li><a href="lugares.php#plaza-33">Plaza Treinta y Tres</a></li>
           <li><a href="lugares.php#parque-solari">Parque Solari</a></li>
@@ -375,21 +272,17 @@
       <div class="pie-pagina-columna">
         <h4 class="pie-pagina-columna-titulo">SIGTUR</h4>
         <ul>
-          <!-- reemplazo de placeholders institucionales por enlaces reales de la UTU -->
+          <!-- Enlaces institucionales de la UTU. -->
           <li><a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Sobre VPI</a></li>
           <li><a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">UTU Catalina Harrigue de Castaños</a></li>
         </ul>
       </div>
     </div>
 
-    <!--
-      card de soporte a la derecha del footer. Es una <aside> porque es
-      contenido "relacionado pero separado" del resto del footer (correcto
-      uso semántico de nuevo, bien ahi). manda directo a soporte.php
-    -->
+    <!-- Acceso directo al formulario de soporte. -->
     <aside class="pie-pagina-soporte-tarjeta">
       <p class="pie-pagina-soporte-antetitulo">Soporte</p>
-      <!-- "Soporte" en vez de "Soporte" -- un error que me da mucha pereza corregir-->
+
       <p class="pie-pagina-soporte-mensaje">
         <span class="pie-pagina-soporte-titular">¿Tienes alguna sugerencia?</span>
         <span class="pie-pagina-soporte-cuerpo">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
@@ -400,14 +293,7 @@
 
   <div class="pie-pagina-separador"></div>
 
-  <!--
-    Redes sociales. Los 4 iconos (instagram, facebook, twitter/x, youtube)
-    están hechos a mano en SVG con paths complicados -- estos se exportaron directo de Figma (se nota por los nombres de los paths
-    y los numeros con muchos decimales tipo "11.5821"). no son iconos de una
-    libreria , son dibujos vectoriales pegados tal cual.
-    Todos los href="#" -- osea, ningun link de red social funciona todavía,
-    hay que poner las URLs reales cuando las tengan.
-  -->
+  <!-- Los perfiles sociales aún no tienen sus enlaces definitivos. -->
   <div class="pie-pagina-redes-sociales">
     <a class="red-social-icono icono-instagram" href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -422,8 +308,7 @@
       </svg>
     </a>
     <a class="red-social-icono icono-twitter" href="https://x.com/" target="_blank" rel="noopener" aria-label="Twitter">
-      <!-- este es el pajarito viejo de twitter dibujado en vector, no la X nueva.
-           habría que actualizarlo con el logo nuevo de X en algún momento -->
+
       <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M27.5075 2.69347C26.5595 3.3412 25.4465 3.68514 24.3089 3.68188C25.5251 2.94389 26.4357 1.77139 26.8678 0.387186C25.8596 1.26507 24.5892 1.75942 23.2694 1.78743C22.3992 0.869392 21.2634 0.266809 20.0326 0.070111C18.8017 -0.126587 17.5421 0.0932115 16.4427 0.69652C15.3434 1.29983 14.4637 2.2541 13.9356 3.41614C13.4075 4.57817 13.2595 5.88528 13.5138 7.14131C11.2743 7.01952 9.08473 6.41393 7.08719 5.36385C5.08966 4.31377 3.32886 2.84269 1.91913 1.04612C1.22929 2.33191 1.02731 3.83567 1.35232 5.26609C1.67732 6.6965 2.50618 7.95175 3.67832 8.78865C2.7937 8.80153 1.9181 8.60423 1.11949 8.21208C1.141 9.53888 1.59388 10.8199 2.4057 11.8503C3.21752 12.8806 4.34136 13.6007 5.59745 13.8954C4.76131 14.1203 3.88675 14.1485 3.03862 13.9778C3.40449 15.1532 4.1173 16.1817 5.07768 16.92C6.03806 17.6582 7.19813 18.0694 8.39617 18.0962C5.86592 19.6772 2.95938 20.5041 0 20.4848C2.4785 22.1515 5.35742 23.077 8.31628 23.1583C11.2752 23.2396 14.1979 22.4735 16.7591 20.9452C19.3203 19.4169 21.4195 17.1864 22.823 14.5021C24.2266 11.8178 24.8794 8.78489 24.7087 5.74106C25.7639 4.85221 26.7045 3.82804 27.5075 2.69347Z" fill="white"/>
       </svg>
@@ -450,7 +335,7 @@
       </span>
     </p>
     <div class="pie-pagina-legal">
-      <!-- legales con destino estable en sitio real -->
+      <!-- Enlaces a los avisos legales del sitio. -->
       <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Términos y Condiciones</a>
       <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Políticas de Privacidad</a>
       <a href="https://www.utu.edu.uy/" target="_blank" rel="noopener">Bases Legales</a>
@@ -458,13 +343,7 @@
   </div>
 </footer>
 
-<!--
-  el script principal, se carga al final del body (buena práctica, asi el
-  HTML ya está todo pintado en pantalla antes de que corra JS, y no bloquea
-  el renderizado). Ver main.js para toda la lógica de: menú responsive,
-  favoritos (corazones), pestanas y formularios, etc. No vimos nada de eso
-  definido inline en esta página asi que seguro está todo centralizado ahi.
--->
+<!-- main.js contiene el comportamiento compartido de la página. -->
 <script src="../js/api-config.js"></script>
 <script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>

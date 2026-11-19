@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login y Registro - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-cc-iconos-legibles" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 <body class="cuenta-redisenada">
@@ -54,14 +54,7 @@
       <p>Únete a nuestra comunidad viajera</p>
     </div>
 
-    <!--
-      Tabs para alternar entre Ingresar / Registrarse. role="tablist"
-      y los data-cuenta-pestana son ganchos para que main.js sepa qué panel
-      mostrar cuando clickean cada botón (buscar 'data-cuenta-pestana' en
-      main.js para ver el switcheo). Esto es un patrón de tabs manual
-      hecho con atributos data-*, no usa el <input type=radio> hack
-      ni nada de CSS puro, depende 100% de JS para funcionar
-    -->
+    <!-- main.js conecta estas pestañas con los formularios de acceso y registro. -->
     <div class="cuenta-pestanas" role="tablist" aria-label="Opciones de cuenta">
       <button class="cuenta-pestana activo" type="button" role="tab" aria-selected="true" aria-controls="acceso-formulario" id="acceso-pestana" data-cuenta-pestana="acceso">Ingresar</button>
       <button class="cuenta-pestana" type="button" role="tab" aria-selected="false" aria-controls="registro-formulario" id="registro-pestana" data-cuenta-pestana="registro">Registrarse</button>
@@ -135,14 +128,7 @@
       </button>
     </div>
 
-    <!--
-      Aquí es donde main.js mete los mensajes de feedback (tipo "sesión
-      iniciada", "usuario ya existe", los mensajes de data-cuenta-mensaje
-      de arriba, etc). aria-live="polite" es clave para accesibilidad:
-      hace que un lector de pantalla anuncie el mensaje automáticamente
-      apenas aparece, sin que el usuario tenga que ir a buscarlo con el
-      cursor. Buen detalle de nuevo.
-    -->
+    <!-- main.js muestra aquí el estado del acceso; aria-live anuncia cada cambio. -->
     <p class="cuenta-estado" id="cuenta-estado" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 
     <p class="cuenta-terminos">

@@ -1,15 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soporte - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-cc-iconos-legibles" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 
-<!-- page-soporte, misma convención de siempre -->
+<!-- Los estilos de esta página se aplican con la clase pagina-soporte. -->
 <body class="pagina-soporte">
 
 <!--
@@ -39,14 +39,7 @@
   </nav>
 </header>
 
-<!--
-  CONTENIDO PRINCIPAL
-  mismo esqueleto ".utility-page" / ".utility-shell" que admin.php,
-  osea que estas dos páginas están hechas para verse "hermanas"
-  visualmente (mismo kicker arriba, mismo h1 grande, mismo grid de
-  secciones abajo). Tiene sentido: son las dos páginas "de sistema"
-  del sitio, separadas del contenido turístico
- -->
+<!-- Estructura compartida con la página de administración. -->
 <main class="utilidad-pagina">
   <div class="utilidad-marco">
     <div class="utilidad-encabezado">
@@ -70,13 +63,11 @@
 
     <div class="utilidad-cuadricula soporte-cuadricula">
 
-      <!-- Formulario de soporte y solicitud de verificacion, guardados por la API. -->
+      <!-- La API recibe las consultas y solicitudes de verificación. -->
       <section class="soporte-panel">
         <div class="panel-encabezado">
           <h2>Enviar consulta</h2>
-          <!-- este "Listo" probablemente cambia a "Enviado" o similar
-               despues de submitear el form, ver #support-status en
-               main.js -->
+          <!-- main.js actualiza este estado al enviar la consulta. -->
           <span class="estado-pastilla" id="soporte-estado">Listo</span>
         </div>
         <form id="soporte-formulario" action="#">
@@ -118,20 +109,7 @@
             <textarea id="soporte-mensaje" name="message" placeholder="Contanos que necesitas revisar" required></textarea>
           </div>
           <div class="boton-fila">
-            <!--
-              ojo con la diferencia entre los 2 botones: "Crear ticket"
-              es type="submit" (dispara el form), pero "Limpiar" es
-              type="reset" -- distinto de admin.php donde el botón
-              "Limpiar" era type="button" con un id para que main.js
-              lo maneje a mano (#admin-clear-announcement). Acá en
-              cambio usan el reset NATIVO del navegador (type="reset"),
-              que vacía el formulario solo, sin necesitar JS para eso.
-              Ambas soluciones funcionan, pero es un ejemplo de que el
-              mismo equipo resolvió un problema parecido de dos formas
-              distintas en dos páginas distintas. No es grave, pero
-              si quieren unificar el estilo de código, elegir un
-              enfoque y aplicarlo en las dos.
-            -->
+
             <button class="boton-principal" type="submit">Crear ticket</button>
             <button class="boton-secundario" type="reset">Limpiar</button>
           </div>
@@ -140,17 +118,7 @@
         </form>
       </section>
 
-      <!--
-        ============================================================
-        PANEL: Canales
-        3 formas de contacto alternativas. El mailto: es un link real
-        que abre el cliente de correo del usuario (Gmail, Outlook,
-        etc) con el correo público de contacto de la institución.
-
-        El link de "Ubicación" reusa el mismo truco de Google Maps sin
-        API key que vimos en lugares.php (maps/search/?api=1&query=...),
-        consistente con el resto del sitio.
-      -->
+      <!-- Canales de contacto y ubicación. -->
       <section class="utilidad-tarjeta">
         <h2>Canales</h2>
         <div class="contacto-lista">
@@ -167,16 +135,7 @@
         <div class="entrada-lista" id="soporte-entrada-lista" aria-live="polite"></div>
       </section>
 
-      <!--
-        ============================================================
-        PANEL: Atajos útiles
-        4 líneas cortas con accesos directos. Las primeras 3 tienen
-        un link real "Abrir", la última ("Contacto estimado: 24 h")
-        es solo información, sin link -- inconsistencia menor de
-        formato (todas parecen "filas" del mismo tipo pero solo 3 de
-        4 son clickeables), aunque visualmente probablemente se nota
-        la diferencia porque una no tiene el link de "Abrir" al lado
-      -->
+      <!-- Accesos directos a recursos de soporte. -->
       <section class="utilidad-tarjeta">
         <h2>Atajos utiles</h2>
         <div class="pastilla-lista">

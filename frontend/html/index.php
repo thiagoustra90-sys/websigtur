@@ -1,40 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <!--
-    Head de la home. Nada muy loco acá, es la config base que
-    comparten (o deberían compartir, ojo con eso) todas las páginas.
-  -->
+  <!-- Configuración inicial de la portada. -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- para que no se vea gigante en el celu -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Explora Salto - SIGTUR</title>
 
-  <!-- Fonts: usamos Google Fonts para Playfair/Cormorant/Nunito y un cdnfonts random para la firma -->
+  <!-- Tipografías de la portada. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /> <!-- preconnect x2 es lo que recomienda google, no lo saquen -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
-  <!-- ojo: esta fuente (Brittany Signature) viene de cdnfonts, no de google. es la que usamos para el "¿Quedamos?" del hero -->
+  <!-- Fuente de la firma usada en “¿Quedamos?”. -->
   <link href="https://fonts.cdnfonts.com/css/brittany-signature" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
+  <link rel="stylesheet" href="../css/font.css" />
 
-  <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
+  <!-- Hoja de estilos compartida por el sitio. -->
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-cc-iconos-legibles" />
 
 </head>
 <body class="pagina-inicio">
-  <!-- la clase pagina-inicio la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->
+  <!-- main.js usa esta clase para activar el comportamiento de la portada. -->
 
-<!--
-     NAVBAR — fuera del hero para que siempre quede arriba
-     (ver el fix de z-index / stacking context de arriba)
--->
+<!-- Navegación de la portada, separada del contenido del hero. -->
 <nav class="barra-navegacion" id="barra-navegacion">
-  <!-- Logo, lleva a inicio -->
+  <!-- Logo con enlace a la portada. -->
   <a class="navegacion-logotipo" href="index.php" aria-label="Inicio">
     <img src="../imagenes/logo-salto.svg" alt="Explora Salto" />
   </a>
 
-  <!-- Search: por ahora es solo visual, no filtra nada acá en la home (sí en turismo.php) -->
+  <!-- Buscador de la portada. -->
   <div class="navegacion-busqueda">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -42,30 +36,28 @@
     <input type="search" aria-label="Buscar en SIGTUR" autocomplete="off" placeholder="¿Qué querés descubrir hoy en Salto?" />
   </div>
 
-  <!-- Nav links de las 3 secciones principales -->
+  <!-- Enlaces a Eventos, Turismo y Lugares. -->
   <nav class="navegacion-enlaces">
     <a href="eventos.php">Eventos</a>
     <a href="turismo.php">Turismo</a>
     <a href="lugares.php">Lugares</a>
   </nav>
 </nav>
-<!-- ojo: el menú circular del logo (click para desplegar Login/Admin/Soporte/tema) NO está acá,
-     lo inyecta crearMenuLogotipo() en main.js apenas carga la página. si buscan el HTML del menú
-     y no lo encuentran en ninguna página, es por eso, está armado 100% por JS -->
+<!-- main.js inserta junto al logotipo el menú de cuenta, administración, soporte y tema. -->
 
 
 <!--
-     HERO — la parte grande de arriba con el título y el clima
+     Portada principal con título y widget del clima
 -->
 <header class="portada">
 
-  <div class="portada-fondo"></div> <!-- el fondo (imagen/gradiente) va por CSS, ver .portada-fondo en styles.css -->
+  <div class="portada-fondo"></div> <!-- La imagen y el degradado de fondo se definen en styles.css. -->
 
   <div class="portada-contenido">
     <div class="descripcion-portada">
     <h1 class="portada-titulo">EXPLORA<br>SALTO</h1>
 
-    <!-- ola de mar bajo el título, dibujada a mano con un path de svg -->
+    <!-- Onda decorativa dibujada en SVG. -->
     <svg class="portada-ola" viewBox="0 0 520 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M2 28 C60 8, 130 38, 200 18 S340 -2, 420 22 S490 38, 518 20"
             stroke="#3ecfbb" stroke-width="6" stroke-linecap="round" fill="none"/>
@@ -99,9 +91,7 @@
 
 
 <!--
-    Barra de Funciones.
-    (tres cajitas: Eventos / Turismo / Lugares, cada una linkea
-    conceptualmente a su sección pero no son <a>, son solo texto)
+    Accesos principales a Eventos, Turismo y Lugares.
  -->
 <section class="caracteristicas">
   <div class="caracteristicas-cuadricula">
@@ -144,21 +134,20 @@
 
 
 <!--
-     EVENTOS (preview en la home, no confundir con eventos.php
-     que es la página completa con todos los tickets/filtros)
+     Eventos destacados de la portada; la agenda completa está en eventos.php.
 -->
 <section class="eventos-seccion" id="eventos">
   <div class="eventos-interior">
 
-    <!-- izquierda: titulo + texto -->
+    <!-- Texto y enlace a la agenda. -->
     <div class="eventos-izquierda">
       <div class="eventos-encabezado">
-        <span><!-- spacer, está vacío a propósito para empujar "VER MÁS" a la derecha con justify-content --></span>
+        <span><!-- Espaciador del encabezado. --></span>
         <a href="eventos.php" class="seccion-ver-mas">VER MÁS</a>
       </div>
       <h2 class="eventos-titulo">EVENTOS</h2>
 
-      <!-- otra ola marina, misma idea que la del hero pero con otro path -->
+      <!-- Separador ondulado de la sección. -->
       <svg class="eventos-ola" viewBox="0 0 460 55" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 35 C55 10, 120 48, 200 25 S330 2, 410 30 S448 48, 458 28"
               stroke="#3ecfbb" stroke-width="7" stroke-linecap="round" fill="none"/>
@@ -173,12 +162,7 @@
     </div>
 
     <!--
-      derecha: carousel de imágenes. OJO, este carousel es DISTINTO
-      al de eventos.php (.destacado-pista/.destacado-diapositiva con loop infinito
-      por clones): este de acá es más simple, usa .carousel-track y
-      simplemente hace translateX + modulo, sin clones. Ver goTo()
-      dentro del bloque "if (body.classList.contains('pagina-inicio'))"
-      en main.js.
+      Carrusel de la portada. Sus controles y puntos se inicializan en main.js.
     -->
     <div class="carrusel">
       <div class="carrusel-pista">
@@ -196,11 +180,10 @@
         </div>
       </div>
 
-      <!-- estos botones sí existen acá (a diferencia del de eventos.php que solo tiene dots) -->
       <button class="carrusel-boton anterior" aria-label="Anterior">&#8249;</button>
       <button class="carrusel-boton siguiente" aria-label="Siguiente">&#8250;</button>
 
-      <div class="carrusel-puntos"></div> <!-- los puntitos los genera el JS dinámicamente, uno por slide -->
+      <div class="carrusel-puntos"></div> <!-- main.js genera un indicador por diapositiva. -->
     </div>
 
   </div>
@@ -217,19 +200,19 @@
     <div class="alojamiento-encabezado">
       <div class="alojamiento-titulo-contenedor">
         <h2 class="alojamiento-titulo">¿EN DÓNDE<br>NOS QUEDAMOS?</h2>
-        <span class="alojamiento-guion">¿Quedamos?</span> <!-- esta es la que usa la fuente Brittany Signature -->
+        <span class="alojamiento-guion">¿Quedamos?</span> <!-- Firma decorativa con tipografía propia. -->
       </div>
       <a href="turismo.php" class="seccion-ver-mas" style="margin-top:8px;">VER MÁS</a>
     </div>
 
-    <!-- Tarjetas de alojamiento: por ahora son 3 hardcodeadas, no viene de ningún JSON ni backend -->
+    <!-- Las tarjetas de alojamiento están definidas en esta página y no vienen de la API. -->
     <div class="tarjetas-cuadricula">
 
-      <!-- Card 1 -->
+      <!-- Tarjeta 1. -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/index/951-.jpeg" alt="Dayman, Salto" loading="lazy" decoding="async" />
-          <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .alojamiento-corazon al final del DOMContentLoaded) -->
+          <!-- main.js sincroniza este botón con los lugares guardados de la cuenta. -->
           <button class="alojamiento-corazon" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -241,7 +224,7 @@
         </div>
       </div>
 
-      <!-- Card 2 -->
+      <!-- Tarjeta 2. -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/index/images.jpg" alt="Mesias Hotel, Salto" loading="lazy" decoding="async" />
@@ -256,7 +239,7 @@
         </div>
       </div>
 
-      <!-- Card 3 -->
+      <!-- Tarjeta 3. -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/index/don_pedro.jpg" alt="Jose Pedro, Salto" loading="lazy" decoding="async" />
@@ -276,13 +259,7 @@
 </section>
 
 
-<!--
-     GASTRONOMÍA LOCAL
-     ojo con el id: dice id="lugares" pero esta sección es de
-     comida, no de lugares turísticos. quedó así de alguna
-     iteración vieja, no lo cambiamos para no romper anchors
-     que ya estén linkeados desde otro lado (revisar antes de tocar).
- -->
+<!-- Gastronomía local; se conserva el id lugares para mantener sus enlaces. -->
 <section class="gastronomia-seccion" id="lugares">
   <div class="gastronomia-interior">
 
@@ -328,16 +305,7 @@
 
 
 <!--
-     FOOTER
-     Este footer se repite IDÉNTICO en index / eventos / turismo /
-     lugares (copy-paste manual, no hay includes en HTML plano).
-     Si cambian algo acá, hay que replicarlo a mano en las otras 3
-     páginas o se desincroniza. Ya nos pasó una vez, ojo.
-
-     Estructura: columnas de links (con acordeón en mobile, ver
-     configurarAcordeonesPie() en main.js) + tarjeta de "Soporte"
-     (agregada en el sync con Figma del 11/07) + fila de redes
-     (iconos exactos sacados de Figma, sin texto) + barra legal.
+     El pie se repite en las páginas principales; mantener los cambios sincronizados.
  -->
 <footer class="pie-pagina">
   <div class="pie-pagina-superior-fila">
@@ -380,13 +348,7 @@
       </div>
     </div>
 
-    <!--
-      Tarjeta de "Soporte" — la agregamos para calzar con el diseño
-      de Figma. El botón "Ir a soporte" ya lleva a soporte.php real
-      (no es un link muerto). Los colores cambian solo con el toggle
-      de tema del sitio: ver body.tema-oscuro .footer-suporte-* en
-      styles.css (naranja en claro, teal en oscuro).
-    -->
+    <!-- Acceso directo al formulario de soporte. -->
     <aside class="pie-pagina-soporte-tarjeta">
       <p class="pie-pagina-soporte-antetitulo">Soporte</p>
       <p class="pie-pagina-soporte-mensaje">
@@ -399,14 +361,7 @@
 
   <div class="pie-pagina-separador"></div>
 
-  <!--
-    Redes sociales: iconos puros sacados directo del Figma (no son
-    los iconos genéricos de internet, son paths exportados tal cual).
-    A propósito NO tienen texto al lado, solo el ícono + aria-label
-    para accesibilidad. El tamaño de cada uno está pixel-perfect
-    con lo que mandó diseño (23.16px, 27.51x23.16px, etc, ver
-    .red-social-icono en styles.css).
-  -->
+  <!-- Enlaces sociales con SVG y etiquetas accesibles. -->
   <div class="pie-pagina-redes-sociales">
     <a class="red-social-icono icono-instagram" href="#" aria-label="Instagram">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -447,7 +402,7 @@
       </span>
     </p>
     <div class="pie-pagina-legal">
-      <!-- estos 3 links son placeholders, todavía no hay páginas de términos/privacidad/bases -->
+      <!-- Estos enlaces legales necesitan sus páginas de destino. -->
       <a href="#">Términos y Condiciones</a>
       <a href="#">Políticas de Privacidad</a>
       <a href="#">Bases Legales</a>
@@ -455,7 +410,7 @@
   </div>
 </footer>
 
-<!-- todo el comportamiento interactivo del sitio vive en un solo archivo, main.js -->
+<!-- main.js reúne las interacciones compartidas de la página. -->
 <script src="../js/api-config.js"></script>
 <script src="../js/main.js?v=20261119-eventos-inicio-visible"></script>
 </body>
