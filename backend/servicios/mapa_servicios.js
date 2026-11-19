@@ -1,10 +1,7 @@
 // ============================================================================
 // servicios/mapa_servicios.js
-// Junta las 3 tablas de Supabase (busines, events, places) en una sola lista
-// de "puntos de mapa" con la forma que ya espera el frontend
-// (frontend/html/mapa.php -> función normalize() del script del mapa):
-//   { id, nombre, tipo, categorias[], lat, lng, imagen, direccion,
-//     resumen/descripcion, enlace }
+// Normaliza los registros de Supabase para que el mapa reciba un único formato,
+// sin depender de los nombres de columnas de cada tabla.
 // ============================================================================
 import supabase from "../config/supabase.js";
 

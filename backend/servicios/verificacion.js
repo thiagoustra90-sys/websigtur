@@ -1,8 +1,7 @@
 // ============================================================================
 // servicios/verificacion.js
-// Middleware de Express que protege rutas privadas. Lee el header
-// "Authorization: Bearer <token>", lo valida contra Supabase Auth y cuelga
-// el usuario en req.user para que el controlador lo use.
+// Valida el token de la petición con Supabase y deja el usuario autenticado
+// en la solicitud para que lo usen los controladores.
 // ============================================================================
 import { verificarToken, obtenerPerfil, asegurarPerfil } from "./auth_servicios.js";
 
@@ -27,9 +26,8 @@ export async function requiereSesion(req, res, next) {
   next();
 }
 
-// Igual que requiereSesion pero no corta la request si no hay token: lo
-// deja pasar con req.user = null. Útil para rutas que cambian de
-// comportamiento si estás logueado, sin exigirlo (ej: "guardado" en mapa).
+// Permite rutas públicas que muestran información adicional cuando hay sesión;
+// si no llega un token válido, continúa con req.user = null.
 export async function sesionOpcional(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;

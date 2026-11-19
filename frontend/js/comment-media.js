@@ -19,7 +19,7 @@
 
     const baseApi = window.SIGTUR_BACKEND_URL || '';
     let sesion = null;
-    try { sesion = JSON.parse(localStorage.getItem('sigtur-session') || 'null'); } catch { /* no hay sesión local */ }
+    try { sesion = JSON.parse(localStorage.getItem('sigtur-session') || 'null'); } catch { /* No hay una sesión guardada en este navegador. */ }
     const enviar = async () => {
       const respuesta = await fetch(`${baseApi}/api/comentarios/medios`, {
         method: 'POST',

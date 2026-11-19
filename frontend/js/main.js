@@ -1,4 +1,4 @@
-// Interactividad del sitio. La API y Supabase gestionan los datos persistentes.
+// Comportamiento compartido de las páginas de SIGTUR.
 
 function obtenerEnlaceWebEvento(valor) {
   const textoUrl = String(valor ?? '').trim();
@@ -28,18 +28,15 @@ function analizarMultimediaEvento(valor) {
   return { tipo: 'enlace', url };
 }
 
-// Inicializacion despues de cargar el DOM.
-// gonza: esto se ejecuta cuando el HTML terminó de cargar del todo.
-// si ponés código acá afuera (fuera del DOMContentLoaded) y el HTML
-// todavía no cargó, querySelector va a devolver null y nada va a funcionar.
+// La mayoría de los elementos se consulta al iniciar, por eso esperamos a que exista el DOM.
 document.addEventListener('DOMContentLoaded', () => {
   const cuerpo = document.body;
 
-  // guardamos el tema en localStorage para que se acuerde entre páginas
+  // Recuperamos la preferencia para aplicar el tema antes de armar el menú.
   const temaGuardado = localStorage.getItem('sigtur-theme') || 'light';
   cuerpo.classList.toggle('tema-oscuro', temaGuardado === 'dark');
 
-  // el menú del logo no existe en la pantalla de login, así que lo saltamos
+  // La vista de acceso tiene su propia navegación y no usa el menú del logotipo.
   if (!cuerpo.classList.contains('cuenta-redisenada')) crearMenuLogotipo(temaGuardado);
 
   configurarPaginaAutenticacion();
@@ -77,14 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarPlanificacionTuristica();
     configurarInformacionGastronomica();
 
-    // gonza: acá escuchamos el scroll de la ventana. Cuando el usuario
-    // baja más de 60px, le agregamos la clase 'scrolled' al navbar para
-    // que cambie de estilo (el CSS se encarga del resto).
+    // El navbar cambia de estilo al pasar 60 px; la clase .desplazado se define en CSS.
     const barraNavegacion = document.getElementById('barra-navegacion');
     if (barraNavegacion) window.addEventListener('scroll', () => barraNavegacion.classList.toggle('desplazado', window.scrollY > 60));
 
-    // setupHomeWeather es async (ver abajo), la llamamos sin await
-    // porque no necesitamos esperar el clima para que el resto de la página funcione
+    // El clima se carga en segundo plano para no frenar el resto de la portada.
     configurarClimaInicio();
 
     // --- CAROUSEL DE EVENTOS (el que está en el medio de la home) ---
@@ -102,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pista.id = 'inicio-evento-carrusel';
       const detenerRotacion = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
 
-      // creamos un puntito por cada slide y lo agregamos al DOM
+      // Los indicadores se generan desde las diapositivas para mantenerlos sincronizados.
       diapositivas.forEach((_, i) => {
         const punto = document.createElement('button');
         punto.type = 'button';
@@ -126,11 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // gonza: el truco del carrusel es mover el track con translateX.
-      // si current=1 y cada slide ocupa 100%, movemos -100% → muestra el slide 2
+      // Cada paso desplaza una diapositiva completa; el módulo mantiene el índice dentro del carrusel.
       function irA(indice) { actual = (indice + total) % total; pista.style.transform = `translateX(-${actual * 100}%)`; actualizarPuntos(); }
 
-      // reseteamos el timer automático cada vez que el usuario clickea una flecha
+      // Una interacción reinicia la pausa antes de que vuelva a avanzar la rotación.
       function restablecerRotacion() { detenerRotacion(); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) temporizadorAutomatico = setInterval(() => irA(actual + 1), 4500); }
 
       botonAnterior?.addEventListener('click', () => { irA(actual - 1); restablecerRotacion(); });
@@ -180,12 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let actual = 0;
     let posicion = 0;
 
-    // gonza: FIX loop continuo (11/07/2026) — antes el carrusel llegaba al
-    // final y se quedaba con un solo card pegadito, se veía feo. La solucion
-    // es clonar las primeras slides y pegarlas al final del track: asi
-    // siempre hay cards de sobra para llenar la vista, y cuando el auto-scroll
-    // pasa por los clones saltamos al principio real SIN transicion (es invisible
-    // para el ojo porque el clon es pixel-a-pixel igual al slide real).
+    // Se clonan las primeras tarjetas para cruzar el final sin dejar huecos.
+    // Al terminar la transición, el carrusel vuelve a la primera tarjeta real sin animación.
     function cantidadVisible() {
       if (!pistaDestacada || !diapositivasDestacadas.length) return 1;
       const anchoPista = pistaDestacada.parentElement?.getBoundingClientRect().width || pistaDestacada.getBoundingClientRect().width;
@@ -206,8 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // gonza: acá calculamos el porcentaje real de cada slide en vez de
-    // asumir 33.33%, porque en mobile los slides pueden ser más anchos
+    // Medimos la diapositiva para que el desplazamiento también cuadre en pantallas angostas.
     function porcentajeDiapositiva() {
       const primeraDiapositiva = pistaDestacada?.querySelector('.destacado-diapositiva');
       const anchoPista = pistaDestacada?.getBoundingClientRect().width;
@@ -252,9 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // avanza un slide (lo usa el autoplay). Si nos pasamos del ultimo slide
-    // real seguimos de largo por los clones, y una vez termina la transicion
-    // reseteamos la posicion al slide real sin transicion (salto invisible)
+    // En la última diapositiva avanzamos sobre el clon y luego volvemos al inicio sin transición.
     function siguiente() {
       if (!pistaDestacada || !total) return;
       posicion += 1;
@@ -271,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // clic directo en un punto: salto simple, sin pasar por los clones
+    // Los indicadores llevan directamente a una diapositiva real.
     function irA(indice) {
       if (!pistaDestacada || !total) return;
       actual = (indice + total) % total;
@@ -286,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let temporizadorAutomatico = total ? setInterval(siguiente, 4000) : null;
 
-    // pausamos el auto cuando el mouse está encima, es más cómodo para el usuario
+    // Pausamos la rotación mientras el carrusel tiene el puntero o el foco.
     const carruselDestacado = pistaDestacada?.closest('.destacado-carrusel');
     const detenerRotacionDestacados = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
     const iniciarRotacionDestacados = () => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !temporizadorAutomatico) temporizadorAutomatico = setInterval(siguiente, 4000); };
@@ -305,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     carruselDestacado?.addEventListener('focusout', evento => { if (!carruselDestacado.contains(evento.relatedTarget)) iniciarRotacionDestacados(); });
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) detenerRotacionDestacados();
 
-    // recalculamos los clones si cambia el tamaño de pantalla (mobile <-> desktop)
+    // La cantidad de clones depende del ancho visible; la recalculamos al cambiar el tamaño.
     let temporizadorRedimension;
     window.addEventListener('resize', () => {
       clearTimeout(temporizadorRedimension);
@@ -316,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 200);
     });
 
-    // filtro de categorías: muestra/oculta tickets según data-categoria-evento
+    // Cada categoría filtra las tarjetas que tienen el mismo valor en data-categoria-evento.
     const prepararCarruselesEventos = () => {
       document.querySelectorAll('.pagina-eventos .evento-entradas').forEach(lista => {
         if (lista.closest('.evento-carrusel-marco')) return;
@@ -407,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prepararCarruselesEventos();
 
-    // búsqueda en tiempo real: filtra mientras escribís, sin botón de submit
+    // La lista se filtra al escribir, sin necesidad de enviar el formulario.
     const entradaBusqueda = document.querySelector('.busqueda-pastilla input');
     entradaBusqueda?.addEventListener('input', () => {
       const consulta = entradaBusqueda.value.toLowerCase().trim();
@@ -624,8 +610,7 @@ function configurarBusquedaNavegacion() {
   if (seccion) document.querySelector(seccion)?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// gonza: el footer en mobile se convierte en acordeón para no ocupar tanto espacio.
-// cada columna tiene un título clickeable que muestra/oculta la lista de links.
+// En móvil cada columna del pie funciona como acordeón; en escritorio quedan abiertas.
 function configurarAcordeonesPie() {
   const piePagina = document.querySelector('.pie-pagina');
   if (!piePagina) return;
@@ -676,20 +661,17 @@ function configurarAcordeonesPie() {
   consultaMovil.addEventListener?.('change', sincronizarModoPie);
 }
 
-// gonza: esto inyecta los estilos de la animación de reveal directamente en el <head>.
-// no hace falta un archivo CSS extra para esto, son dos reglas nomás.
+// Estas reglas acompañan la animación de entrada que se activa al mostrar los bloques.
 const estiloRevelar = document.createElement('style');
 estiloRevelar.textContent = '.revealed { opacity: 1 !important; transform: translateY(0) !important; } @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }';
 document.head.appendChild(estiloRevelar);
 
-// el botón de "Cerrar sesión" del menú del logo reusa la pinta de los <a>
-// de .logo-menu, pero es un <button> (no navega a ningún lado), asi que
-// necesita este reset minimo para no verse como un boton de navegador.
+// Restablecemos los estilos nativos del botón para que coincida con los enlaces del menú.
 const estiloCerrarSesion = document.createElement('style');
 estiloCerrarSesion.textContent = '.logo-menu-account { all: unset; display: block; width: 100%; box-sizing: border-box; cursor: pointer; font: inherit; color: inherit; }';
 document.head.appendChild(estiloCerrarSesion);
 
-// menú que aparece al clickear el logo (con links de navegación y toggle de tema)
+// Crea el menú compartido de navegación, cuenta y tema junto al logotipo.
 function crearMenuLogotipo(temaInicial) {
   const logotipo = document.querySelector('.navegacion-logotipo');
   const barraNavegacion = document.querySelector('.barra-navegacion');
@@ -698,8 +680,7 @@ function crearMenuLogotipo(temaInicial) {
   logotipo.setAttribute('aria-haspopup', 'menu');
   logotipo.setAttribute('aria-expanded', 'false');
 
-  // gonza: creamos el div del menú desde JS en vez de tenerlo en el HTML
-  // porque así funciona en todas las páginas sin repetir el markup
+  // El menú se construye aquí para reutilizar la misma estructura en todas las páginas.
   const menu = document.createElement('div');
   menu.className = 'logotipo-menu';
   menu.setAttribute('role', 'menu');
@@ -731,13 +712,13 @@ function crearMenuLogotipo(temaInicial) {
   botonTema?.addEventListener('click', () => {
     const oscuro = !document.body.classList.contains('tema-oscuro');
     document.body.classList.toggle('tema-oscuro', oscuro);
-    // guardamos en localStorage para que se acuerde al recargar o cambiar de página
+    // Persistimos la preferencia para aplicarla también al abrir otra página.
     localStorage.setItem('sigtur-theme', oscuro ? 'dark' : 'light');
     botonTema.setAttribute('aria-pressed', String(oscuro));
     if (textoTema) textoTema.textContent = oscuro ? 'Modo claro' : 'Modo oscuro';
   });
 
-  // cerrar el menú si clickeás en cualquier otro lado
+  // También se puede cerrar haciendo clic fuera del menú o pulsando Escape.
   document.addEventListener('click', (evento) => {
     if (logotipo.contains(evento.target) || menu.contains(evento.target)) return;
     menu.classList.remove('abierto');
@@ -791,10 +772,7 @@ async function validarAccesoMenuAdministracion() {
   }
 }
 
-// gonza: esta función es async porque hace un fetch a una API externa (open-meteo).
-// fetch devuelve una Promise, y con async/await podemos esperar la respuesta
-// sin bloquear el resto de la página. Si algo falla, el catch muestra "--".
-// La API de open-meteo es gratis y no necesita key, re copada para prototipos.
+// Consulta Open-Meteo para actualizar el widget; si falla, la portada conserva un estado legible.
 async function configurarClimaInicio() {
   const componente = document.querySelector('.clima-widget');
   if (!componente) return;
@@ -805,7 +783,7 @@ async function configurarClimaInicio() {
   const elementoViento = componente.querySelector('[data-clima-viento]');
   const elementoIcono = componente.querySelector('[data-clima-icono]');
 
-  // tabla de códigos WMO → descripción + emoji. la API devuelve un número, nosotros lo traducimos
+  // Open-Meteo entrega un código WMO; esta tabla lo convierte en una descripción y un icono.
   const codigos = {
     0: ['Soleado', '☀'],
     1: ['Mayormente despejado', '☀'],
@@ -828,8 +806,7 @@ async function configurarClimaInicio() {
   };
 
   try {
-    // gonza: URLSearchParams es la forma prolija de armar query strings,
-    // evita tener que concatenar strings a mano con & y =
+    // Codificamos las coordenadas y opciones como parámetros de la consulta.
     const parametros = new URLSearchParams({
       latitude: '-31.3833',
       longitude: '-57.9667',
@@ -850,7 +827,7 @@ async function configurarClimaInicio() {
     if (elementoIcono) elementoIcono.textContent = icono;
     componente.classList.add('estado-listo');
   } catch {
-    // si la API no responde o hay error de red, mostramos placeholders
+    // Si no se puede consultar el clima, el widget muestra valores de respaldo.
     if (elementoTemporal) elementoTemporal.innerHTML = 'Salto';
     if (elementoDescripcion) elementoDescripcion.textContent = 'Clima no disponible';
     if (elementoSensacion) elementoSensacion.textContent = '--';
@@ -859,11 +836,7 @@ async function configurarClimaInicio() {
   }
 }
 
-// Auth conectado al backend real (Express + Supabase, ver backend/app.js
-// y backend/rutas/auth_rutas.js). La sesión (token + datos del usuario) se
-// cachea en localStorage bajo 'sigtur-session' solo para no tener que
-// loguearse de nuevo en cada página, pero la fuente de verdad es siempre
-// el backend: el token se manda en el header Authorization de cada fetch.
+// El token se conserva entre páginas, pero el perfil solo se muestra después de validarlo con la API.
 const raizXampp = window.location.pathname.split('/frontend/html/')[0];
 const SIGTUR_ES_SERVIDOR_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const SIGTUR_BASE_XAMPP = SIGTUR_ES_SERVIDOR_LOCAL && raizXampp !== window.location.pathname ? `${window.location.origin}${raizXampp}/frontend/html` : '';
@@ -883,6 +856,7 @@ function limpiarMensajeAutenticacion(mensaje, alternativa) {
   return texto;
 }
 
+// La sesión guardada no se considera válida hasta que el servidor confirme el token.
 function obtenerSesionSigtur() {
   try {
     const sesion = JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION)) || null;
@@ -949,6 +923,7 @@ async function procesarRetornoOAuth(establecerEstado) {
   guardarSesionSigtur(sesion);
   const destinoAutenticado = obtenerDestinoDespuesAutenticacion();
   const esRecuperacion = parametros.get('type') === 'recovery';
+  // Quitamos los tokens de la barra de direcciones antes de validar el perfil.
   window.history.replaceState({}, document.title, window.location.pathname);
   establecerEstado(esRecuperacion ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
   try {
@@ -1180,7 +1155,7 @@ function configurarPaginaAutenticacion() {
     });
   });
 
-  // si ya hay sesión guardada, lo avisamos en vez de mostrar los forms como si nada
+  // Si la sesión ya está validada, mostramos qué cuenta está activa.
   const sesionExistente = obtenerSesionSigtur();
   if (sesionExistente?.usuario) {
     establecerEstado(`Ya iniciaste sesión como ${sesionExistente.usuario.nombre}. Podés cerrar sesión desde el menú del logo.`, 'ok');
@@ -1286,7 +1261,7 @@ function configurarPaginaAutenticacion() {
     }
   });
 
-  // Google se completa en el backend para no exponer credenciales sensibles.
+  // El flujo de Google se valida en el servidor antes de guardar el perfil en el navegador.
   document.querySelectorAll('[data-cuenta-proveedor]').forEach(boton => {
     boton.addEventListener('click', () => {
       const proveedor = boton.dataset.cuentaProveedor;
@@ -1667,7 +1642,7 @@ async function configurarMensajeria() {
     try {
       localStorage.setItem('sigtur-mensajes-sync', JSON.stringify(datosEnviados));
     } catch {
-      // sin almacenamiento persistente no hay problema
+      // BroadcastChannel ya notificó a las otras pestañas; este aviso es un respaldo.
     }
   };
 
@@ -1823,14 +1798,13 @@ const actualizarHiloActivo = async () => {
 const actualizarMensajeria = async () => {
   if (document.hidden) return;
 
-  // La lista de conversaciones cambia con menor frecuencia que el hilo activo.
+  // Actualizamos la lista cada minuto y refrescamos el hilo activo en cada ciclo.
   const ahora = Date.now();
   if (ahora - ultimaActualizacionConversacion >= 60000) {
     ultimaActualizacionConversacion = ahora;
     await cargarConversaciones();
   }
 
-  // Si hay una conversación abierta, actualiza sus mensajes.
   await actualizarHiloActivo();
 };
 
@@ -2118,9 +2092,7 @@ function escaparTexto(valor) {
 
 function configurarBotonesFavoritos() {
   document.querySelectorAll('.alojamiento-corazon, .lugar-accion-enlace.guardar').forEach(boton => {
-    // Los botones de lugares viven dentro de .lugar-actions, que es hijo
-    // directo de la tarjeta. Subir dos niveles seleccionaba .lugares-list
-    // y terminaba guardando todas las tarjetas como si fueran Plaza Artigas.
+    // Usamos la tarjeta más cercana para guardar el nombre y el ID de ese lugar.
     const tarjeta = boton.closest('.alojamiento-tarjeta, .lugar-tarjeta') || boton.parentElement;
     const titulo = tarjeta.querySelector('.alojamiento-nombre, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
     const identificadorEntidad = boton.dataset.entidadId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -2736,16 +2708,7 @@ async function configurarInteraccionesEventos() {
   });
 }
 
-// ============================================================================
-// setupAdminPage() — toda la lógica de admin.html
-// Maneja 3 cosas: los 4 switches de ajustes (guardados en
-// "sigtur-admin-settings"), el formulario de aviso del sitio (guardado en
-// "sigtur-admin-announcement"), y el botón de exportar que copia todo al
-// portapapeles como JSON. El "log de actividad" (la función log() de acá
-// abajo) es un mini historial en pantalla, se recorta solo a 4 entradas
-// (ver el while de abajo) para no crecer infinito.
-// El panel solo aparece despues de validar el rol de administrador.
-// ============================================================================
+// El panel permanece oculto hasta que el servidor confirma el rol de administrador.
 async function configurarPaginaAdministracion() {
   const formulario = document.getElementById('administracion-ajustes-formulario');
   if (!formulario) return;
@@ -2757,6 +2720,7 @@ async function configurarPaginaAdministracion() {
     return;
   }
 
+  // No mostramos controles ni datos administrativos antes de validar el rol.
   formulario.closest('.utilidad-cuadricula')?.setAttribute('hidden', '');
   try {
     await solicitarApiSigtur('/api/auth/es-admin');
@@ -2865,9 +2829,7 @@ async function configurarPaginaAdministracion() {
     establecerEstado('Aviso limpiado');
   });
 
-  // gonza: el export copia el estado actual del admin al portapapeles como JSON.
-  // clipboard.writeText también es async porque acceder al portapapeles
-  // puede requerir permiso del browser en algunos casos
+  // El JSON incluye los ajustes y el aviso guardados en el panel.
   botonExportar?.addEventListener('click', async () => {
     const datosEnviados = {
       settings: recopilarConfiguracion(),
@@ -2969,7 +2931,7 @@ async function configurarPaginaAdministracion() {
   let establecerPuntoEventoAdministracion = null;
   let limpiarMarcadorEventoAdministracion = () => {};
   if (elementoMapaEvento && latitudEvento && longitudEvento && window.L) {
-    // El clic en el mapa completa las coordenadas que viajan al backend.
+    // Al elegir un punto, guardamos sus coordenadas en el formulario del evento.
     const mapaEvento = L.map(elementoMapaEvento).setView([-31.383, -57.964], 13);
     L.tileLayer(window.SIGTUR_MAP_TILE_URL || 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: window.SIGTUR_MAP_TILE_ATTRIBUTION || '© OpenStreetMap contributors, © CARTO' }).addTo(mapaEvento);
     let marcadorEvento;
@@ -2982,7 +2944,7 @@ async function configurarPaginaAdministracion() {
     establecerPuntoEventoAdministracion = (latitud, longitud) => { establecerPuntoEvento(latitud, longitud); mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15)); };
     limpiarMarcadorEventoAdministracion = () => { if (marcadorEvento) mapaEvento.removeLayer(marcadorEvento); marcadorEvento = null; };
     mapaEvento.on('click', clicEvento => establecerPuntoEvento(clicEvento.latlng.lat, clicEvento.latlng.lng));
-    // Tambien permite pegar coordenadas manuales para ajustar el punto.
+    // También se pueden escribir o pegar las coordenadas directamente.
     [latitudEvento, longitudEvento].forEach(entrada => entrada.addEventListener('change', () => {
       if (!latitudEvento.value.trim() || !longitudEvento.value.trim()) return;
       const latitud = Number(latitudEvento.value);
@@ -3198,10 +3160,7 @@ async function configurarPaginaAdministracion() {
   });
 }
 
-// ============================================================================
-// setupSupportPage() — envía las consultas al backend y carga el historial
-// del usuario autenticado desde la API de soporte.
-// ============================================================================
+// Carga los avisos y ajustes públicos para aplicarlos en las páginas del sitio.
 async function cargarConfiguracionPublica() {
   try {
     const sitio = await solicitarApiSigtur('/api/public/site');
@@ -3215,6 +3174,7 @@ async function cargarConfiguracionPublica() {
   } catch { /* el sitio sigue disponible si el backend temporalmente no responde */ }
 }
 
+// El historial requiere sesión; las consultas generales se pueden enviar sin iniciar sesión.
 function configurarPaginaSoporte() {
   const formulario = document.getElementById('soporte-formulario');
   if (!formulario) return;
@@ -3256,7 +3216,6 @@ function configurarPaginaSoporte() {
     const datos = new FormData(formulario);
     const verificacion = datos.get('topic') === 'business_verification';
     const tique = {
-      // crypto.randomUUID genera un id único, el fallback es Date.now() para browsers viejos
       name: String(datos.get('name') || '').trim(),
       email: String(datos.get('email') || '').trim(),
       topic: String(tema?.selectedOptions?.[0]?.textContent || 'General').trim(),

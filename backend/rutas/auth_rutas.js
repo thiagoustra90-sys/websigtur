@@ -1,10 +1,6 @@
 // ============================================================================
 // rutas/auth_rutas.js
-// Define las URLs de autenticación. Se monta en app.js bajo /api/auth.
-//   POST /api/auth/register  { nombre, apellido, correo, password }
-//   POST /api/auth/login     { correo, password }
-//   POST /api/auth/logout    (requiere sesión)
-//   GET  /api/auth/me        (requiere sesión)
+// Define los endpoints de autenticación que se montan bajo /api/auth.
 // ============================================================================
 import { Router } from "express";
 import {

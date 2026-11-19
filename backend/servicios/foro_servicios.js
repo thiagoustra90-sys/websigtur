@@ -143,7 +143,7 @@ function validarAdjuntosMensaje(usuarioId, attachments = []) {
       `^${ownerId}/[0-9a-f-]{36}\\.${spec?.extension || "invalid"}$`,
       "i",
     );
-    // Reject control bytes so uploaded filenames cannot inject terminal or path controls.
+    // Quitamos caracteres de control para evitar rutas inválidas y nombres ocultos.
     const name = String(file.name || "Archivo adjunto")
       .replace(/[\\/\x00-\x1f\x7f]/g, "_") // eslint-disable-line no-control-regex
       .trim()

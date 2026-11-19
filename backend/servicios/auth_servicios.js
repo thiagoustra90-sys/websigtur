@@ -281,15 +281,14 @@ export async function actualizarContrasena(usuarioId, contrasena) {
   return { ok: true };
 }
 
-// Con la Service Role Key podemos invalidar todas las sesiones del usuario
-// (logout "global"). Si falla, no pasa nada grave: el front igual borra el
-// token local y el access_token expira solo en un par de horas.
+// La clave de servicio permite cerrar las demás sesiones. Si falla, el navegador
+// igual elimina su token local y el access token vence por sí solo.
 export async function cerrarSesion(userId) {
   if (!userId) return;
   try {
     await supabase.auth.admin.signOut(userId, "global");
   } catch {
-    // no crítico
+    // El cierre local sigue siendo suficiente para salir de esta sesión.
   }
 }
 

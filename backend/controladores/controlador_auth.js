@@ -1,7 +1,7 @@
 // ============================================================================
 // controladores/controlador_auth.js
-// Recibe el request/response de Express, valida lo básico del body y llama
-// a servicios/auth_servicios.js para hablar con Supabase.
+// Valida las solicitudes de autenticación y delega las operaciones de cuenta
+// al servicio de Supabase.
 // ============================================================================
 import {
   registrarUsuario,
