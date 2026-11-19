@@ -368,10 +368,11 @@ body.page-eventos .event-tickets {
   -webkit-overflow-scrolling: touch;
 }
 body.page-eventos .ticket-row {
+  display: grid !important;
   flex: 0 0 clamp(300px, 34vw, 380px);
-  grid-template-columns: 58px minmax(0, 1fr) 42px;
-  grid-template-areas: "date info heart" "badge badge badge" "schedule schedule price" "tools tools tools";
-  grid-template-rows: minmax(72px, auto) auto auto auto;
+  grid-template-columns: 58px minmax(0, 1fr) 42px !important;
+  grid-template-areas: "date info heart" "badge badge badge" "schedule schedule schedule" "price price price" "tools tools tools" !important;
+  grid-template-rows: auto auto auto auto auto;
   align-content: start;
   align-items: center;
   gap: 15px 13px;
@@ -379,15 +380,22 @@ body.page-eventos .ticket-row {
   padding: 20px;
   scroll-snap-align: start;
 }
+body.page-eventos .ticket-date { grid-column: 1 !important; grid-row: 1 !important; align-self: start; }
+body.page-eventos .ticket-info { grid-column: 2 !important; grid-row: 1 !important; }
+body.page-eventos .ticket-heart { grid-column: 3 !important; grid-row: 1 !important; align-self: start; }
+body.page-eventos .ticket-badge { grid-column: 1 / -1 !important; grid-row: 2 !important; justify-self: start; }
+body.page-eventos .ticket-schedule { grid-column: 1 / -1 !important; grid-row: 3 !important; }
+body.page-eventos .ticket-price { grid-column: 1 / -1 !important; grid-row: 4 !important; justify-self: start; }
+body.page-eventos .event-interaction-tools { grid-column: 1 / -1 !important; grid-row: 5 !important; }
 body.page-eventos .ticket-divider { display: none; }
 body.page-eventos .ticket-info { align-self: stretch; align-content: start; gap: 7px; }
 body.page-eventos .ticket-heading { align-items: center; gap: 11px; }
 body.page-eventos .ticket-image { width: 54px; height: 54px; flex-basis: 54px; border-radius: 12px; }
 body.page-eventos .ticket-title { display: -webkit-box; overflow: hidden; font-size: 1.08rem; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 body.page-eventos .ticket-subtitle { -webkit-line-clamp: 2; line-height: 1.45; }
-body.page-eventos .ticket-badge { justify-self: start; max-width: 100%; }
+body.page-eventos .ticket-badge { max-width: 100%; }
 body.page-eventos .ticket-schedule { justify-self: start; white-space: normal; }
-body.page-eventos .ticket-price { justify-self: end; min-width: 0; }
+body.page-eventos .ticket-price { justify-self: start; min-width: 0; }
 body.page-eventos .event-interaction-tools {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
