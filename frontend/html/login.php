@@ -10,6 +10,40 @@
 </head>
 <body class="auth-remake">
 <main class="auth-stage">
+  <section class="auth-intro-grid" aria-hidden="true">
+    <div class="auth-grid-row">
+      <span style="background-image:url('../imagenes/index/Mate-blog.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/maxv.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/empanadas_uruguayas_11992_1200.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/951-.jpeg')"></span>
+      <span style="background-image:url('../imagenes/index/Mate-blog.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/951-.jpeg')"></span>
+    </div>
+    <div class="auth-grid-row">
+      <span style="background-image:url('../imagenes/eventos/porco.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/porco.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/empanadas_uruguayas_11992_1200.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/maxv.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/images.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/don_pedro.jpg')"></span>
+    </div>
+    <div class="auth-grid-row">
+      <span style="background-image:url('../imagenes/index/951-.jpeg')"></span>
+      <span style="background-image:url('../imagenes/index/images.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/Mate-blog.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/maxv.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/empanadas_uruguayas_11992_1200.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/porco.jpg')"></span>
+    </div>
+    <div class="auth-grid-row">
+      <span style="background-image:url('../imagenes/index/Mate-blog.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/951-.jpeg')"></span>
+      <span style="background-image:url('../imagenes/eventos/maxv.jpg')"></span>
+      <span style="background-image:url('../imagenes/eventos/porco.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/empanadas_uruguayas_11992_1200.jpg')"></span>
+      <span style="background-image:url('../imagenes/index/951-.jpeg')"></span>
+    </div>
+  </section>
   <a class="auth-sun-link" href="index.php" aria-label="Volver al inicio de SIGTUR">
     <img src="../imagenes/logo-salto.svg" alt="SIGTUR · Salto" />
   </a>
