@@ -9529,3 +9529,43 @@ body.theme-dark .admin-verification-data dd { color: #edf5f8; }
   .admin-support-ticket { flex-direction: column; }
   .admin-support-ticket select { width: 100%; }
 }
+
+/* Las fichas de lugares mantienen una sola superficie y contraste legible. */
+body.page-lugares {
+  --color-texto-lugar: #f1f7f8;
+  --color-detalle-lugar: #d3e2e7;
+  --color-borde-lugar: rgba(211, 234, 238, .16);
+  --color-fondo-etiqueta-lugar: rgba(7, 28, 39, .38);
+}
+body.page-lugares .lugar-card {
+  align-items: center;
+  gap: clamp(18px, 2.6vw, 32px);
+  padding: clamp(18px, 2.4vw, 28px);
+}
+body.page-lugares .lugar-img { min-width: 0; overflow: hidden; border-radius: 16px; }
+body.page-lugares .lugar-info,
+body.theme-dark.page-lugares .lugar-info {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent !important;
+  color: var(--color-texto-lugar) !important;
+}
+body.page-lugares .lugar-info h3 { margin: 0 0 10px; color: var(--color-texto-lugar) !important; font-size: clamp(1.45rem, 2.2vw, 1.9rem); line-height: 1.2; }
+body.page-lugares .lugar-desc { max-width: 70ch; margin: 0 0 14px; color: var(--color-detalle-lugar) !important; font-size: .92rem; line-height: 1.7; }
+body.page-lugares .lugar-tags { gap: 10px 18px; margin-bottom: 12px; }
+body.page-lugares .lugar-tag { color: #e1edf0 !important; }
+body.page-lugares .lugar-tag svg { color: #85ddd1; }
+body.page-lugares .lugar-badges { gap: 8px; }
+body.page-lugares .place-badge { border: 1px solid var(--color-borde-lugar); border-radius: 999px; }
+body.page-lugares .lugar-actions { align-content: center; gap: 10px; padding-left: clamp(18px, 2vw, 28px); border-color: var(--color-borde-lugar); }
+body.page-lugares .lugar-actions .lugar-action-link,
+body.page-lugares .lugar-actions .ver-detalles-btn { min-height: 44px; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):hover { transform: translateY(-1px); }
+body.page-lugares .lugar-actions .ver-detalles-btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border: 1px solid #168f83; border-radius: 999px; background: rgba(10, 132, 121, .2); color: #b8f1e8; font-weight: 800; text-align: center; text-decoration: none; }
+body.page-lugares .lugar-actions .ver-detalles-btn:hover { border-color: #32c4b2; background: rgba(10, 132, 121, .35); }
+body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focus-visible { outline: 3px solid rgba(112, 223, 206, .5); outline-offset: 3px; }
+@media (max-width: 760px) {
+  body.page-lugares .lugar-card { gap: 16px; padding: 16px; }
+  body.page-lugares .lugar-actions { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--color-borde-lugar); }
+}
