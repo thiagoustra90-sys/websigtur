@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
 
   <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261118-clima-hero" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261118-clima-lateral2" />
 
 </head>
 <body class="page-home">
@@ -62,6 +62,7 @@
   <div class="hero-bg"></div> <!-- el fondo (imagen/gradiente) va por CSS, ver .hero-bg en styles.css -->
 
   <div class="hero-content">
+    <div class="hero-copy">
     <h1 class="hero-title">EXPLORA<br>SALTO</h1>
 
     <!-- ola de mar bajo el título, dibujada a mano con un path de svg -->
@@ -77,6 +78,8 @@
     </div>
 
 
+    <p class="hero-tagline">Nación Amada</p>
+    </div>
     <aside class="weather-widget" aria-label="Clima actual en Salto">
       <div class="weather-orb" data-weather-icon aria-hidden="true">--</div>
       <div class="weather-main">
@@ -90,7 +93,6 @@
       </div>
     </aside>
 
-    <p class="hero-tagline">Nación Amada</p>
   </div>
 
 </header>
