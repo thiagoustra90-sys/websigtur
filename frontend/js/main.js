@@ -1,5 +1,31 @@
 // Interactividad del sitio. La API y Supabase gestionan los datos persistentes.
 
+function obtenerEnlaceWebEvento(valor) {
+  try {
+    const enlace = new URL(String(valor || '').trim(), window.location.href);
+    return ['http:', 'https:'].includes(enlace.protocol) ? enlace.href : '';
+  } catch { return ''; }
+}
+
+function analizarMultimediaEvento(valor) {
+  const url = obtenerEnlaceWebEvento(valor);
+  if (!url) return { tipo: 'ninguno', url: '' };
+  const enlace = new URL(url);
+  const dominio = enlace.hostname.toLowerCase().replace(/^www\./, '');
+  const youtube = dominio === 'youtu.be' || dominio === 'youtube.com' || dominio.endsWith('.youtube.com') || dominio === 'youtube-nocookie.com';
+  if (youtube) {
+    const id = dominio === 'youtu.be' ? enlace.pathname.split('/').filter(Boolean)[0] : enlace.searchParams.get('v') || enlace.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/)?.[1];
+    if (id && /^[\w-]{6,20}$/.test(id)) return { tipo: 'youtube', url: `https://www.youtube-nocookie.com/embed/${id}` };
+  }
+  if (dominio === 'vimeo.com' || dominio.endsWith('.vimeo.com')) {
+    const id = enlace.pathname.match(/\/(?:video\/)?(\d+)/)?.[1];
+    if (id) return { tipo: 'vimeo', url: `https://player.vimeo.com/video/${id}` };
+  }
+  if (/\.(?:mp4|webm|ogg|mov|m4v)$/i.test(enlace.pathname)) return { tipo: 'video', url };
+  if (/\.(?:avif|gif|jpe?g|png|webp)$/i.test(enlace.pathname) || /[?&](?:format|fm)=(?:avif|gif|jpe?g|png|webp)/i.test(enlace.search)) return { tipo: 'imagen', url };
+  return { tipo: 'enlace', url };
+}
+
 // Inicializacion despues de cargar el DOM.
 // gonza: esto se ejecuta cuando el HTML terminó de cargar del todo.
 // si ponés código acá afuera (fuera del DOMContentLoaded) y el HTML
@@ -2314,9 +2340,14 @@ async function configurarInteraccionesEventos() {
       fila.dataset.cat = categoria;
       fila.dataset.eventId = `event-${evento.id}`;
       const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
-      const imagenEvento = (() => { try { const fuente = String(evento.image_url || '').trim(); if (!fuente) return ''; const imagen = new URL(fuente, window.location.href); return ['http:', 'https:'].includes(imagen.protocol) ? imagen.href : ''; } catch { return ''; } })();
+      const multimediaEvento = analizarMultimediaEvento(evento.image_url);
+      const imagenEvento = multimediaEvento.tipo === 'imagen' ? multimediaEvento.url : '';
+      const enlaceFichaEvento = obtenerEnlaceWebEvento(evento.link) || (multimediaEvento.tipo === 'enlace' ? multimediaEvento.url : '');
       fila.dataset.eventColor = colorEvento;
       fila.dataset.eventImage = imagenEvento;
+      fila.dataset.eventMediaType = multimediaEvento.tipo;
+      fila.dataset.eventMediaUrl = multimediaEvento.url;
+      fila.dataset.eventLink = enlaceFichaEvento;
       fila.style.setProperty('--event-color', colorEvento);
       const horaEvento = evento.event_time ? String(evento.event_time).slice(0, 5) : 'Horario a confirmar';
       const precioEvento = Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis';
@@ -2363,13 +2394,21 @@ async function configurarInteraccionesEventos() {
     const hora = fila.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
     const precio = fila.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
     const descripcion = fila.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
-    return { title: titulo, id: fila.dataset.eventId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.eventImage || '', color: /^#[0-9a-f]{6}$/i.test(fila.dataset.eventColor || '') ? fila.dataset.eventColor : '#087f72' };
+    return { title: titulo, id: fila.dataset.eventId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.eventImage || '', mediaType: fila.dataset.eventMediaType || (fila.dataset.eventImage ? 'imagen' : 'ninguno'), mediaUrl: fila.dataset.eventMediaUrl || '', link: obtenerEnlaceWebEvento(fila.dataset.eventLink), color: /^#[0-9a-f]{6}$/i.test(fila.dataset.eventColor || '') ? fila.dataset.eventColor : '#087f72' };
   };
   const dialogoDetalle = document.createElement('dialog');
   dialogoDetalle.className = 'event-detail-dialog';
   document.body.appendChild(dialogoDetalle);
   const abrirDetalleEvento = evento => {
-    dialogoDetalle.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${crearIdentificadorUrl(evento.category)}" style="--event-accent:${evento.color}">${evento.image ? `<img class="event-detail-image" src="${escaparHtml(evento.image)}" alt="" decoding="async">` : ''}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a></div></div></article>`;
+    const medioEnFicha = evento.mediaType === 'video'
+      ? `<video class="event-detail-video" controls playsinline preload="metadata"><source src="${escaparHtml(evento.mediaUrl)}">Tu navegador no puede reproducir este video.</video>`
+      : ['youtube', 'vimeo'].includes(evento.mediaType)
+        ? `<iframe class="event-detail-video" src="${escaparHtml(evento.mediaUrl)}" title="Video de ${escaparHtml(evento.title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+        : evento.image ? `<img class="event-detail-image" src="${escaparHtml(evento.image)}" alt="" decoding="async">` : '';
+    const enlaceInformacion = evento.link
+      ? `<a href="${escaparHtml(evento.link)}" target="_blank" rel="noopener noreferrer">Ver información oficial</a>`
+      : '';
+    dialogoDetalle.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${crearIdentificadorUrl(evento.category)}" style="--event-accent:${evento.color}">${medioEnFicha}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a>${enlaceInformacion}</div></div></article>`;
     dialogoDetalle.showModal();
     dialogoDetalle.querySelector('.event-detail-close').addEventListener('click', () => dialogoDetalle.close());
     dialogoDetalle.querySelector('[data-detail-reserve]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-event-reservation]')?.click(); });

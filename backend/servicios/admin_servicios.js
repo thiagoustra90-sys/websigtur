@@ -52,6 +52,7 @@ function validarEvento(evento) {
     price,
     categories: Array.isArray(evento.categories) ? evento.categories : [],
     image_url: String(evento.image_url || "").trim() || null,
+    link: String(evento.link || "").trim() || null,
     color,
   };
   return eventPayload;
@@ -91,7 +92,7 @@ export async function listarEventosAdmin(query = {}) {
     let request = supabase
       .from("events")
       .select(
-        `id,title,description,categories,date_start,date_end,event_time,location,latitude,longitude,image_url,price${includeColor ? ",color" : ""}`,
+        `id,title,description,categories,date_start,date_end,event_time,location,latitude,longitude,image_url,link,price${includeColor ? ",color" : ""}`,
         { count: "exact" },
       )
       .order("date_start", { ascending: true });

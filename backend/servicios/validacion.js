@@ -159,6 +159,7 @@ export const eventSchema = z
       .optional()
       .default("#16b3a3"),
     image_url: z.string().trim().max(1500).nullable().optional().default(null),
+    link: z.string().trim().max(1500).nullable().optional().default(null),
     categories: z.array(z.string().trim().min(1).max(100)).max(20).optional().default([]),
   })
   .strict();
