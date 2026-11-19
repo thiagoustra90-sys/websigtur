@@ -9573,32 +9573,27 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
 /* Home: reserva espacio para el navbar y alinea el clima junto a las acciones. */
 @media (min-width: 701px) {
   body.page-home .hero {
-    min-height: max(700px, 100svh);
+    min-height: max(820px, 100svh);
     height: auto;
-    align-items: center;
+    align-items: flex-start;
     box-sizing: border-box;
   }
   body.page-home .hero-content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(270px, 390px);
-    grid-template-areas: "copy weather";
-    align-content: center;
-    align-items: center;
-    column-gap: clamp(26px, 5vw, 72px);
-    row-gap: 0;
-    padding: clamp(160px, 19vh, 200px) clamp(16px, 2vw, 30px) 52px clamp(28px, 6vw, 84px);
+    display: block;
+    padding: clamp(190px, 24vh, 230px) clamp(28px, 6vw, 84px) 52px;
   }
-  body.page-home .hero-copy { grid-area: copy; display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
+  body.page-home .hero-copy { display: flex; width: min(760px, calc(100% - min(390px, 34vw) - 48px)); flex-direction: column; align-items: flex-start; }
   body.page-home .hero-title,
   body.page-home .hero-wave,
   body.page-home .hero-buttons,
   body.page-home .hero-tagline { grid-area: auto; }
   body.page-home .weather-widget {
-    grid-area: weather;
-    justify-self: end;
-    align-self: center;
-    width: min(100%, 390px);
-    margin: clamp(22px, 4vh, 42px) 0 0;
+    position: absolute;
+    z-index: 3;
+    top: clamp(390px, 54vh, 480px);
+    right: clamp(20px, 5vw, 76px);
+    width: min(390px, 34vw);
+    margin: 0;
   }
 }
 @media (max-width: 700px) {
