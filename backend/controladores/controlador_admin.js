@@ -84,7 +84,7 @@ export async function eliminarComentario(req, res) {
 }
 export async function listarComentarios(req, res) {
   try {
-    res.json({ data: await listarComentariosAdmin(req.query) });
+    res.json(await listarComentariosAdmin(req.query));
   } catch (error) {
     gestionarFallo(res, error);
   }

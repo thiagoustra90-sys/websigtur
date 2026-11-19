@@ -2838,6 +2838,17 @@ async function configurarPaginaAdministracion() {
   const listaComentarios = document.getElementById('admin-comments-list');
   const administracionEstado = document.getElementById('admin-resource-status');
   const mostrarEstadoRecurso = (mensaje) => { if (administracionEstado) administracionEstado.textContent = mensaje; };
+  const normalizarResultadoPaginado = resultado => {
+    let paginaAnidada = resultado;
+    let total = resultado?.total;
+    while (!Array.isArray(paginaAnidada) && paginaAnidada && typeof paginaAnidada === 'object') {
+      total = paginaAnidada.total ?? total;
+      paginaAnidada = paginaAnidada.data;
+    }
+    const filas = paginaAnidada;
+    if (!Array.isArray(filas)) throw new Error('El servidor devolvió un formato inválido para esta lista.');
+    return { data: filas, total: Number(total ?? filas.length) };
+  };
   const representarUsuarios = (usuarios) => {
     if (!usuariosLista) return;
     usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-ban-user="${usuario.id}" data-banned="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
@@ -2847,7 +2858,7 @@ async function configurarPaginaAdministracion() {
     if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios…</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
-      const resultado = await solicitarApiSigtur(`/api/admin/usuarios?${q}`);
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/usuarios?${q}`));
       representarUsuarios(resultado.data || []);
       const etiqueta = document.getElementById('admin-users-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.users} · ${resultado.total} usuarios`;
     } catch (fallo) {
@@ -2859,8 +2870,8 @@ async function configurarPaginaAdministracion() {
     if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios…</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
-      const resultado = await solicitarApiSigtur(`/api/admin/comentarios?${q}`);
-      if (listaComentarios) listaComentarios.innerHTML = (resultado.data || []).map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(comentario.contenido.slice(0, 120))}</span><span><button type="button" data-pin-comment="${comentario.id}" data-pinned="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/comentarios?${q}`));
+      if (listaComentarios) listaComentarios.innerHTML = resultado.data.map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(String(comentario.contenido || '').slice(0, 120))}</span><span><button type="button" data-pin-comment="${comentario.id}" data-pinned="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
       const etiqueta = document.getElementById('admin-comments-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comments} · ${resultado.total} comentarios`;
     } catch (fallo) {
       if (listaComentarios) listaComentarios.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los comentarios.')}</li>`;
@@ -2872,8 +2883,8 @@ async function configurarPaginaAdministracion() {
     if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas?</li>'; }
     try {
       const q = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
-      const resultado = await solicitarApiSigtur(`/api/admin/soporte?${q}`);
-      if (lista) lista.innerHTML = (resultado.data || []).map(tique => {
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/soporte?${q}`));
+      if (lista) lista.innerHTML = resultado.data.map(tique => {
         const verificacion = tique.ticket_type === 'business_verification', detalles = tique.details || {};
         const tiposOrganizacion = { company: 'Empresa o comercio', nonprofit: 'Organización o asociación', tourism_service: 'Servicio turístico', independent_professional: 'Profesional independiente' };
         const filas = [

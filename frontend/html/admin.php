@@ -273,6 +273,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261117-auth-session"></script>
+<script src="../js/main.js?v=20261118-admin-lists"></script>
 </body>
 </html>
