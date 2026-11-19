@@ -169,6 +169,59 @@ body.theme-dark.profile-page .dm-form .dm-record-button { border-color: #385e6d;
 body.theme-dark.profile-page .dm-audio-preview { border-color: #2c4d5c; background: #102a38; }
 body.theme-dark.profile-page #dm-cleanup-files { border-color: #385365; background: #142738; color: #c9d8df; }
 
+/* Agenda: contraste estable aunque el tema global aplique texto claro. */
+.profile-page {
+  --color-fondo-reserva: #f5fbfa;
+  --color-texto-reserva: #17313d;
+  --color-detalle-reserva: #536d79;
+  --color-borde-reserva: #d5e6e4;
+  --color-acento-reserva: #087f72;
+}
+.profile-page .profile-reservations { display: grid; gap: 16px; }
+.profile-page .profile-reservations .reservation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 16px;
+  border: 1px solid var(--color-borde-reserva);
+  border-radius: 16px;
+  background: var(--color-fondo-reserva);
+  box-shadow: 0 8px 22px rgba(8, 35, 48, .12);
+}
+.profile-page .reservation-card > div { min-width: 0; }
+.profile-page .reservation-card small { margin: 0 0 6px; color: var(--color-acento-reserva); }
+.profile-page .reservation-card strong { display: block; color: var(--color-texto-reserva) !important; line-height: 1.35; overflow-wrap: anywhere; }
+.profile-page .reservation-card p { margin: 5px 0 0; color: var(--color-detalle-reserva) !important; line-height: 1.45; }
+.profile-page .reservation-card a,
+.profile-page .reservation-card button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 13px;
+  border: 1px solid var(--color-borde-reserva);
+  border-radius: 11px;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.profile-page .reservation-card a { background: #e7f5f2; color: #086d64 !important; }
+.profile-page .reservation-card a:hover { border-color: #80c8bd; background: #d9f0eb; transform: translateY(-1px); }
+.profile-page .reservation-card button { cursor: pointer; background: #fff2f1; border-color: #f2c9c5; color: #a6342c; }
+.profile-page .reservation-card button:hover { border-color: #e99a92; background: #ffe5e2; }
+.profile-page .reservation-card :is(a, button):focus-visible { outline: 3px solid rgba(8, 127, 114, .3); outline-offset: 2px; }
+body.theme-dark.profile-page { --color-fondo-reserva: #f5fbfa; --color-texto-reserva: #17313d; --color-detalle-reserva: #536d79; --color-borde-reserva: #d5e6e4; }
+@media (max-width: 620px) {
+  .profile-page .profile-reservations .reservation-card { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+  .profile-page .reservation-card > div { grid-column: 1 / -1; }
+  .profile-page .reservation-card a { justify-self: start; }
+  .profile-page .reservation-card button { justify-self: end; }
+}
+
 @media (max-width: 760px) {
   body.profile-page { padding: 12px 8px; }
   .profile-page .profile-header { align-items: flex-start; gap: 18px; padding: 24px 18px; }

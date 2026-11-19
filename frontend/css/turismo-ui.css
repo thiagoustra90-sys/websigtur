@@ -290,11 +290,39 @@ body.theme-dark.page-turismo .restaurant-info .place-map-link { border-color: #3
 body.theme-dark.page-turismo .prop-info .tourism-plan-trigger { border-color: #18a99a; background: #18a99a; color: #062322; }
 body.theme-dark.page-turismo .prop-info .tourism-plan-trigger:hover { border-color: #5ce0ce; background: #37c5b2; }
 
+body.page-turismo {
+  --color-fondo-curiosidad: #123442;
+  --color-texto-curiosidad: #e8f3f5;
+  --color-detalle-curiosidad: #bfd3da;
+  --color-borde-curiosidad: #315865;
+}
+body.page-turismo .tourism-curiosity {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  width: min(1120px, calc(100% - 48px));
+  margin: -22px auto 42px;
+  padding: clamp(20px, 3vw, 30px);
+  overflow: hidden;
+  border: 1px solid var(--color-borde-curiosidad);
+  border-radius: 20px;
+  background: linear-gradient(120deg, var(--color-fondo-curiosidad), #183c47);
+  box-shadow: 0 16px 36px rgba(0, 12, 20, .2);
+}
+body.page-turismo .tourism-curiosity::before { position: absolute; inset: 0 auto 0 0; width: 4px; background: #18a99a; content: ''; }
+body.page-turismo .tourism-curiosity > div { min-width: 0; padding-left: 3px; }
+body.page-turismo .tourism-curiosity span:first-child { color: #65d6c8; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+body.page-turismo .tourism-curiosity p { max-width: 780px; margin: 8px 0 0; color: var(--color-detalle-curiosidad); font-size: clamp(.95rem, 1.5vw, 1.08rem); line-height: 1.65; }
+body.page-turismo .tourism-curiosity-mark { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid #38716f; border-radius: 16px; background: #194b50; color: #70dfce; font-size: 1.7rem; }
+
 @media (max-width: 980px) {
   body.page-turismo .cards-grid,
   body.page-turismo .restaurant-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 }
 @media (max-width: 680px) {
+  body.page-turismo .tourism-curiosity { grid-template-columns: minmax(0, 1fr); width: calc(100% - 32px); margin: -10px auto 30px; padding: 20px; }
   body.page-turismo .alojamientos-section,
   body.page-turismo .restaurantes-section { padding: 38px 18px; }
   body.page-turismo .alojamientos-header { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 22px; }
