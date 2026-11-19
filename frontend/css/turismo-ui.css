@@ -1,5 +1,5 @@
 /* Sistema visual de alojamientos y gastronomía. */
-body.page-turismo {
+body.pagina-turismo {
   --color-superficie-turismo: #fff;
   --color-texto-turismo: #173b36;
   --color-secundario-turismo: #5e716d;
@@ -8,7 +8,7 @@ body.page-turismo {
   --radio-tarjeta-turismo: 20px;
 }
 
-body.theme-dark.page-turismo {
+body.tema-oscuro.pagina-turismo {
   --color-superficie-turismo: #102a3a;
   --color-texto-turismo: #f0faf8;
   --color-secundario-turismo: #bed2cf;
@@ -16,7 +16,7 @@ body.theme-dark.page-turismo {
   --sombra-tarjeta-turismo: 0 16px 38px rgb(0 0 0 / 22%);
 }
 
-body.page-turismo .tourism-plan-dialog {
+body.pagina-turismo .turismo-planificacion-dialogo {
   --color-fondo-ficha: #fff;
   --color-texto-ficha: #173b36;
   --color-secundario-ficha: #5e716d;
@@ -36,15 +36,15 @@ body.page-turismo .tourism-plan-dialog {
   box-shadow: 0 28px 90px rgb(4 25 23 / 34%);
   color-scheme: light;
 }
-body.theme-dark.page-turismo .tourism-plan-dialog {
+body.tema-oscuro.pagina-turismo .turismo-planificacion-dialogo {
   --color-fondo-ficha: #102b38;
   --color-texto-ficha: #edf8f7;
   --color-secundario-ficha: #bed2cf;
   --color-borde-ficha: #355762;
   color-scheme: dark;
 }
-body.page-turismo .tourism-plan-dialog::backdrop { background: rgb(5 23 31 / 68%); backdrop-filter: blur(7px); }
-body.page-turismo .tourism-plan-widget {
+body.pagina-turismo .turismo-planificacion-dialogo::backdrop { background: rgb(5 23 31 / 68%); backdrop-filter: blur(7px); }
+body.pagina-turismo .turismo-planificacion-widget {
   display: grid;
   gap: 20px;
   margin: 0;
@@ -52,10 +52,10 @@ body.page-turismo .tourism-plan-widget {
   background: var(--color-fondo-ficha);
   color: var(--color-texto-ficha);
 }
-body.page-turismo .tourism-plan-widget header { align-items: flex-start; gap: 18px; }
-body.page-turismo .tourism-plan-widget header p { margin: 0 0 5px; color: #087f72; font: 800 .72rem/1.3 'Nunito', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
-body.page-turismo .tourism-plan-widget h2 { color: var(--color-texto-ficha); font: 700 clamp(1.55rem, 5vw, 2rem)/1.12 'Playfair Display', Georgia, serif; }
-body.page-turismo .tourism-plan-widget header button {
+body.pagina-turismo .turismo-planificacion-widget header { align-items: flex-start; gap: 18px; }
+body.pagina-turismo .turismo-planificacion-widget header p { margin: 0 0 5px; color: #087f72; font: 800 .72rem/1.3 'Nunito', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+body.pagina-turismo .turismo-planificacion-widget h2 { color: var(--color-texto-ficha); font: 700 clamp(1.55rem, 5vw, 2rem)/1.12 'Playfair Display', Georgia, serif; }
+body.pagina-turismo .turismo-planificacion-widget header button {
   display: grid;
   flex: 0 0 40px;
   width: 40px;
@@ -68,11 +68,11 @@ body.page-turismo .tourism-plan-widget header button {
   cursor: pointer;
   font: 400 1.5rem/1 'Nunito', sans-serif;
 }
-body.page-turismo .tourism-plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-body.page-turismo .tourism-plan-widget label,
-body.page-turismo .tourism-plan-widget legend { color: var(--color-texto-ficha); font: 800 .86rem/1.35 'Nunito', sans-serif; }
-body.page-turismo .tourism-plan-widget input,
-body.page-turismo .tourism-plan-widget select {
+body.pagina-turismo .turismo-planificacion-cuadricula { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+body.pagina-turismo .turismo-planificacion-widget label,
+body.pagina-turismo .turismo-planificacion-widget legend { color: var(--color-texto-ficha); font: 800 .86rem/1.35 'Nunito', sans-serif; }
+body.pagina-turismo .turismo-planificacion-widget input,
+body.pagina-turismo .turismo-planificacion-widget select {
   box-sizing: border-box;
   width: 100%;
   min-height: 46px;
@@ -83,16 +83,16 @@ body.page-turismo .tourism-plan-widget select {
   color: #173b36;
   font: 500 16px/1.35 'Nunito', sans-serif;
 }
-body.page-turismo .tourism-plan-widget fieldset { min-width: 0; }
-body.page-turismo .tourism-plan-widget legend { margin-bottom: 10px; }
-body.page-turismo .tourism-plan-widget .reservation-slots { gap: 9px; }
-body.page-turismo .tourism-plan-widget .reservation-slots span { min-height: 68px; align-content: center; padding: 10px; border-color: var(--color-borde-ficha); border-radius: 13px; font: 800 .82rem/1.25 'Nunito', sans-serif; }
-body.page-turismo .tourism-plan-widget .reservation-slots small { font-size: .72rem; }
-body.page-turismo .tourism-plan-widget .reservation-slots input:focus-visible + span { outline: 3px solid #e9a834; outline-offset: 2px; }
-body.page-turismo .tourism-plan-summary { padding: 14px 16px; border: 1px solid #cfe6e0; border-radius: 14px; background: #eff8f5; color: var(--color-secundario-ficha); font: 700 .86rem/1.3 'Nunito', sans-serif; }
-body.page-turismo .tourism-plan-summary strong { color: #087f72; font: 800 1rem/1.3 'Nunito', sans-serif; }
-body.page-turismo .tourism-plan-widget footer { flex-wrap: wrap; gap: 10px; }
-body.page-turismo .tourism-plan-widget footer button {
+body.pagina-turismo .turismo-planificacion-widget fieldset { min-width: 0; }
+body.pagina-turismo .turismo-planificacion-widget legend { margin-bottom: 10px; }
+body.pagina-turismo .turismo-planificacion-widget .reserva-horarios { gap: 9px; }
+body.pagina-turismo .turismo-planificacion-widget .reserva-horarios span { min-height: 68px; align-content: center; padding: 10px; border-color: var(--color-borde-ficha); border-radius: 13px; font: 800 .82rem/1.25 'Nunito', sans-serif; }
+body.pagina-turismo .turismo-planificacion-widget .reserva-horarios small { font-size: .72rem; }
+body.pagina-turismo .turismo-planificacion-widget .reserva-horarios input:focus-visible + span { outline: 3px solid #e9a834; outline-offset: 2px; }
+body.pagina-turismo .turismo-planificacion-resumen { padding: 14px 16px; border: 1px solid #cfe6e0; border-radius: 14px; background: #eff8f5; color: var(--color-secundario-ficha); font: 700 .86rem/1.3 'Nunito', sans-serif; }
+body.pagina-turismo .turismo-planificacion-resumen strong { color: #087f72; font: 800 1rem/1.3 'Nunito', sans-serif; }
+body.pagina-turismo .turismo-planificacion-widget footer { flex-wrap: wrap; gap: 10px; }
+body.pagina-turismo .turismo-planificacion-widget footer button {
   min-height: 44px;
   padding: 10px 16px;
   border: 1px solid var(--color-borde-ficha);
@@ -103,44 +103,44 @@ body.page-turismo .tourism-plan-widget footer button {
   font: 800 .86rem/1.2 'Nunito', sans-serif;
   transition: transform .18s ease, background .18s ease, border-color .18s ease;
 }
-body.page-turismo .tourism-plan-widget footer button:last-child { border-color: #087f72; background: #087f72; color: #fff; }
-body.page-turismo .tourism-plan-widget footer button:hover { transform: translateY(-1px); }
-body.page-turismo .tourism-plan-widget footer button:last-child:hover { border-color: #06685e; background: #06685e; }
-body.page-turismo .tourism-plan-widget :is(input, select, button):focus-visible { outline: 3px solid #e9a834; outline-offset: 3px; }
-body.page-turismo .tourism-plan-status { min-height: 0; margin: 0; color: var(--color-secundario-ficha); font-size: .86rem; }
-body.page-turismo .tourism-plan-status:empty { display: none; }
-body.theme-dark.page-turismo .tourism-plan-widget header p,
-body.theme-dark.page-turismo .tourism-plan-summary strong { color: #76e0d1; }
-body.theme-dark.page-turismo .tourism-plan-widget header button { border-color: #3e6870; background: #183743; color: #c1eee5; }
-body.theme-dark.page-turismo .tourism-plan-widget input,
-body.theme-dark.page-turismo .tourism-plan-widget select { border-color: #3e6870; background: #0b1d27; color: #f2fbfa; }
-body.theme-dark.page-turismo .tourism-plan-widget .reservation-slots span { border-color: #3e6870; background: #142f3c; color: #d9efec; }
-body.theme-dark.page-turismo .tourism-plan-widget .reservation-slots small { color: #a9c9c4; }
-body.theme-dark.page-turismo .tourism-plan-widget .reservation-slots input:checked + span { border-color: #64ded0; background: #18a99a; color: #061d20; }
-body.theme-dark.page-turismo .tourism-plan-widget .reservation-slots input:checked + span small { color: #0c4540; }
-body.theme-dark.page-turismo .tourism-plan-summary { border-color: #315d65; background: #173e45; color: #c7e7e1; }
-body.theme-dark.page-turismo .tourism-plan-widget footer button:first-child { border-color: #3e6870; background: #183743; color: #c1eee5; }
-body.theme-dark.page-turismo .tourism-plan-widget footer button:last-child { border-color: #18a99a; background: #18a99a; color: #062126; }
-body.theme-dark.page-turismo .tourism-plan-widget footer button:last-child:hover { border-color: #5ce0ce; background: #37c5b2; }
+body.pagina-turismo .turismo-planificacion-widget footer button:last-child { border-color: #087f72; background: #087f72; color: #fff; }
+body.pagina-turismo .turismo-planificacion-widget footer button:hover { transform: translateY(-1px); }
+body.pagina-turismo .turismo-planificacion-widget footer button:last-child:hover { border-color: #06685e; background: #06685e; }
+body.pagina-turismo .turismo-planificacion-widget :is(input, select, button):focus-visible { outline: 3px solid #e9a834; outline-offset: 3px; }
+body.pagina-turismo .turismo-planificacion-estado { min-height: 0; margin: 0; color: var(--color-secundario-ficha); font-size: .86rem; }
+body.pagina-turismo .turismo-planificacion-estado:empty { display: none; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget header p,
+body.tema-oscuro.pagina-turismo .turismo-planificacion-resumen strong { color: #76e0d1; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget header button { border-color: #3e6870; background: #183743; color: #c1eee5; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget input,
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget select { border-color: #3e6870; background: #0b1d27; color: #f2fbfa; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget .reserva-horarios span { border-color: #3e6870; background: #142f3c; color: #d9efec; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget .reserva-horarios small { color: #a9c9c4; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget .reserva-horarios input:checked + span { border-color: #64ded0; background: #18a99a; color: #061d20; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget .reserva-horarios input:checked + span small { color: #0c4540; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-resumen { border-color: #315d65; background: #173e45; color: #c7e7e1; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget footer button:first-child { border-color: #3e6870; background: #183743; color: #c1eee5; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget footer button:last-child { border-color: #18a99a; background: #18a99a; color: #062126; }
+body.tema-oscuro.pagina-turismo .turismo-planificacion-widget footer button:last-child:hover { border-color: #5ce0ce; background: #37c5b2; }
 
 @media (max-width: 520px) {
-  body.page-turismo .tourism-plan-dialog { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 20px; }
-  body.page-turismo .tourism-plan-widget { gap: 17px; padding: 20px; }
-  body.page-turismo .tourism-plan-grid { grid-template-columns: 1fr; gap: 12px; }
-  body.page-turismo .tourism-plan-widget footer { display: grid; grid-template-columns: 1fr; }
-  body.page-turismo .tourism-plan-widget footer button { width: 100%; }
+  body.pagina-turismo .turismo-planificacion-dialogo { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 20px; }
+  body.pagina-turismo .turismo-planificacion-widget { gap: 17px; padding: 20px; }
+  body.pagina-turismo .turismo-planificacion-cuadricula { grid-template-columns: 1fr; gap: 12px; }
+  body.pagina-turismo .turismo-planificacion-widget footer { display: grid; grid-template-columns: 1fr; }
+  body.pagina-turismo .turismo-planificacion-widget footer button { width: 100%; }
 }
 
-body.page-turismo .alojamientos-section,
-body.page-turismo .restaurantes-section {
+body.pagina-turismo .alojamientos-seccion,
+body.pagina-turismo .restaurantes-seccion {
   padding: clamp(44px, 6vw, 78px) 24px;
 }
-body.page-turismo .alojamientos-inner,
-body.page-turismo .restaurantes-inner { width: min(1160px, 100%); margin-inline: auto; }
-body.page-turismo .alojamientos-header { align-items: center; gap: 24px; margin-bottom: 28px; }
-body.page-turismo .alojamientos-header .section-heading { margin: 0; }
-body.page-turismo .alojamientos-header > div:last-child { display: flex; flex-wrap: wrap; gap: 10px !important; }
-body.page-turismo .section-ver-mas {
+body.pagina-turismo .alojamientos-interior,
+body.pagina-turismo .restaurantes-interior { width: min(1160px, 100%); margin-inline: auto; }
+body.pagina-turismo .alojamientos-encabezado { align-items: center; gap: 24px; margin-bottom: 28px; }
+body.pagina-turismo .alojamientos-encabezado .titulo-seccion { margin: 0; }
+body.pagina-turismo .alojamientos-encabezado > div:last-child { display: flex; flex-wrap: wrap; gap: 10px !important; }
+body.pagina-turismo .seccion-ver-mas {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -154,16 +154,16 @@ body.page-turismo .section-ver-mas {
   text-decoration: none;
   transition: border-color .18s ease, background .18s ease, transform .18s ease;
 }
-body.page-turismo .section-ver-mas:hover { transform: translateY(-1px); border-color: #168575; background: #eaf7f4; opacity: 1; }
-body.page-turismo .cards-grid,
-body.page-turismo .restaurant-grid {
+body.pagina-turismo .seccion-ver-mas:hover { transform: translateY(-1px); border-color: #168575; background: #eaf7f4; opacity: 1; }
+body.pagina-turismo .tarjetas-cuadricula,
+body.pagina-turismo .restaurante-cuadricula {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
   gap: 22px;
 }
-body.page-turismo .prop-card,
-body.page-turismo .restaurant-card {
+body.pagina-turismo .alojamiento-tarjeta,
+body.pagina-turismo .restaurante-tarjeta {
   display: flex;
   min-width: 0;
   height: 100%;
@@ -175,10 +175,10 @@ body.page-turismo .restaurant-card {
   box-shadow: var(--sombra-tarjeta-turismo);
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-body.page-turismo .prop-card:hover,
-body.page-turismo .restaurant-card:hover { transform: translateY(-3px); border-color: #69b7a9; box-shadow: 0 18px 40px rgb(16 42 67 / 16%); }
-body.page-turismo .prop-media,
-body.page-turismo .restaurant-img-placeholder {
+body.pagina-turismo .alojamiento-tarjeta:hover,
+body.pagina-turismo .restaurante-tarjeta:hover { transform: translateY(-3px); border-color: #69b7a9; box-shadow: 0 18px 40px rgb(16 42 67 / 16%); }
+body.pagina-turismo .alojamiento-multimedia,
+body.pagina-turismo .restaurante-imagen-marcador-posicion {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
@@ -186,17 +186,17 @@ body.page-turismo .restaurant-img-placeholder {
   overflow: hidden;
   background: linear-gradient(135deg, #dce9e5, #b8ccc5);
 }
-body.page-turismo .prop-img,
-body.page-turismo .restaurant-img {
+body.pagina-turismo .alojamiento-imagen,
+body.pagina-turismo .restaurante-imagen {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform .35s ease;
 }
-body.page-turismo .prop-card:hover .prop-img,
-body.page-turismo .restaurant-card:hover .restaurant-img { transform: scale(1.025); }
-body.page-turismo .prop-info {
+body.pagina-turismo .alojamiento-tarjeta:hover .alojamiento-imagen,
+body.pagina-turismo .restaurante-tarjeta:hover .restaurante-imagen { transform: scale(1.025); }
+body.pagina-turismo .alojamiento-informacion {
   display: grid;
   flex: 1;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -205,18 +205,18 @@ body.page-turismo .prop-info {
   gap: 9px 10px;
   padding: 17px;
 }
-body.page-turismo .prop-name,
-body.page-turismo .prop-address { grid-column: 1 / -1; margin: 0; color: var(--color-texto-turismo); }
-body.page-turismo .prop-name { font: 800 1rem/1.3 'Nunito', sans-serif; }
-body.page-turismo .prop-address {
+body.pagina-turismo .alojamiento-nombre,
+body.pagina-turismo .alojamiento-direccion { grid-column: 1 / -1; margin: 0; color: var(--color-texto-turismo); }
+body.pagina-turismo .alojamiento-nombre { font: 800 1rem/1.3 'Nunito', sans-serif; }
+body.pagina-turismo .alojamiento-direccion {
   min-height: 3.1em;
   color: var(--color-secundario-turismo);
   font: 500 .9rem/1.5 'Nunito', sans-serif;
   overflow-wrap: anywhere;
 }
-body.page-turismo .prop-info .place-map-link,
-body.page-turismo .prop-info .tourism-plan-trigger,
-body.page-turismo .restaurant-info .place-map-link {
+body.pagina-turismo .alojamiento-informacion .lugar-mapa-enlace,
+body.pagina-turismo .alojamiento-informacion .turismo-planificacion-activador,
+body.pagina-turismo .restaurante-informacion .lugar-mapa-enlace {
   display: inline-flex;
   min-width: 0;
   min-height: 42px;
@@ -234,20 +234,20 @@ body.page-turismo .restaurant-info .place-map-link {
   text-decoration: none;
   transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
 }
-body.page-turismo .prop-info .place-map-link:hover,
-body.page-turismo .restaurant-info .place-map-link:hover { transform: translateY(-1px); border-color: #168575; background: #e8f6f2; }
-body.page-turismo .prop-info .tourism-plan-trigger {
+body.pagina-turismo .alojamiento-informacion .lugar-mapa-enlace:hover,
+body.pagina-turismo .restaurante-informacion .lugar-mapa-enlace:hover { transform: translateY(-1px); border-color: #168575; background: #e8f6f2; }
+body.pagina-turismo .alojamiento-informacion .turismo-planificacion-activador {
   width: 100%;
   border-color: #087f72;
   background: #087f72;
   color: #fff;
 }
-body.page-turismo .prop-info .tourism-plan-trigger:hover { transform: translateY(-1px); border-color: #06685e; background: #06685e; }
-body.page-turismo .prop-info :is(.place-map-link, .tourism-plan-trigger):focus-visible,
-body.page-turismo .section-ver-mas:focus-visible,
-body.page-turismo .prop-heart:focus-visible,
-body.page-turismo .restaurant-info .place-map-link:focus-visible { outline: 3px solid #e9a834; outline-offset: 3px; }
-body.page-turismo .prop-heart {
+body.pagina-turismo .alojamiento-informacion .turismo-planificacion-activador:hover { transform: translateY(-1px); border-color: #06685e; background: #06685e; }
+body.pagina-turismo .alojamiento-informacion :is(.lugar-mapa-enlace, .turismo-planificacion-activador):focus-visible,
+body.pagina-turismo .seccion-ver-mas:focus-visible,
+body.pagina-turismo .alojamiento-corazon:focus-visible,
+body.pagina-turismo .restaurante-informacion .lugar-mapa-enlace:focus-visible { outline: 3px solid #e9a834; outline-offset: 3px; }
+body.pagina-turismo .alojamiento-corazon {
   display: grid;
   width: 42px;
   height: 42px;
@@ -257,10 +257,10 @@ body.page-turismo .prop-heart {
   background: rgb(8 30 39 / 54%);
   backdrop-filter: blur(8px);
 }
-body.page-turismo .prop-heart svg { width: 21px; height: 21px; fill: transparent; stroke: #fff; stroke-width: 1.8; }
-body.page-turismo .prop-heart:hover svg,
-body.page-turismo .prop-heart.liked svg { fill: #ec6673; stroke: #ec6673; }
-body.page-turismo .restaurant-info {
+body.pagina-turismo .alojamiento-corazon svg { width: 21px; height: 21px; fill: transparent; stroke: #fff; stroke-width: 1.8; }
+body.pagina-turismo .alojamiento-corazon:hover svg,
+body.pagina-turismo .alojamiento-corazon.me-gusta svg { fill: #ec6673; stroke: #ec6673; }
+body.pagina-turismo .restaurante-informacion {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -268,8 +268,8 @@ body.page-turismo .restaurant-info {
   gap: 10px;
   padding: 17px;
 }
-body.page-turismo .restaurant-name { margin: 0; color: var(--color-texto-turismo); font: 800 1rem/1.3 'Nunito', sans-serif; }
-body.page-turismo .restaurant-desc {
+body.pagina-turismo .restaurante-nombre { margin: 0; color: var(--color-texto-turismo); font: 800 1rem/1.3 'Nunito', sans-serif; }
+body.pagina-turismo .restaurante-descripcion {
   display: -webkit-box;
   min-height: 4.5em;
   margin: 0;
@@ -279,24 +279,24 @@ body.page-turismo .restaurant-desc {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
-body.page-turismo .restaurant-address { margin: auto 0 0; color: var(--color-texto-turismo); font: 600 .86rem/1.45 'Nunito', sans-serif; overflow-wrap: anywhere; }
-body.page-turismo .restaurant-info .place-map-link { width: 100%; margin-top: 2px; }
-body.theme-dark.page-turismo .section-ver-mas { border-color: #3a6069; background: #142f3a; color: #d8eeea; }
-body.theme-dark.page-turismo .section-ver-mas:hover,
-body.theme-dark.page-turismo .prop-info .place-map-link:hover,
-body.theme-dark.page-turismo .restaurant-info .place-map-link:hover { border-color: #18a99a; background: #173e45; color: #e9fbf7; }
-body.theme-dark.page-turismo .prop-info .place-map-link,
-body.theme-dark.page-turismo .restaurant-info .place-map-link { border-color: #3a6268; background: #173642; color: #c1eee5; }
-body.theme-dark.page-turismo .prop-info .tourism-plan-trigger { border-color: #18a99a; background: #18a99a; color: #062322; }
-body.theme-dark.page-turismo .prop-info .tourism-plan-trigger:hover { border-color: #5ce0ce; background: #37c5b2; }
+body.pagina-turismo .restaurante-direccion { margin: auto 0 0; color: var(--color-texto-turismo); font: 600 .86rem/1.45 'Nunito', sans-serif; overflow-wrap: anywhere; }
+body.pagina-turismo .restaurante-informacion .lugar-mapa-enlace { width: 100%; margin-top: 2px; }
+body.tema-oscuro.pagina-turismo .seccion-ver-mas { border-color: #3a6069; background: #142f3a; color: #d8eeea; }
+body.tema-oscuro.pagina-turismo .seccion-ver-mas:hover,
+body.tema-oscuro.pagina-turismo .alojamiento-informacion .lugar-mapa-enlace:hover,
+body.tema-oscuro.pagina-turismo .restaurante-informacion .lugar-mapa-enlace:hover { border-color: #18a99a; background: #173e45; color: #e9fbf7; }
+body.tema-oscuro.pagina-turismo .alojamiento-informacion .lugar-mapa-enlace,
+body.tema-oscuro.pagina-turismo .restaurante-informacion .lugar-mapa-enlace { border-color: #3a6268; background: #173642; color: #c1eee5; }
+body.tema-oscuro.pagina-turismo .alojamiento-informacion .turismo-planificacion-activador { border-color: #18a99a; background: #18a99a; color: #062322; }
+body.tema-oscuro.pagina-turismo .alojamiento-informacion .turismo-planificacion-activador:hover { border-color: #5ce0ce; background: #37c5b2; }
 
-body.page-turismo {
+body.pagina-turismo {
   --color-fondo-curiosidad: #123442;
   --color-texto-curiosidad: #e8f3f5;
   --color-detalle-curiosidad: #bfd3da;
   --color-borde-curiosidad: #315865;
 }
-body.page-turismo .tourism-curiosity {
+body.pagina-turismo .turismo-curiosidad {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -311,39 +311,39 @@ body.page-turismo .tourism-curiosity {
   background: linear-gradient(120deg, var(--color-fondo-curiosidad), #183c47);
   box-shadow: 0 16px 36px rgba(0, 12, 20, .2);
 }
-body.page-turismo .tourism-curiosity::before { position: absolute; inset: 0 auto 0 0; width: 4px; background: #18a99a; content: ''; }
-body.page-turismo .tourism-curiosity > div { min-width: 0; padding-left: 3px; }
-body.page-turismo .tourism-curiosity span:first-child { color: #65d6c8; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
-body.page-turismo .tourism-curiosity p { max-width: 780px; margin: 8px 0 0; color: var(--color-detalle-curiosidad); font-size: clamp(.95rem, 1.5vw, 1.08rem); line-height: 1.65; }
-body.page-turismo .tourism-curiosity-mark { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid #38716f; border-radius: 16px; background: #194b50; color: #70dfce; font-size: 1.7rem; }
+body.pagina-turismo .turismo-curiosidad::before { position: absolute; inset: 0 auto 0 0; width: 4px; background: #18a99a; content: ''; }
+body.pagina-turismo .turismo-curiosidad > div { min-width: 0; padding-left: 3px; }
+body.pagina-turismo .turismo-curiosidad span:first-child { color: #65d6c8; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+body.pagina-turismo .turismo-curiosidad p { max-width: 780px; margin: 8px 0 0; color: var(--color-detalle-curiosidad); font-size: clamp(.95rem, 1.5vw, 1.08rem); line-height: 1.65; }
+body.pagina-turismo .turismo-curiosidad-marca { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid #38716f; border-radius: 16px; background: #194b50; color: #70dfce; font-size: 1.7rem; }
 
 @media (max-width: 980px) {
-  body.page-turismo .cards-grid,
-  body.page-turismo .restaurant-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  body.pagina-turismo .tarjetas-cuadricula,
+  body.pagina-turismo .restaurante-cuadricula { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 }
 @media (max-width: 680px) {
-  body.page-turismo .tourism-curiosity { grid-template-columns: minmax(0, 1fr); width: calc(100% - 32px); margin: -10px auto 30px; padding: 20px; }
-  body.page-turismo .alojamientos-section,
-  body.page-turismo .restaurantes-section { padding: 38px 18px; }
-  body.page-turismo .alojamientos-header { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 22px; }
-  body.page-turismo .alojamientos-header > div:last-child { width: 100%; }
-  body.page-turismo .section-ver-mas { flex: 1; }
-  body.page-turismo .cards-grid,
-  body.page-turismo .restaurant-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  body.page-turismo .prop-media,
-  body.page-turismo .restaurant-img-placeholder { aspect-ratio: 16 / 9; }
-  body.page-turismo .prop-info { padding: 15px; }
-  body.page-turismo .restaurant-info { gap: 8px; padding: 15px; }
+  body.pagina-turismo .turismo-curiosidad { grid-template-columns: minmax(0, 1fr); width: calc(100% - 32px); margin: -10px auto 30px; padding: 20px; }
+  body.pagina-turismo .alojamientos-seccion,
+  body.pagina-turismo .restaurantes-seccion { padding: 38px 18px; }
+  body.pagina-turismo .alojamientos-encabezado { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 22px; }
+  body.pagina-turismo .alojamientos-encabezado > div:last-child { width: 100%; }
+  body.pagina-turismo .seccion-ver-mas { flex: 1; }
+  body.pagina-turismo .tarjetas-cuadricula,
+  body.pagina-turismo .restaurante-cuadricula { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  body.pagina-turismo .alojamiento-multimedia,
+  body.pagina-turismo .restaurante-imagen-marcador-posicion { aspect-ratio: 16 / 9; }
+  body.pagina-turismo .alojamiento-informacion { padding: 15px; }
+  body.pagina-turismo .restaurante-informacion { gap: 8px; padding: 15px; }
 }
 @media (max-width: 380px) {
-  body.page-turismo .prop-info { grid-template-columns: 1fr; }
-  body.page-turismo .prop-info :is(.prop-name, .prop-address, .place-map-link, .tourism-plan-trigger) { grid-column: 1; }
+  body.pagina-turismo .alojamiento-informacion { grid-template-columns: 1fr; }
+  body.pagina-turismo .alojamiento-informacion :is(.alojamiento-nombre, .alojamiento-direccion, .lugar-mapa-enlace, .turismo-planificacion-activador) { grid-column: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  body.page-turismo .prop-card,
-  body.page-turismo .restaurant-card,
-  body.page-turismo .prop-img,
-  body.page-turismo .restaurant-img,
-  body.page-turismo .section-ver-mas,
-  body.page-turismo .prop-info :is(.place-map-link, .tourism-plan-trigger) { transition: none; }
+  body.pagina-turismo .alojamiento-tarjeta,
+  body.pagina-turismo .restaurante-tarjeta,
+  body.pagina-turismo .alojamiento-imagen,
+  body.pagina-turismo .restaurante-imagen,
+  body.pagina-turismo .seccion-ver-mas,
+  body.pagina-turismo .alojamiento-informacion :is(.lugar-mapa-enlace, .turismo-planificacion-activador) { transition: none; }
 }

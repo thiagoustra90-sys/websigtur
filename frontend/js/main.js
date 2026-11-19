@@ -37,34 +37,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // guardamos el tema en localStorage para que se acuerde entre páginas
   const temaGuardado = localStorage.getItem('sigtur-theme') || 'light';
-  cuerpo.classList.toggle('theme-dark', temaGuardado === 'dark');
+  cuerpo.classList.toggle('tema-oscuro', temaGuardado === 'dark');
 
   // el menú del logo no existe en la pantalla de login, así que lo saltamos
-  if (!cuerpo.classList.contains('auth-remake')) crearMenuLogo(temaGuardado);
+  if (!cuerpo.classList.contains('cuenta-redisenada')) crearMenuLogotipo(temaGuardado);
 
   configurarPaginaAutenticacion();
-  const estadoOAuth = document.getElementById('auth-status');
+  const estadoOAuth = document.getElementById('cuenta-estado');
   const establecerEstadoAutenticacion = (mensaje, tipo = 'ok') => {
     if (!estadoOAuth) return;
     estadoOAuth.textContent = mensaje;
-    estadoOAuth.dataset.type = tipo;
+    estadoOAuth.dataset.tipo = tipo;
     estadoOAuth.hidden = !mensaje;
   };
-  let tokenAutenticacionAlmacenado = false;
-  try { tokenAutenticacionAlmacenado = Boolean(JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION) || 'null')?.token); } catch { /* caché inválida */ }
-  if (estadoOAuth && tokenAutenticacionAlmacenado && !window.location.hash.includes('access_token')) {
+  let fichaAutenticacionAlmacenado = false;
+  try { fichaAutenticacionAlmacenado = Boolean(JSON.parse(localStorage.getItem(SIGTUR_CLAVE_SESION) || 'null')?.token); } catch { /* caché inválida */ }
+  if (estadoOAuth && fichaAutenticacionAlmacenado && !window.location.hash.includes('access_token')) {
     establecerEstadoAutenticacion('Verificando la sesión guardada...', 'loading');
   }
   procesarRetornoOAuth(establecerEstadoAutenticacion)
     .then(() => validarSesionAlmacenadaSigtur())
     .finally(() => {
-      actualizarCuentaMenuLogo();
+      actualizarCuentaMenuLogotipo();
       configurarPaginaAdministracion();
       configurarPaginaPerfil();
       const sesion = obtenerSesionSigtur();
-      if (document.querySelector('.auth-remake') && sesion?.usuario && (!estadoOAuth?.textContent || estadoOAuth.dataset.type === 'loading')) {
+      if (document.querySelector('.cuenta-redisenada') && sesion?.usuario && (!estadoOAuth?.textContent || estadoOAuth.dataset.tipo === 'loading')) {
         establecerEstadoAutenticacion(`Ya iniciaste sesión como ${sesion.usuario.nombre}.`, 'ok');
-      } else if (document.querySelector('.auth-remake') && tokenAutenticacionAlmacenado && !sesion?.usuario && estadoOAuth?.dataset.type === 'loading') {
+      } else if (document.querySelector('.cuenta-redisenada') && fichaAutenticacionAlmacenado && !sesion?.usuario && estadoOAuth?.dataset.tipo === 'loading') {
         establecerEstadoAutenticacion('No pudimos verificar la sesión guardada. Iniciá sesión nuevamente.', 'error');
       }
     });
@@ -73,43 +73,43 @@ document.addEventListener('DOMContentLoaded', () => {
   configurarAcordeonesPie();
 
   // --- HOME (index.html) ---
-  if (cuerpo.classList.contains('page-home')) {
+  if (cuerpo.classList.contains('pagina-inicio')) {
     configurarPlanificacionTuristica();
     configurarInformacionGastronomica();
 
     // gonza: acá escuchamos el scroll de la ventana. Cuando el usuario
     // baja más de 60px, le agregamos la clase 'scrolled' al navbar para
     // que cambie de estilo (el CSS se encarga del resto).
-    const barraNavegacion = document.getElementById('navbar');
-    if (barraNavegacion) window.addEventListener('scroll', () => barraNavegacion.classList.toggle('scrolled', window.scrollY > 60));
+    const barraNavegacion = document.getElementById('barra-navegacion');
+    if (barraNavegacion) window.addEventListener('scroll', () => barraNavegacion.classList.toggle('desplazado', window.scrollY > 60));
 
     // setupHomeWeather es async (ver abajo), la llamamos sin await
     // porque no necesitamos esperar el clima para que el resto de la página funcione
     configurarClimaInicio();
 
     // --- CAROUSEL DE EVENTOS (el que está en el medio de la home) ---
-    const pista = document.querySelector('.carousel-track');
-    const diapositivas = document.querySelectorAll('.carousel-slide');
-    const dotsEl = document.querySelector('.carousel-dots');
-    const botonAnterior = document.querySelector('.carousel-btn.prev');
-    const botonSiguiente = document.querySelector('.carousel-btn.next');
+    const pista = document.querySelector('.carrusel-pista');
+    const diapositivas = document.querySelectorAll('.carrusel-diapositiva');
+    const puntosElemento = document.querySelector('.carrusel-puntos');
+    const botonAnterior = document.querySelector('.carrusel-boton.anterior');
+    const botonSiguiente = document.querySelector('.carrusel-boton.siguiente');
 
-    if (pista && diapositivas.length && dotsEl) {
+    if (pista && diapositivas.length && puntosElemento) {
       let actual = 0;
       const total = diapositivas.length;
       let temporizadorAutomatico;
-      const carrusel = pista.closest('.carousel');
+      const carrusel = pista.closest('.carrusel');
       const detenerRotacion = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
 
       // creamos un puntito por cada slide y lo agregamos al DOM
       diapositivas.forEach((_, i) => {
         const punto = document.createElement('button');
         punto.type = 'button';
-        punto.className = 'dot' + (i === 0 ? ' active' : '');
+        punto.className = 'punto' + (i === 0 ? ' activo' : '');
         punto.setAttribute('aria-label', `Mostrar evento ${i + 1}`);
         punto.setAttribute('aria-controls', 'home-event-carousel');
         punto.addEventListener('click', () => irA(i));
-        dotsEl.appendChild(punto);
+        puntosElemento.appendChild(punto);
       });
       diapositivas.forEach((diapositiva, i) => {
         diapositiva.setAttribute('role', 'group');
@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       function actualizarPuntos() {
-        dotsEl.querySelectorAll('.dot').forEach((punto, i) => {
-          punto.classList.toggle('active', i === actual);
+        puntosElemento.querySelectorAll('.punto').forEach((punto, i) => {
+          punto.classList.toggle('activo', i === actual);
           punto.setAttribute('aria-current', String(i === actual));
           diapositivas[i].setAttribute('aria-hidden', String(i !== actual));
         });
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       carrusel?.setAttribute('role', 'region');
       carrusel?.setAttribute('aria-roledescription', 'carrusel');
       carrusel?.setAttribute('aria-label', 'Eventos destacados');
-      pista.id = 'home-event-carousel';
+      pista.id = 'inicio-evento-carrusel';
       carrusel?.addEventListener('focusout', evento => { if (!carrusel.contains(evento.relatedTarget)) restablecerRotacion(); });
       restablecerRotacion();
     }
@@ -155,31 +155,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // gonza: IntersectionObserver es una API del browser que avisa
     // cuando un elemento entra en el viewport. Mucho mejor que calcular
     // posición con scroll, no frena la página.
-    const elementosRevelar = document.querySelectorAll('.feature-item, .prop-card, .food-card, .eventos-left, .carousel');
+    const elementosRevelar = document.querySelectorAll('.caracteristica-elemento, .alojamiento-tarjeta, .comida-tarjeta, .eventos-izquierda, .carrusel');
     if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entradas) => {
+      const observadorInterseccion = new IntersectionObserver((entradas) => {
         entradas.forEach(entrada => {
           if (entrada.isIntersecting) {
-            entrada.target.classList.add('revealed');
-            io.unobserve(entrada.target); // una vez que apareció, dejamos de observarlo
+            entrada.target.classList.add('visible');
+            observadorInterseccion.unobserve(entrada.target); // una vez que apareció, dejamos de observarlo
           }
         });
       }, { threshold: 0.12 }); // se activa cuando el 12% del elemento es visible
 
-      elementosRevelar.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(28px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        io.observe(el);
+      elementosRevelar.forEach(elementoDom => {
+        elementoDom.style.opacity = '0';
+        elementoDom.style.transform = 'translateY(28px)';
+        elementoDom.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observadorInterseccion.observe(elementoDom);
       });
     }
   }
 
   // --- EVENTOS (eventos.html) ---
-  if (cuerpo.classList.contains('page-eventos')) {
-    const pistaDestacada = document.querySelector('.feat-track');
-    const diapositivasDestacadas = Array.from(document.querySelectorAll('.feat-track > .feat-slide:not([aria-hidden="true"]):not(.is-clone)'));
-    const dotsWrap = document.querySelector('.carousel-section .carousel-dots');
+  if (cuerpo.classList.contains('pagina-eventos')) {
+    const pistaDestacada = document.querySelector('.destacado-pista');
+    const diapositivasDestacadas = Array.from(document.querySelectorAll('.destacado-pista > .destacado-diapositiva:not([aria-hidden="true"]):not(.estado-clon)'));
+    const contenedorPuntos = document.querySelector('.carrusel-seccion .carrusel-puntos');
     const total = diapositivasDestacadas.length;
     let actual = 0;
     let posicion = 0;
@@ -198,14 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function configurarClones() {
-      pistaDestacada?.querySelectorAll('.feat-slide.is-clone').forEach(el => el.remove());
+      pistaDestacada?.querySelectorAll('.destacado-diapositiva.estado-clon').forEach(elementoDom => elementoDom.remove());
       if (!pistaDestacada || !total) return;
       const cantidad = cantidadVisible();
       for (let i = 0; i < cantidad; i++) {
         const clon = diapositivasDestacadas[i].cloneNode(true);
-        clon.classList.add('is-clone');
+        clon.classList.add('estado-clon');
         clon.setAttribute('aria-hidden', 'true');
-        clon.querySelectorAll('a, button, input').forEach(el => el.setAttribute('tabindex', '-1'));
+        clon.querySelectorAll('a, button, input').forEach(elementoDom => elementoDom.setAttribute('tabindex', '-1'));
         pistaDestacada.appendChild(clon);
       }
     }
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // gonza: acá calculamos el porcentaje real de cada slide en vez de
     // asumir 33.33%, porque en mobile los slides pueden ser más anchos
     function porcentajeDiapositiva() {
-      const primeraDiapositiva = pistaDestacada?.querySelector('.feat-slide');
+      const primeraDiapositiva = pistaDestacada?.querySelector('.destacado-diapositiva');
       const anchoPista = pistaDestacada?.getBoundingClientRect().width;
       return (primeraDiapositiva && anchoPista)
         ? (primeraDiapositiva.getBoundingClientRect().width / anchoPista) * 100
@@ -231,27 +231,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function crearPuntos() {
-      if (!dotsWrap || !total) return;
-      dotsWrap.innerHTML = '';
+      if (!contenedorPuntos || !total) return;
+      contenedorPuntos.innerHTML = '';
       for (let i = 0; i < total; i++) {
         const botonAccion = document.createElement('button');
-        botonAccion.className = 'c-dot' + (i === 0 ? ' active' : '');
+        botonAccion.className = 'punto-carrusel' + (i === 0 ? ' activo' : '');
         botonAccion.setAttribute('aria-label', `Slide ${i + 1}`);
         const interno = document.createElement('span');
-        interno.className = 'c-dot-inner';
+        interno.className = 'punto-carrusel-interior';
         interno.style.width = i === 0 ? '18px' : '12px';
         interno.style.height = i === 0 ? '18px' : '12px';
         botonAccion.appendChild(interno);
         botonAccion.addEventListener('click', () => irA(i));
-        dotsWrap.appendChild(botonAccion);
+        contenedorPuntos.appendChild(botonAccion);
       }
     }
 
     function actualizarPuntos() {
-      document.querySelectorAll('.c-dot').forEach((punto, i) => {
-        const interno = punto.querySelector('.c-dot-inner');
+      document.querySelectorAll('.punto-carrusel').forEach((punto, i) => {
+        const interno = punto.querySelector('.punto-carrusel-interior');
         const activo = i === actual;
-        punto.classList.toggle('active', activo);
+        punto.classList.toggle('activo', activo);
         if (interno) { interno.style.width = activo ? '18px' : '12px'; interno.style.height = activo ? '18px' : '12px'; }
       });
     }
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let temporizadorAutomatico = total ? setInterval(siguiente, 4000) : null;
 
     // pausamos el auto cuando el mouse está encima, es más cómodo para el usuario
-    const carruselDestacado = pistaDestacada?.closest('.feat-carousel');
+    const carruselDestacado = pistaDestacada?.closest('.destacado-carrusel');
     const detenerRotacionDestacados = () => { clearInterval(temporizadorAutomatico); temporizadorAutomatico = null; };
     const iniciarRotacionDestacados = () => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !temporizadorAutomatico) temporizadorAutomatico = setInterval(siguiente, 4000); };
     carruselDestacado?.setAttribute('role', 'region');
@@ -320,26 +320,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 200);
     });
 
-    // filtro de categorías: muestra/oculta tickets según data-cat
+    // filtro de categorías: muestra/oculta tickets según data-categoria-evento
     const prepararCarruselesEventos = () => {
-      document.querySelectorAll('.page-eventos .event-tickets').forEach(lista => {
-        if (lista.closest('.event-carousel-shell')) return;
+      document.querySelectorAll('.pagina-eventos .evento-entradas').forEach(lista => {
+        if (lista.closest('.evento-carrusel-marco')) return;
         const contenedor = document.createElement('div');
-        contenedor.className = 'event-carousel-shell';
+        contenedor.className = 'evento-carrusel-marco';
         const carrusel = document.createElement('div');
-        carrusel.className = 'event-carousel';
+        carrusel.className = 'evento-carrusel';
         const botonAnteriorEventos = document.createElement('button');
-        botonAnteriorEventos.className = 'event-carousel-control';
+        botonAnteriorEventos.className = 'evento-carrusel-control';
         botonAnteriorEventos.type = 'button';
         botonAnteriorEventos.setAttribute('aria-label', 'Ver eventos anteriores');
         botonAnteriorEventos.innerHTML = '<span aria-hidden="true">‹</span>';
         const botonSiguienteEventos = document.createElement('button');
-        botonSiguienteEventos.className = 'event-carousel-control';
+        botonSiguienteEventos.className = 'evento-carrusel-control';
         botonSiguienteEventos.type = 'button';
         botonSiguienteEventos.setAttribute('aria-label', 'Ver más eventos');
         botonSiguienteEventos.innerHTML = '<span aria-hidden="true">›</span>';
         const panelesInteraccion = document.createElement('div');
-        panelesInteraccion.className = 'event-interaction-panels';
+        panelesInteraccion.className = 'evento-interaccion-paneles';
         botonAnteriorEventos.setAttribute('aria-controls', lista.id);
         botonSiguienteEventos.setAttribute('aria-controls', lista.id);
         lista.tabIndex = 0;
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
           contenedor.classList.toggle('sin-desplazamiento', !hayDesplazamiento);
         };
         const desplazar = direccion => {
-          const tarjeta = lista.querySelector('.ticket-row:not([style*="display: none"])');
+          const tarjeta = lista.querySelector('.entrada-fila:not([style*="display: none"])');
           const separacion = Number.parseFloat(getComputedStyle(lista).gap) || 16;
           const distancia = tarjeta ? tarjeta.getBoundingClientRect().width + separacion : lista.clientWidth * .8;
           lista.scrollBy({ left: direccion * distancia, behavior: 'smooth' });
@@ -368,35 +368,35 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    document.querySelectorAll('.category-tabs').forEach(grupo => {
-      const pestanas = grupo.querySelectorAll('.cat-tab');
+    document.querySelectorAll('.categoria-tabs').forEach(grupo => {
+      const pestanas = grupo.querySelectorAll('.categoria-tab');
       const seccion = grupo.closest('section');
       const identificadorListaPestanas = grupo.id || `category-tabs-${Math.random().toString(36).slice(2)}`;
       grupo.id = identificadorListaPestanas;
       grupo.setAttribute('role', 'tablist');
       grupo.setAttribute('aria-label', 'Filtrar eventos por categoría');
-      const lista = grupo.parentElement?.querySelector('.event-tickets');
+      const lista = grupo.parentElement?.querySelector('.evento-entradas');
       if (lista) { lista.id ||= `${identificadorListaPestanas}-events`; lista.setAttribute('role', 'tabpanel'); lista.setAttribute('aria-labelledby', pestanas[0]?.id || `${identificadorListaPestanas}-tab-0`); }
       pestanas.forEach((tab, indice) => {
         tab.type = 'button'; tab.setAttribute('role', 'tab');
         if (!tab.id) tab.id = `${identificadorListaPestanas}-tab-${indice}`;
         tab.setAttribute('aria-controls', lista?.id || identificadorListaPestanas);
-        tab.setAttribute('aria-selected', String(tab.classList.contains('active')));
-        tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
+        tab.setAttribute('aria-selected', String(tab.classList.contains('activo')));
+        tab.tabIndex = tab.classList.contains('activo') ? 0 : -1;
       });
       pestanas.forEach(tab => {
         tab.addEventListener('click', () => {
-          pestanas.forEach(elemento => { elemento.classList.remove('active'); elemento.setAttribute('aria-selected', 'false'); elemento.tabIndex = -1; });
-          tab.classList.add('active');
+          pestanas.forEach(elemento => { elemento.classList.remove('activo'); elemento.setAttribute('aria-selected', 'false'); elemento.tabIndex = -1; });
+          tab.classList.add('activo');
           tab.setAttribute('aria-selected', 'true'); tab.tabIndex = 0;
           if (lista) lista.setAttribute('aria-labelledby', tab.id);
-          const filtro = tab.dataset.cat;
-          seccion?.querySelectorAll('.ticket-row').forEach(fila => {
-            const categoriaFila = fila.dataset.cat || '';
+          const filtro = tab.dataset.categoriaEvento;
+          seccion?.querySelectorAll('.entrada-fila').forEach(fila => {
+            const categoriaFila = fila.dataset.categoriaEvento || '';
             const visible = filtro === 'todos' || categoriaFila === filtro;
             fila.style.display = visible ? '' : 'none';
             const panelActual = fila._panelInteraccion || fila.nextElementSibling;
-            if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
+            if (!visible && panelActual?.classList.contains('evento-interaccion-panel')) panelActual.hidden = true;
           });
           lista?.dispatchEvent(new Event('eventosactualizados'));
         });
@@ -412,39 +412,39 @@ document.addEventListener('DOMContentLoaded', () => {
     prepararCarruselesEventos();
 
     // búsqueda en tiempo real: filtra mientras escribís, sin botón de submit
-    const entradaBusqueda = document.querySelector('.search-pill input');
+    const entradaBusqueda = document.querySelector('.busqueda-pastilla input');
     entradaBusqueda?.addEventListener('input', () => {
-      const q = entradaBusqueda.value.toLowerCase().trim();
-      document.querySelectorAll('.próximos-section .ticket-row').forEach(fila => {
-        const visible = !q || fila.textContent.toLowerCase().includes(q);
+      const consulta = entradaBusqueda.value.toLowerCase().trim();
+      document.querySelectorAll('.próximos-seccion .entrada-fila').forEach(fila => {
+        const visible = !consulta || fila.textContent.toLowerCase().includes(consulta);
         fila.style.display = visible ? '' : 'none';
         const panelActual = fila._panelInteraccion || fila.nextElementSibling;
-        if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
+        if (!visible && panelActual?.classList.contains('evento-interaccion-panel')) panelActual.hidden = true;
       });
-      document.querySelector('.próximos-section .event-tickets')?.dispatchEvent(new Event('eventosactualizados'));
+      document.querySelector('.próximos-seccion .evento-entradas')?.dispatchEvent(new Event('eventosactualizados'));
     });
 
     configurarInteraccionesEventos();
-    configurarAccesoRapidoEventosAdmin();
+    configurarAccesoRapidoEventosAdministracion();
 
   }
 
   // --- TURISMO (turismo.html) ---
-  if (cuerpo.classList.contains('page-turismo')) {
+  if (cuerpo.classList.contains('pagina-turismo')) {
     configurarPlanificacionTuristica();
     configurarCuriosidadesTuristicas();
   }
 
   // --- LUGARES (lugares.html) ---
-  if (cuerpo.classList.contains('page-lugares')) {
+  if (cuerpo.classList.contains('pagina-lugares')) {
     configurarBotonesFavoritos();
   }
-  if (cuerpo.classList.contains('page-turismo')) configurarBotonesFavoritos();
-  if (cuerpo.classList.contains('page-home')) configurarBotonesFavoritos();
-  document.getElementById('content-grid')?.addEventListener('click', async evento => {
-    const boton = evento.target.closest('[data-remove-saved]'); if (!boton) return;
+  if (cuerpo.classList.contains('pagina-turismo')) configurarBotonesFavoritos();
+  if (cuerpo.classList.contains('pagina-inicio')) configurarBotonesFavoritos();
+  document.getElementById('contenido-cuadricula')?.addEventListener('click', async evento => {
+    const boton = evento.target.closest('[data-eliminar-guardado]'); if (!boton) return;
     boton.disabled = true;
-    try { await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: boton.dataset.savedType, entidad_id: boton.dataset.removeSaved, activo: false }) }); boton.closest('.profile-card')?.remove(); const total = document.getElementById('total-count'), lugares = document.getElementById('following'); if (total) total.textContent = String(Math.max(0, Number(total.textContent) - 1)); if (lugares && boton.dataset.savedType === 'place') lugares.textContent = String(Math.max(0, Number(lugares.textContent) - 1)); }
+    try { await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: boton.dataset.guardadoTipo, entidad_id: boton.dataset.eliminarGuardado, activo: false }) }); boton.closest('.perfil-tarjeta')?.remove(); const total = document.getElementById('total-cantidad'), lugares = document.getElementById('siguiendo'); if (total) total.textContent = String(Math.max(0, Number(total.textContent) - 1)); if (lugares && boton.dataset.guardadoTipo === 'place') lugares.textContent = String(Math.max(0, Number(lugares.textContent) - 1)); }
     catch (fallo) { boton.disabled = false; window.alert(fallo.message || 'No se pudo quitar de guardados.'); }
   });
 
@@ -456,10 +456,10 @@ function normalizarTextoBusqueda(valor) {
 }
 
 function obtenerDestinoBusqueda(valor) {
-  const normalized = normalizarTextoBusqueda(valor);
-  return /evento|concierto|feria|agenda|musica|deporte/.test(normalized) ? 'eventos.html' :
-    /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalized) ? 'turismo.html' :
-    /mapa|ubicacion|llegar|ruta/.test(normalized) ? 'mapa.html' : 'lugares.html';
+  const normalizado = normalizarTextoBusqueda(valor);
+  return /evento|concierto|feria|agenda|musica|deporte/.test(normalizado) ? 'eventos.html' :
+    /hotel|alojamiento|restaurante|comida|gastronomia|sabor|terma|historia/.test(normalizado) ? 'turismo.html' :
+    /mapa|ubicacion|llegar|ruta/.test(normalizado) ? 'mapa.html' : 'lugares.html';
 }
 
 function navegarBusqueda(valor, destino = obtenerDestinoBusqueda(valor)) {
@@ -469,15 +469,15 @@ function navegarBusqueda(valor, destino = obtenerDestinoBusqueda(valor)) {
 }
 
 function configurarBusquedaNavegacion() {
-  const entradaBusqueda = document.querySelector('.nav-search input');
+  const entradaBusqueda = document.querySelector('.navegacion-busqueda input');
   const consulta = new URLSearchParams(window.location.search).get('q')?.trim();
 
-  const campoBusqueda = entradaBusqueda.closest('.nav-search');
+  const campoBusqueda = entradaBusqueda.closest('.navegacion-busqueda');
   if (!campoBusqueda) return;
 
   const identificadorLista = 'navbar-search-suggestions';
   const sugerenciaLista = document.createElement('div');
-  sugerenciaLista.className = 'nav-search-suggestions';
+  sugerenciaLista.className = 'navegacion-busqueda-sugerencias';
   sugerenciaLista.id = identificadorLista;
   sugerenciaLista.setAttribute('role', 'listbox');
   sugerenciaLista.setAttribute('aria-label', 'Sugerencias de búsqueda');
@@ -501,12 +501,12 @@ function configurarBusquedaNavegacion() {
     { label: 'Parque Solari', query: 'Parque Solari' },
     { label: 'Mapa de Salto', query: 'Mapa' }
   ];
-  document.querySelectorAll('.ticket-row, .lugar-card, .prop-card, .restaurant-card').forEach(elemento => {
-    const encabezado = elemento.querySelector('h2, h3, .restaurant-name, .prop-name');
+  document.querySelectorAll('.entrada-fila, .lugar-tarjeta, .alojamiento-tarjeta, .restaurante-tarjeta').forEach(elemento => {
+    const encabezado = elemento.querySelector('h2, h3, .restaurante-nombre, .alojamiento-nombre');
     const etiqueta = encabezado?.textContent.trim();
     if (etiqueta && !sugerencias.some(sugerencia => normalizarTextoBusqueda(sugerencia.label) === normalizarTextoBusqueda(etiqueta))) {
-      const destino = elemento.matches('.ticket-row') ? 'eventos.html' :
-        elemento.matches('.prop-card, .restaurant-card') ? 'turismo.html' : 'lugares.html';
+      const destino = elemento.matches('.entrada-fila') ? 'eventos.html' :
+        elemento.matches('.alojamiento-tarjeta, .restaurante-tarjeta') ? 'turismo.html' : 'lugares.html';
       sugerencias.push({ label: etiqueta, query: etiqueta, destination: destino });
     }
   });
@@ -522,17 +522,17 @@ function configurarBusquedaNavegacion() {
   }
 
   function representarSugerencias() {
-    const normalized = normalizarTextoBusqueda(entradaBusqueda.value);
+    const normalizado = normalizarTextoBusqueda(entradaBusqueda.value);
     sugerenciaLista.replaceChildren();
     indiceActivo = -1;
 
-    if (!normalized) {
+    if (!normalizado) {
       cerrarSugerencias();
       return;
     }
 
     sugerenciasVisibles = sugerencias
-      .filter(sugerencia => normalizarTextoBusqueda(sugerencia.label).includes(normalized))
+      .filter(sugerencia => normalizarTextoBusqueda(sugerencia.label).includes(normalizado))
       .slice(0, 7);
 
     if (!sugerenciasVisibles.length) {
@@ -543,7 +543,7 @@ function configurarBusquedaNavegacion() {
     sugerenciasVisibles.forEach((sugerencia, indice) => {
       const opcion = document.createElement('button');
       opcion.type = 'button';
-      opcion.className = 'nav-search-suggestion';
+      opcion.className = 'navegacion-busqueda-sugerencia';
       opcion.id = `${identificadorLista}-${indice}`;
       opcion.setAttribute('role', 'option');
       opcion.setAttribute('aria-selected', 'false');
@@ -560,9 +560,9 @@ function configurarBusquedaNavegacion() {
   function establecerSugerenciaActiva(indice) {
     if (!sugerenciasVisibles.length) return;
     indiceActivo = (indice + sugerenciasVisibles.length) % sugerenciasVisibles.length;
-    sugerenciaLista.querySelectorAll('.nav-search-suggestion').forEach((opcion, indiceOpcion) => {
+    sugerenciaLista.querySelectorAll('.navegacion-busqueda-sugerencia').forEach((opcion, indiceOpcion) => {
       const activo = indiceOpcion === indiceActivo;
-      opcion.classList.toggle('is-active', activo);
+      opcion.classList.toggle('estado-activo', activo);
       opcion.setAttribute('aria-selected', String(activo));
     });
     entradaBusqueda.setAttribute('aria-activedescendant', `${identificadorLista}-${indiceActivo}`);
@@ -602,17 +602,17 @@ function configurarBusquedaNavegacion() {
   if (entradaBusqueda) entradaBusqueda.value = consulta;
 
   let elementos = [];
-  if (document.body.classList.contains('page-eventos')) {
-    const busquedaEventos = document.querySelector('.search-pill input');
+  if (document.body.classList.contains('pagina-eventos')) {
+    const busquedaEventos = document.querySelector('.busqueda-pastilla input');
     if (busquedaEventos) {
       busquedaEventos.value = terminos;
       busquedaEventos.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    elementos = Array.from(document.querySelectorAll('.próximos-section .ticket-row'));
-  } else if (document.body.classList.contains('page-lugares')) {
-    elementos = Array.from(document.querySelectorAll('.lugar-card'));
-  } else if (document.body.classList.contains('page-turismo')) {
-    elementos = Array.from(document.querySelectorAll('.prop-card, .restaurant-card'));
+    elementos = Array.from(document.querySelectorAll('.próximos-seccion .entrada-fila'));
+  } else if (document.body.classList.contains('pagina-lugares')) {
+    elementos = Array.from(document.querySelectorAll('.lugar-tarjeta'));
+  } else if (document.body.classList.contains('pagina-turismo')) {
+    elementos = Array.from(document.querySelectorAll('.alojamiento-tarjeta, .restaurante-tarjeta'));
   }
 
   if (terminos && elementos.length) {
@@ -631,14 +631,14 @@ function configurarBusquedaNavegacion() {
 // gonza: el footer en mobile se convierte en acordeón para no ocupar tanto espacio.
 // cada columna tiene un título clickeable que muestra/oculta la lista de links.
 function configurarAcordeonesPie() {
-  const piePagina = document.querySelector('.footer');
+  const piePagina = document.querySelector('.pie-pagina');
   if (!piePagina) return;
 
   const consultaMovil = window.matchMedia('(max-width: 700px)');
-  const columnas = Array.from(piePagina.querySelectorAll('.footer-col'));
+  const columnas = Array.from(piePagina.querySelectorAll('.pie-pagina-columna'));
 
   columnas.forEach((columna, indice) => {
-    const titulo = columna.querySelector('.footer-col-title');
+    const titulo = columna.querySelector('.pie-pagina-columna-titulo');
     const lista = columna.querySelector('ul');
     if (!titulo || !lista || titulo.dataset.accordionReady) return;
 
@@ -646,11 +646,11 @@ function configurarAcordeonesPie() {
     titulo.setAttribute('role', 'button');
     titulo.setAttribute('tabindex', '0');
     titulo.setAttribute('aria-expanded', indice === 0 ? 'true' : 'false');
-    columna.classList.toggle('is-open', indice === 0); // la primera columna arranca abierta
+    columna.classList.toggle('estado-abierto', indice === 0); // la primera columna arranca abierta
 
     const alternar = () => {
       if (!consultaMovil.matches) return; // en desktop no hace nada, todo visible
-      const estaAbierto = columna.classList.toggle('is-open');
+      const estaAbierto = columna.classList.toggle('estado-abierto');
       titulo.setAttribute('aria-expanded', String(estaAbierto));
     };
 
@@ -664,13 +664,13 @@ function configurarAcordeonesPie() {
 
   const sincronizarModoPie = () => {
     columnas.forEach((columna, indice) => {
-      const titulo = columna.querySelector('.footer-col-title');
+      const titulo = columna.querySelector('.pie-pagina-columna-titulo');
       if (consultaMovil.matches) {
-        const estaAbierto = indice === 0 ? true : columna.classList.contains('is-open');
-        columna.classList.toggle('is-open', estaAbierto);
+        const estaAbierto = indice === 0 ? true : columna.classList.contains('estado-abierto');
+        columna.classList.toggle('estado-abierto', estaAbierto);
         titulo?.setAttribute('aria-expanded', String(estaAbierto));
       } else {
-        columna.classList.add('is-open');
+        columna.classList.add('estado-abierto');
         titulo?.setAttribute('aria-expanded', 'true');
       }
     });
@@ -694,9 +694,9 @@ estiloCerrarSesion.textContent = '.logo-menu-account { all: unset; display: bloc
 document.head.appendChild(estiloCerrarSesion);
 
 // menú que aparece al clickear el logo (con links de navegación y toggle de tema)
-function crearMenuLogo(temaInicial) {
-  const logotipo = document.querySelector('.nav-logo');
-  const barraNavegacion = document.querySelector('.navbar');
+function crearMenuLogotipo(temaInicial) {
+  const logotipo = document.querySelector('.navegacion-logotipo');
+  const barraNavegacion = document.querySelector('.barra-navegacion');
   if (!logotipo || !barraNavegacion) return;
 
   logotipo.setAttribute('aria-haspopup', 'menu');
@@ -705,36 +705,36 @@ function crearMenuLogo(temaInicial) {
   // gonza: creamos el div del menú desde JS en vez de tenerlo en el HTML
   // porque así funciona en todas las páginas sin repetir el markup
   const menu = document.createElement('div');
-  menu.className = 'logo-menu';
+  menu.className = 'logotipo-menu';
   menu.setAttribute('role', 'menu');
   menu.innerHTML = `
     <a href="index.html" role="menuitem">Inicio</a>
-    <span data-menu-account></span>
+    <span data-menu-cuenta></span>
     <a href="admin.html" role="menuitem" data-enlace-administracion hidden>Panel de administración</a>
     <a href="soporte.html" role="menuitem">Soporte</a>
-    <button class="theme-switch" type="button" role="menuitem" aria-pressed="${temaInicial === 'dark'}">
-      <span class="theme-orbit" aria-hidden="true">
-        <span class="theme-sun"></span>
-        <span class="theme-moon"></span>
+    <button class="tema-interruptor" type="button" role="menuitem" aria-pressed="${temaInicial === 'dark'}">
+      <span class="tema-orbita" aria-hidden="true">
+        <span class="tema-sol"></span>
+        <span class="tema-luna"></span>
       </span>
-      <span class="theme-switch-text">${temaInicial === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+      <span class="tema-interruptor-texto">${temaInicial === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
     </button>
   `;
   logotipo.insertAdjacentElement('afterend', menu);
-  representarCuentaMenuLogo(menu);
+  representarCuentaMenuLogotipo(menu);
 
-  const botonTema = menu.querySelector('.theme-switch');
-  const textoTema = menu.querySelector('.theme-switch-text');
+  const botonTema = menu.querySelector('.tema-interruptor');
+  const textoTema = menu.querySelector('.tema-interruptor-texto');
 
   logotipo.addEventListener('click', (evento) => {
     evento.preventDefault();
-    const abrir = menu.classList.toggle('open');
+    const abrir = menu.classList.toggle('abierto');
     logotipo.setAttribute('aria-expanded', String(abrir));
   });
 
   botonTema?.addEventListener('click', () => {
-    const oscuro = !document.body.classList.contains('theme-dark');
-    document.body.classList.toggle('theme-dark', oscuro);
+    const oscuro = !document.body.classList.contains('tema-oscuro');
+    document.body.classList.toggle('tema-oscuro', oscuro);
     // guardamos en localStorage para que se acuerde al recargar o cambiar de página
     localStorage.setItem('sigtur-theme', oscuro ? 'dark' : 'light');
     botonTema.setAttribute('aria-pressed', String(oscuro));
@@ -744,19 +744,19 @@ function crearMenuLogo(temaInicial) {
   // cerrar el menú si clickeás en cualquier otro lado
   document.addEventListener('click', (evento) => {
     if (logotipo.contains(evento.target) || menu.contains(evento.target)) return;
-    menu.classList.remove('open');
+    menu.classList.remove('abierto');
     logotipo.setAttribute('aria-expanded', 'false');
   });
 
   document.addEventListener('keydown', (evento) => {
     if (evento.key !== 'Escape') return;
-    menu.classList.remove('open');
+    menu.classList.remove('abierto');
     logotipo.setAttribute('aria-expanded', 'false');
   });
 }
 
-function representarCuentaMenuLogo(menu = document.querySelector('.logo-menu')) {
-  const espacio = menu?.querySelector('[data-menu-account]');
+function representarCuentaMenuLogotipo(menu = document.querySelector('.logotipo-menu')) {
+  const espacio = menu?.querySelector('[data-menu-cuenta]');
   if (!espacio) return;
   menu.querySelector('[data-enlace-administracion]')?.setAttribute('hidden', '');
   const sesion = obtenerSesionSigtur();
@@ -764,15 +764,15 @@ function representarCuentaMenuLogo(menu = document.querySelector('.logo-menu')) 
     espacio.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
     return;
   }
-  espacio.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escaparTexto(sesion.usuario.nombre || 'Usuario')})</a><button class="logo-menu-account" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
+  espacio.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escaparTexto(sesion.usuario.nombre || 'Usuario')})</a><button class="menu-cuenta-logotipo" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
   espacio.querySelector('[data-logout]')?.addEventListener('click', async () => {
     await cerrarSesionSigtur();
     window.location.reload();
   });
 }
 
-function actualizarCuentaMenuLogo() {
-  representarCuentaMenuLogo();
+function actualizarCuentaMenuLogotipo() {
+  representarCuentaMenuLogotipo();
   document.querySelectorAll('[data-enlace-administracion]').forEach(enlace => { enlace.hidden = true; });
   validarAccesoMenuAdministracion();
 }
@@ -800,14 +800,14 @@ async function validarAccesoMenuAdministracion() {
 // sin bloquear el resto de la página. Si algo falla, el catch muestra "--".
 // La API de open-meteo es gratis y no necesita key, re copada para prototipos.
 async function configurarClimaInicio() {
-  const componente = document.querySelector('.weather-widget');
+  const componente = document.querySelector('.clima-widget');
   if (!componente) return;
 
-  const elementoTemporal = componente.querySelector('[data-weather-temp]');
-  const elementoDescripcion = componente.querySelector('[data-weather-desc]');
-  const elementoSensacion = componente.querySelector('[data-weather-feels]');
-  const elementoViento = componente.querySelector('[data-weather-wind]');
-  const elementoIcono = componente.querySelector('[data-weather-icon]');
+  const elementoTemporal = componente.querySelector('[data-clima-temp]');
+  const elementoDescripcion = componente.querySelector('[data-clima-descripcion]');
+  const elementoSensacion = componente.querySelector('[data-clima-feels]');
+  const elementoViento = componente.querySelector('[data-clima-wind]');
+  const elementoIcono = componente.querySelector('[data-clima-icono]');
 
   // tabla de códigos WMO → descripción + emoji. la API devuelve un número, nosotros lo traducimos
   const codigos = {
@@ -852,7 +852,7 @@ async function configurarClimaInicio() {
     if (elementoSensacion) elementoSensacion.innerHTML = `${Math.round(actual.apparent_temperature)}&deg;`;
     if (elementoViento) elementoViento.textContent = `${Math.round(actual.wind_speed_10m)} km/h`;
     if (elementoIcono) elementoIcono.textContent = icono;
-    componente.classList.add('is-ready');
+    componente.classList.add('estado-listo');
   } catch {
     // si la API no responde o hay error de red, mostramos placeholders
     if (elementoTemporal) elementoTemporal.innerHTML = 'Salto';
@@ -874,7 +874,7 @@ const SIGTUR_BASE_XAMPP = SIGTUR_ES_SERVIDOR_LOCAL && raizXampp !== window.locat
 const SIGTUR_URL_SERVIDOR = window.SIGTUR_BACKEND_URL || '';
 const SIGTUR_BASE_API = SIGTUR_BASE_XAMPP || SIGTUR_URL_SERVIDOR;
 const SIGTUR_CLAVE_SESION = 'sigtur-session';
-let SIGTUR_TOKEN_VALIDADO = null;
+let SIGTURFICHAVALIDADO = null;
 let SIGTUR_PROMESA_RENOVACION = null;
 let SIGTUR_TEMPORIZADOR_VENCIMIENTO = null;
 
@@ -893,7 +893,7 @@ function obtenerSesionSigtur() {
     if (!sesion?.token) return null;
     const venceEn = Number(sesion.expiresAt || 0);
     const vigente = !venceEn || venceEn > Math.floor(Date.now() / 1000);
-    return sesion.token === SIGTUR_TOKEN_VALIDADO && vigente ? sesion : { ...sesion, usuario: null, profileValidated: false };
+    return sesion.token === SIGTURFICHAVALIDADO && vigente ? sesion : { ...sesion, usuario: null, profileValidated: false };
   } catch {
     return null;
   }
@@ -901,9 +901,9 @@ function obtenerSesionSigtur() {
 
 function guardarSesionSigtur(sesion, perfilValidado = false) {
   if (!sesion?.token) return limpiarSesionSigtur();
-  const tokenActual = SIGTUR_TOKEN_VALIDADO;
-  SIGTUR_TOKEN_VALIDADO = perfilValidado && sesion.usuario ? sesion.token : (tokenActual === sesion.token ? tokenActual : null);
-  sesion = { ...sesion, profileValidated: Boolean(SIGTUR_TOKEN_VALIDADO === sesion.token && sesion.usuario) };
+  const fichaActual = SIGTURFICHAVALIDADO;
+  SIGTURFICHAVALIDADO = perfilValidado && sesion.usuario ? sesion.token : (fichaActual === sesion.token ? fichaActual : null);
+  sesion = { ...sesion, profileValidated: Boolean(SIGTURFICHAVALIDADO === sesion.token && sesion.usuario) };
   localStorage.setItem(SIGTUR_CLAVE_SESION, JSON.stringify(sesion));
   clearTimeout(SIGTUR_TEMPORIZADOR_VENCIMIENTO);
   const venceEn = Number(sesion.expiresAt || 0);
@@ -914,38 +914,38 @@ function guardarSesionSigtur(sesion, perfilValidado = false) {
         return;
       }
       const renovado = await renovarSesionSigtur();
-      if (!renovado) actualizarCuentaMenuLogo();
+      if (!renovado) actualizarCuentaMenuLogotipo();
     }, Math.max(0, venceEn * 1000 - Date.now()));
   }
 }
 
 function limpiarSesionSigtur() {
-  SIGTUR_TOKEN_VALIDADO = null;
+  SIGTURFICHAVALIDADO = null;
   localStorage.removeItem(SIGTUR_CLAVE_SESION);
-  actualizarCuentaMenuLogo();
+  actualizarCuentaMenuLogotipo();
 }
 
 async function procesarRetornoOAuth(establecerEstado) {
   const parametrosConsulta = new URLSearchParams(window.location.search);
   const parametrosHash = new URLSearchParams(window.location.hash.slice(1));
   const parametros = parametrosHash.has('access_token') || parametrosHash.has('refresh_token') ? parametrosHash : parametrosConsulta;
-  const errorOAuth = parametrosConsulta.get('oauth_error') || parametrosHash.get('oauth_error') || parametrosHash.get('error_description') || parametrosHash.get('error');
-  const accesoToken = parametros.get('access_token');
-  if (errorOAuth && !accesoToken) {
+  const falloOAuth = parametrosConsulta.get('oauth_error') || parametrosHash.get('oauth_error') || parametrosHash.get('error_description') || parametrosHash.get('error');
+  const accesoFicha = parametros.get('access_token');
+  if (falloOAuth && !accesoFicha) {
     window.history.replaceState({}, document.title, window.location.pathname);
-    if (!document.getElementById('auth-status') && window.location.pathname === '/') {
+    if (!document.getElementById('cuenta-estado') && window.location.pathname === '/') {
       const urlInicioSesion = new URL('/login.html', window.location.origin);
-      urlInicioSesion.searchParams.set('oauth_error', errorOAuth);
+      urlInicioSesion.searchParams.set('oauth_error', falloOAuth);
       window.location.replace(urlInicioSesion.toString());
       return;
     }
-    establecerEstado(limpiarMensajeAutenticacion(errorOAuth, 'No se pudo completar el acceso con Google.'), 'error');
+    establecerEstado(limpiarMensajeAutenticacion(falloOAuth, 'No se pudo completar el acceso con Google.'), 'error');
     return;
   }
-  if (!accesoToken) return;
+  if (!accesoFicha) return;
 
   const sesion = {
-    token: accesoToken,
+    token: accesoFicha,
     refreshToken: parametros.get('refresh_token') || null,
     expiresAt: Number(parametros.get('expires_at') || parametros.get('expires_in')) || null,
   };
@@ -1072,13 +1072,13 @@ async function solicitarApiSigtur(ruta, opciones = {}, reintentoTrasRenovacion =
   return datosEnviados;
 }
 
-window.sigturApiFetch = solicitarApiSigtur;
-window.sigturGetSession = obtenerSesionSigtur;
+window.sigturSolicitarApi = solicitarApiSigtur;
+window.sigturObtenerSesion = obtenerSesionSigtur;
 
 async function validarSesionAlmacenadaSigtur() {
   const sesion = obtenerSesionSigtur();
   const venceEn = Number(sesion?.expiresAt || 0);
-  if (!sesion?.token || (sesion.token === SIGTUR_TOKEN_VALIDADO && (!venceEn || venceEn > Math.floor(Date.now() / 1000) + 30))) return;
+  if (!sesion?.token || (sesion.token === SIGTURFICHAVALIDADO && (!venceEn || venceEn > Math.floor(Date.now() / 1000) + 30))) return;
   try {
     const resultado = await solicitarApiSigtur('/api/auth/me');
     if (!resultado?.usuario?.id || !resultado.usuario.nombre || !resultado.usuario.correo) throw new Error('No se pudo validar el perfil.');
@@ -1090,21 +1090,21 @@ async function validarSesionAlmacenadaSigtur() {
 
 window.addEventListener('storage', evento => {
   if (evento.key !== SIGTUR_CLAVE_SESION) return;
-  SIGTUR_TOKEN_VALIDADO = null;
+  SIGTURFICHAVALIDADO = null;
   if (!evento.newValue) {
-    actualizarCuentaMenuLogo();
-    const estadoAutenticacion = document.getElementById('auth-status');
+    actualizarCuentaMenuLogotipo();
+    const estadoAutenticacion = document.getElementById('cuenta-estado');
     if (estadoAutenticacion) { estadoAutenticacion.hidden = true; estadoAutenticacion.textContent = ''; }
-    if (document.querySelector('.profile-page') || document.getElementById('admin-settings-form')) window.location.reload();
+    if (document.querySelector('.perfil-pagina') || document.getElementById('administracion-ajustes-formulario')) window.location.reload();
     return;
   }
   validarSesionAlmacenadaSigtur().finally(() => {
-    actualizarCuentaMenuLogo();
+    actualizarCuentaMenuLogotipo();
     const sesion = obtenerSesionSigtur();
-    const estadoAutenticacion = document.getElementById('auth-status');
+    const estadoAutenticacion = document.getElementById('cuenta-estado');
     if (estadoAutenticacion && sesion?.usuario) {
       estadoAutenticacion.textContent = `Ya iniciaste sesión como ${sesion.usuario.nombre}.`;
-      estadoAutenticacion.dataset.type = 'ok';
+      estadoAutenticacion.dataset.tipo = 'ok';
       estadoAutenticacion.hidden = false;
     }
   });
@@ -1121,26 +1121,26 @@ function iniciarSesionGoogle(boton) {
 }
 
 function configurarPaginaAutenticacion() {
-  const paginaAutenticacion = document.querySelector('.auth-remake');
+  const paginaAutenticacion = document.querySelector('.cuenta-redisenada');
   if (!paginaAutenticacion) return;
 
-  const pestanas = document.querySelectorAll('[data-auth-tab]');
-  const paneles = document.querySelectorAll('[data-auth-panel]');
-  const estado = document.getElementById('auth-status');
-  const formularioInicioSesion = document.getElementById('login-form');
-  const formularioRegistro = document.getElementById('register-form');
-  const formularioRecuperacion = document.getElementById('recovery-form');
-  const formularioRestablecerContrasena = document.getElementById('password-reset-form');
+  const pestanas = document.querySelectorAll('[data-cuenta-tab]');
+  const paneles = document.querySelectorAll('[data-cuenta-panel]');
+  const estado = document.getElementById('cuenta-estado');
+  const formularioInicioSesion = document.getElementById('acceso-formulario');
+  const formularioRegistro = document.getElementById('registro-formulario');
+  const formularioRecuperacion = document.getElementById('recovery-formulario');
+  const formularioRestablecerContrasena = document.getElementById('contrasena-reset-formulario');
 
   const establecerEstado = (mensaje, tipo = 'ok') => {
     if (!estado) return;
     estado.textContent = mensaje;
-    estado.dataset.type = tipo;
+    estado.dataset.tipo = tipo;
     estado.hidden = !mensaje;
   };
 
   const establecerOcupado = (formulario, ocupado, mensajeCarga = '') => {
-    const botonEnviar = formulario?.querySelector('.auth-submit');
+    const botonEnviar = formulario?.querySelector('.cuenta-enviar');
     if (botonEnviar) {
       botonEnviar.disabled = ocupado;
       botonEnviar.dataset.busy = ocupado ? 'true' : 'false';
@@ -1154,27 +1154,27 @@ function configurarPaginaAutenticacion() {
   const activarPestana = (nombre) => {
     formularioRecuperacion?.toggleAttribute('hidden', true);
     formularioRestablecerContrasena?.toggleAttribute('hidden', true);
-    formularioRestablecerContrasena?.classList.remove('active');
+    formularioRestablecerContrasena?.classList.remove('activo');
     formularioInicioSesion?.toggleAttribute('hidden', nombre !== 'login');
     formularioRegistro?.toggleAttribute('hidden', nombre !== 'register');
     pestanas.forEach(tab => tab.removeAttribute('hidden'));
     pestanas.forEach(tab => {
-      const activo = tab.dataset.authTab === nombre;
-      tab.classList.toggle('active', activo);
+      const activo = tab.dataset.cuentaTab === nombre;
+      tab.classList.toggle('activo', activo);
       tab.setAttribute('aria-selected', String(activo));
       tab.tabIndex = activo ? 0 : -1;
     });
-    paneles.forEach(panelActual => panelActual.classList.toggle('active', panelActual.dataset.authPanel === nombre));
+    paneles.forEach(panelActual => panelActual.classList.toggle('activo', panelActual.dataset.cuentaPanel === nombre));
     establecerEstado('');
   };
 
-  document.querySelectorAll('.auth-submit').forEach(botonAccion => {
+  document.querySelectorAll('.cuenta-enviar').forEach(botonAccion => {
     botonAccion.dataset.defaultLabel = botonAccion.textContent.trim();
   });
 
-  document.querySelectorAll('[data-password-toggle]').forEach(boton => {
+  document.querySelectorAll('[data-contrasena-alternar]').forEach(boton => {
     boton.addEventListener('click', () => {
-      const entrada = document.getElementById(boton.dataset.passwordToggle);
+      const entrada = document.getElementById(boton.dataset.contrasenaAlternar);
       if (!entrada) return;
       const tipoSiguiente = entrada.type === 'password' ? 'text' : 'password';
       entrada.type = tipoSiguiente;
@@ -1191,12 +1191,12 @@ function configurarPaginaAutenticacion() {
   }
 
   pestanas.forEach(tab => {
-    tab.addEventListener('click', () => activarPestana(tab.dataset.authTab));
+    tab.addEventListener('click', () => activarPestana(tab.dataset.cuentaTab));
   });
       pestanas.forEach((tab, indice) => tab.addEventListener('keydown', evento => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
         const destino = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestanas.length - 1 : (indice + (evento.key === 'ArrowRight' ? 1 : pestanas.length - 1)) % pestanas.length;
-        evento.preventDefault(); pestanas[destino].focus(); activarPestana(pestanas[destino].dataset.authTab);
+        evento.preventDefault(); pestanas[destino].focus(); activarPestana(pestanas[destino].dataset.cuentaTab);
       }));
 
   formularioRegistro?.addEventListener('submit', async (evento) => {
@@ -1291,9 +1291,9 @@ function configurarPaginaAutenticacion() {
   });
 
   // Google se completa en el backend para no exponer credenciales sensibles.
-  document.querySelectorAll('[data-auth-provider]').forEach(boton => {
+  document.querySelectorAll('[data-cuenta-proveedor]').forEach(boton => {
     boton.addEventListener('click', () => {
-      const proveedor = boton.dataset.authProvider;
+      const proveedor = boton.dataset.cuentaProveedor;
       if (proveedor === 'Google') {
         establecerEstado('Redirigiendo a Google para continuar...', 'loading');
         iniciarSesionGoogle(boton);
@@ -1303,15 +1303,15 @@ function configurarPaginaAutenticacion() {
     });
   });
 
-  document.querySelectorAll('[data-auth-message]').forEach(boton => {
+  document.querySelectorAll('[data-cuenta-mensaje]').forEach(boton => {
     boton.addEventListener('click', () => {
-      if (boton.dataset.authMessage !== 'recuperar') return establecerEstado(boton.dataset.authMessage, 'info');
+      if (boton.dataset.cuentaMensaje !== 'recuperar') return establecerEstado(boton.dataset.cuentaMensaje, 'info');
       formularioInicioSesion?.toggleAttribute('hidden', true);
       formularioRegistro?.toggleAttribute('hidden', true);
       formularioRecuperacion?.toggleAttribute('hidden', false);
-      formularioInicioSesion?.classList.remove('active');
-      formularioRegistro?.classList.remove('active');
-      formularioRecuperacion?.classList.add('active');
+      formularioInicioSesion?.classList.remove('activo');
+      formularioRegistro?.classList.remove('activo');
+      formularioRecuperacion?.classList.add('activo');
       establecerEstado('Escribe tu correo y te enviaremos un enlace de recuperación.', 'info');
     });
   });
@@ -1356,7 +1356,7 @@ function configurarPaginaAutenticacion() {
       await cerrarSesionSigtur();
       formularioRestablecerContrasena.reset();
       formularioRestablecerContrasena.hidden = true;
-      formularioRestablecerContrasena.classList.remove('active');
+      formularioRestablecerContrasena.classList.remove('activo');
       pestanas.forEach(tab => tab.removeAttribute('hidden'));
       activarPestana('login');
       establecerEstado('Contraseña actualizada. Ya puedes iniciar sesión.', 'ok');
@@ -1370,26 +1370,26 @@ function configurarPaginaAutenticacion() {
   document.getElementById('recovery-cancel')?.addEventListener('click', () => {
     formularioRecuperacion?.toggleAttribute('hidden', true);
     formularioInicioSesion?.toggleAttribute('hidden', false);
-    formularioRecuperacion?.classList.remove('active');
-    formularioInicioSesion?.classList.add('active');
+    formularioRecuperacion?.classList.remove('activo');
+    formularioInicioSesion?.classList.add('activo');
     establecerEstado('');
   });
 }
 
 function mostrarFormularioRestablecerContrasena() {
-  const restablecer = document.getElementById('password-reset-form');
+  const restablecer = document.getElementById('contrasena-reset-formulario');
   if (!restablecer) return;
-  document.querySelectorAll('[data-auth-panel]').forEach(panelActual => {
+  document.querySelectorAll('[data-cuenta-panel]').forEach(panelActual => {
     panelActual.hidden = true;
-    panelActual.classList.remove('active');
+    panelActual.classList.remove('activo');
   });
-  document.querySelectorAll('[data-auth-tab]').forEach(tab => tab.hidden = true);
+  document.querySelectorAll('[data-cuenta-tab]').forEach(tab => tab.hidden = true);
   restablecer.hidden = false;
-  restablecer.classList.add('active');
+  restablecer.classList.add('activo');
 }
 
 async function configurarPaginaPerfil() {
-  const paginaPerfil = document.querySelector('.profile-page');
+  const paginaPerfil = document.querySelector('.perfil-pagina');
   if (!paginaPerfil) return;
   paginaPerfil.setAttribute('aria-busy', 'true');
 
@@ -1410,20 +1410,20 @@ async function configurarPaginaPerfil() {
     const nombre = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
     const iniciales = nombre.trim().split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase();
     representarIdentidadPerfil(usuario, iniciales || '?');
-    document.getElementById('role-tags').innerHTML = `<span class="tag">${usuario.rol === 'admin' ? 'Administrador' : 'Explorador'}</span>`;
-    document.getElementById('followers').textContent = 'Activa';
+    document.getElementById('rol-etiquetas').innerHTML = `<span class="etiqueta">${usuario.rol === 'admin' ? 'Administrador' : 'Explorador'}</span>`;
+    document.getElementById('seguidores').textContent = 'Activa';
     configurarEditorPerfil(usuario);
     await representarReservasPerfil(usuario.id);
 
     try {
       const guardado = await solicitarApiSigtur('/api/guardados');
       const lugaresGuardados = await completarLugaresGuardados(guardado.data || [], usuario.id);
-      document.getElementById('total-count').textContent = lugaresGuardados.length;
-      document.getElementById('following').textContent = lugaresGuardados.filter(elemento => elemento.entidad_tipo === 'place').length;
+      document.getElementById('total-cantidad').textContent = lugaresGuardados.length;
+      document.getElementById('siguiendo').textContent = lugaresGuardados.filter(elemento => elemento.entidad_tipo === 'place').length;
       representarCuadriculaPerfil(lugaresGuardados);
     } catch (fallo) {
-      const cuadricula = document.getElementById('content-grid');
-      if (cuadricula) cuadricula.innerHTML = `<p class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus lugares guardados. Intentá nuevamente.')}</p>`;
+      const cuadricula = document.getElementById('contenido-cuadricula');
+      if (cuadricula) cuadricula.innerHTML = `<p class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus lugares guardados. Intentá nuevamente.')}</p>`;
     }
     configurarMensajeria();
   } catch (fallo) {
@@ -1431,30 +1431,30 @@ async function configurarPaginaPerfil() {
     if (!obtenerSesionSigtur()?.token) {
       window.location.replace('login.html');
     } else {
-      const titulo = document.getElementById('profile-title');
+      const titulo = document.getElementById('perfil-titulo');
       if (titulo) titulo.textContent = fallo.message || 'No se pudo cargar el perfil. Intentá nuevamente.';
     }
     return;
   }
 
-  document.querySelector('[data-profile-logout]')?.addEventListener('click', cerrarSesionDesdeInterfaz);
+  document.querySelector('[data-perfil-logout]')?.addEventListener('click', cerrarSesionDesdeInterfaz);
 }
 
 function representarIdentidadPerfil(usuario, iniciales) {
   const nombre = usuario.nombre || usuario.correo?.split('@')[0] || 'Usuario';
   const avatar = document.getElementById('avatar');
   if (avatar) avatar.innerHTML = usuario.avatar_url ? `<img src="${escaparTexto(usuario.avatar_url)}" alt="">` : escaparTexto(iniciales);
-  document.getElementById('profile-title').textContent = nombre;
+  document.getElementById('perfil-titulo').textContent = nombre;
   document.getElementById('bio').textContent = usuario.biografia || usuario.ubicacion || usuario.correo || 'Explorador de Salto';
 }
 
 function configurarEditorPerfil(usuarioInicial) {
-  const editor = document.querySelector('[data-profile-editor]');
-  const disparador = document.querySelector('[data-profile-edit]');
-  const formulario = document.getElementById('profile-edit-form');
-  const entrada = document.getElementById('profile-avatar-input');
-  const vistaPrevia = document.getElementById('profile-avatar-preview');
-  const estado = document.querySelector('[data-profile-editor-status]');
+  const editor = document.querySelector('[data-perfil-editor]');
+  const disparador = document.querySelector('[data-perfil-editar]');
+  const formulario = document.getElementById('perfil-editar-formulario');
+  const entrada = document.getElementById('perfil-avatar-entrada');
+  const vistaPrevia = document.getElementById('perfil-avatar-vista-previa');
+  const estado = document.querySelector('[data-perfil-editor-estado]');
   if (!editor || !disparador || !formulario || !entrada || !vistaPrevia) return;
   let urlAvatar = usuarioInicial.avatar_url || '';
   const dibujarVistaPrevia = () => { vistaPrevia.innerHTML = urlAvatar ? `<img src="${escaparTexto(urlAvatar)}" alt="">` : escaparTexto((usuarioInicial.nombre || '?').slice(0, 1).toUpperCase()); };
@@ -1464,7 +1464,7 @@ function configurarEditorPerfil(usuarioInicial) {
   formulario.sitio_web.value = usuarioInicial.sitio_web || '';
   dibujarVistaPrevia();
   disparador.addEventListener('click', () => { editor.hidden = false; editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-  editor.querySelector('[data-profile-edit-cancel]').addEventListener('click', () => {
+  editor.querySelector('[data-perfil-editar-cancel]').addEventListener('click', () => {
     formulario.nombre.value = usuarioInicial.nombre || '';
     formulario.ubicacion.value = usuarioInicial.ubicacion || '';
     formulario.biografia.value = usuarioInicial.biografia || '';
@@ -1503,26 +1503,26 @@ function configurarEditorPerfil(usuarioInicial) {
 }
 
 async function configurarMensajeria() {
-  const selectorContactos = document.getElementById('dm-contact');
-  const listaContactos = document.getElementById('dm-contact-list');
-  const busquedaContactos = document.getElementById('dm-contact-search');
-  const hilo = document.getElementById('dm-thread-list');
-  const formulario = document.getElementById('dm-form');
-  const mensaje = document.getElementById('dm-message');
-  const estado = document.getElementById('dm-status');
-  const botonGrabar = document.getElementById('dm-record');
-  const estadoGrabacion = document.getElementById('dm-recording-status');
-  const vistaPreviaAudio = document.getElementById('dm-audio-preview');
-  const reproduccionAudio = document.getElementById('dm-audio-playback');
-  const botonDescartarAudio = document.getElementById('dm-audio-discard');
-  const botonEnviarAudio = document.getElementById('dm-audio-send');
-  const botonAdjunto = document.getElementById('dm-attach');
-  const entradaAdjunto = document.getElementById('dm-attachment-input');
-  const adjuntoEstado = document.getElementById('dm-attachment-status');
-  const vistaPreviaAdjunto = document.getElementById('dm-attachment-preview');
-  const etiquetaContactoActivo = document.getElementById('dm-active-contact');
-  const botonLimpiarArchivos = document.getElementById('dm-cleanup-files');
-  const botonEnviarTexto = formulario?.querySelector('.dm-send-text');
+  const selectorContactos = document.getElementById('mensaje-directo-contacto');
+  const listaContactos = document.getElementById('mensaje-directo-contacto-lista');
+  const busquedaContactos = document.getElementById('mensaje-directo-contacto-busqueda');
+  const hilo = document.getElementById('mensaje-directo-hilo-lista');
+  const formulario = document.getElementById('mensaje-directo-formulario');
+  const mensaje = document.getElementById('mensaje-directo-mensaje');
+  const estado = document.getElementById('mensaje-directo-estado');
+  const botonGrabar = document.getElementById('mensaje-directo-grabar');
+  const estadoGrabacion = document.getElementById('mensaje-directo-grabando-estado');
+  const vistaPreviaAudio = document.getElementById('mensaje-directo-audio-vista-previa');
+  const reproduccionAudio = document.getElementById('mensaje-directo-audio-playback');
+  const botonDescartarAudio = document.getElementById('mensaje-directo-audio-discard');
+  const botonEnviarAudio = document.getElementById('mensaje-directo-audio-enviar');
+  const botonAdjunto = document.getElementById('mensaje-directo-adjuntar');
+  const entradaAdjunto = document.getElementById('mensaje-directo-adjunto-entrada');
+  const adjuntoEstado = document.getElementById('mensaje-directo-adjunto-estado');
+  const vistaPreviaAdjunto = document.getElementById('mensaje-directo-adjunto-vista-previa');
+  const etiquetaContactoActivo = document.getElementById('mensaje-directo-activo-contacto');
+  const botonLimpiarArchivos = document.getElementById('mensaje-directo-cleanup-files');
+  const botonEnviarTexto = formulario?.querySelector('.mensaje-directo-enviar-texto');
   if (!selectorContactos || !hilo || !formulario) return;
 
   botonLimpiarArchivos?.addEventListener('click', async () => {
@@ -1571,7 +1571,7 @@ async function configurarMensajeria() {
     if (botonEnviarAudio) botonEnviarAudio.disabled = true;
     if (botonGrabar) {
       botonGrabar.disabled = false;
-      botonGrabar.classList.remove('is-recording');
+      botonGrabar.classList.remove('estado-grabando');
       botonGrabar.setAttribute('aria-pressed', 'false');
       botonGrabar.innerHTML = '<span aria-hidden="true">🎙</span> Grabar audio';
     }
@@ -1585,12 +1585,12 @@ async function configurarMensajeria() {
       : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   const representarAdjuntosMensaje = adjuntos => {
     if (!Array.isArray(adjuntos) || !adjuntos.length) return '';
-    return `<div class="dm-message-attachments">${adjuntos.map(archivo => {
+    return `<div class="mensaje-directo-mensaje-adjuntos">${adjuntos.map(archivo => {
       const url = escaparTexto(archivo.url || '#');
       const nombre = escaparTexto(archivo.name || (archivo.mime === 'application/pdf' ? 'Documento PDF' : 'Imagen adjunta'));
       return archivo.mime?.startsWith('image/')
-        ? `<a class="dm-file-image" href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${nombre}" loading="lazy"><span>${nombre}</span></a>`
-        : `<a class="dm-file-document" href="${url}" target="_blank" rel="noopener noreferrer"><span class="dm-file-icon" aria-hidden="true">PDF</span><span><strong>${nombre}</strong><small>${etiquetaTamanoArchivo(Number(archivo.size) || 0)} · Abrir documento</small></span></a>`;
+        ? `<a class="mensaje-directo-archivo-imagen" href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="${nombre}" loading="lazy"><span>${nombre}</span></a>`
+        : `<a class="mensaje-directo-archivo-documento" href="${url}" target="_blank" rel="noopener noreferrer"><span class="mensaje-directo-archivo-icono" aria-hidden="true">PDF</span><span><strong>${nombre}</strong><small>${etiquetaTamanoArchivo(Number(archivo.size) || 0)} · Abrir documento</small></span></a>`;
     }).join('')}</div>`;
   };
   const representarAdjuntosPendientes = () => {
@@ -1600,7 +1600,7 @@ async function configurarMensajeria() {
     vistaPreviaAdjunto.replaceChildren();
     adjuntosPendientes.forEach((archivo, indice) => {
       const elemento = document.createElement('div');
-      elemento.className = 'dm-pending-file';
+      elemento.className = 'mensaje-directo-pendiente-archivo';
       if (archivo.type.startsWith('image/')) {
         const imagen = document.createElement('img');
         imagen.src = URL.createObjectURL(archivo);
@@ -1609,16 +1609,16 @@ async function configurarMensajeria() {
         elemento.appendChild(imagen);
       } else {
         const icono = document.createElement('span');
-        icono.className = 'dm-file-icon';
+        icono.className = 'mensaje-directo-archivo-icono';
         icono.textContent = 'PDF';
         elemento.appendChild(icono);
       }
       const nombre = document.createElement('span');
-      nombre.className = 'dm-pending-file-name';
+      nombre.className = 'mensaje-directo-pendiente-archivo-nombre';
       nombre.textContent = `${archivo.name} · ${etiquetaTamanoArchivo(archivo.size)}`;
       const quitar = document.createElement('button');
       quitar.type = 'button';
-      quitar.className = 'dm-remove-file';
+      quitar.className = 'mensaje-directo-eliminar-archivo';
       quitar.setAttribute('aria-label', `Quitar ${archivo.name}`);
       quitar.textContent = '×';
       quitar.addEventListener('click', () => {
@@ -1714,8 +1714,8 @@ async function configurarMensajeria() {
 
     if (!visible.length) {
       listaContactos.innerHTML = termino
-        ? '<p class="dm-empty">No encontramos usuarios ni conversaciones con ese nombre.</p>'
-        : '<p class="dm-empty">Todavía no hay conversaciones. Buscá un usuario para iniciar una.</p>';
+        ? '<p class="mensaje-directo-vacio">No encontramos usuarios ni conversaciones con ese nombre.</p>'
+        : '<p class="mensaje-directo-vacio">Todavía no hay conversaciones. Buscá un usuario para iniciar una.</p>';
       return;
     }
 
@@ -1728,17 +1728,17 @@ async function configurarMensajeria() {
           ? '📎 Archivo adjunto'
         : elemento.last_message?.contenido ? escaparTexto(elemento.last_message.contenido) : elemento.isNew ? 'Iniciar chat · se entrega al reconectar' : 'No hay mensajes todavía.';
       const noLeido = Number(elemento.unread_count || 0);
-      const activo = elemento.usuario_id === activoIdentificador ? 'is-active' : '';
+      const activo = elemento.usuario_id === activoIdentificador ? 'estado-activo' : '';
       return `
-        <button type="button" class="dm-conversation ${activo}" data-dm-user="${escaparTexto(elemento.usuario_id)}">
-          <span class="dm-avatar">${escaparTexto(inicialesDe(usuario))}</span>
-          <span class="dm-conversation-body">
+        <button type="button" class="mensaje-directo-conversacion ${activo}" data-mensaje-directo-usuario="${escaparTexto(elemento.usuario_id)}">
+          <span class="mensaje-directo-avatar">${escaparTexto(inicialesDe(usuario))}</span>
+          <span class="mensaje-directo-conversacion-cuerpo">
             <strong>${escaparTexto(nombreDe(usuario))}</strong>
             <small>${ultimo}</small>
           </span>
-          <span class="dm-meta">
+          <span class="mensaje-directo-metadatos">
             <time>${escaparTexto(fecha)}</time>
-            ${noLeido ? `<span class="dm-badge">${noLeido}</span>` : ''}
+            ${noLeido ? `<span class="mensaje-directo-insignia">${noLeido}</span>` : ''}
           </span>
         </button>
       `;
@@ -1779,16 +1779,16 @@ async function configurarMensajeria() {
         const esSaliente = elemento.remitente_id === identificadorUsuarioActual();
         const textoEstado = esSaliente ? (elemento.leido ? '✓✓ Leído' : '✓ Enviado') : '';
         const contenidoPrincipal = elemento.tipo === 'audio' && elemento.audio_url
-          ? `<div class="dm-audio-message"><span><span aria-hidden="true">🎙</span> Mensaje de voz · ${formatearDuracionAudio(Number(elemento.duration_seconds) || 0)}</span><audio controls preload="none" src="${escaparTexto(elemento.audio_url)}" aria-label="Reproducir mensaje de voz"></audio></div>`
-          : `${elemento.tipo !== 'archivo' && elemento.contenido ? `<p class="dm-message-text">${escaparTexto(elemento.contenido)}</p>` : ''}${representarAdjuntosMensaje(elemento.attachments)}`;
+          ? `<div class="mensaje-directo-audio-mensaje"><span><span aria-hidden="true">🎙</span> Mensaje de voz · ${formatearDuracionAudio(Number(elemento.duration_seconds) || 0)}</span><audio controls preload="none" src="${escaparTexto(elemento.audio_url)}" aria-label="Reproducir mensaje de voz"></audio></div>`
+          : `${elemento.tipo !== 'archivo' && elemento.contenido ? `<p class="mensaje-directo-mensaje-texto">${escaparTexto(elemento.contenido)}</p>` : ''}${representarAdjuntosMensaje(elemento.attachments)}`;
         return `
-          <article class="dm-bubble ${esSaliente ? 'outgoing' : 'incoming'} ${elemento.tipo === 'audio' ? 'dm-bubble-audio' : ''}" data-message-id="${escaparTexto(elemento.id)}">
+          <article class="mensaje-directo-burbuja ${esSaliente ? 'saliente' : 'entrante'} ${elemento.tipo === 'audio' ? 'mensaje-directo-burbuja-audio' : ''}" data-mensaje-id="${escaparTexto(elemento.id)}">
             ${contenidoPrincipal}
             <time>${new Date(elemento.created_at).toLocaleString('es-UY')} ${textoEstado ? `· ${escaparTexto(textoEstado)}` : ''}</time>
-            ${esSaliente ? '<button type="button" data-delete-message>Eliminar mensaje</button>' : ''}
+            ${esSaliente ? '<button type="button" data-eliminar-mensaje>Eliminar mensaje</button>' : ''}
           </article>
         `;
-      }).join('') || '<p class="dm-empty">No hay mensajes todavía.</p>';
+      }).join('') || '<p class="mensaje-directo-vacio">No hay mensajes todavía.</p>';
       if (desplazarAlFinal || conversacionCambiada || estabaCercaDelFinal) hilo.scrollTop = hilo.scrollHeight;
       estado.textContent = '';
       if (elementos.some(elemento => elemento.destinatario_id === identificadorUsuarioActual() && !elemento.leido)) {
@@ -1802,12 +1802,12 @@ async function configurarMensajeria() {
   };
 
   hilo.addEventListener('click', async evento => {
-    const boton = evento.target.closest('[data-delete-message]');
+    const boton = evento.target.closest('[data-eliminar-mensaje]');
     if (!boton) return;
-    const burbuja = boton.closest('[data-message-id]');
+    const burbuja = boton.closest('[data-mensaje-id]');
     if (!burbuja || !window.confirm('¿Eliminar este mensaje y sus archivos adjuntos?')) return;
     boton.disabled = true;
-    try { await solicitarApiSigtur(`/api/mensajes/${encodeURIComponent(burbuja.dataset.messageId)}`, { method: 'DELETE' }); await cargarHilo(activoIdentificador); }
+    try { await solicitarApiSigtur(`/api/mensajes/${encodeURIComponent(burbuja.dataset.mensajeId)}`, { method: 'DELETE' }); await cargarHilo(activoIdentificador); }
     catch (fallo) { boton.disabled = false; estado.textContent = fallo.message || 'No se pudo eliminar el mensaje.'; }
   });
 
@@ -1860,9 +1860,9 @@ let ultimaActualizacionConversacion = Date.now();
   });
 
   listaContactos?.addEventListener('click', evento => {
-    const boton = evento.target.closest('[data-dm-user]');
+    const boton = evento.target.closest('[data-mensaje-directo-usuario]');
     if (!boton) return;
-    const usuarioIdentificador = boton.dataset.dmUser;
+    const usuarioIdentificador = boton.dataset.mensajeDirectoUsuario;
     selectorContactos.value = usuarioIdentificador;
     cargarHilo(usuarioIdentificador);
   });
@@ -1892,14 +1892,14 @@ let ultimaActualizacionConversacion = Date.now();
   formulario.addEventListener('dragover', evento => {
     if ([...(evento.dataTransfer?.items || [])].some(elemento => elemento.kind === 'file')) {
       evento.preventDefault();
-      formulario.classList.add('is-drop-target');
+      formulario.classList.add('estado-destino-soltar');
     }
   });
   formulario.addEventListener('dragleave', evento => {
-    if (!formulario.contains(evento.relatedTarget)) formulario.classList.remove('is-drop-target');
+    if (!formulario.contains(evento.relatedTarget)) formulario.classList.remove('estado-destino-soltar');
   });
   formulario.addEventListener('drop', evento => {
-    formulario.classList.remove('is-drop-target');
+    formulario.classList.remove('estado-destino-soltar');
     const archivos = [...(evento.dataTransfer?.files || [])];
     if (!archivos.length) return;
     evento.preventDefault();
@@ -1960,7 +1960,7 @@ document.addEventListener('visibilitychange', actualizarMensajeria);
         const archivoBinario = new Blob(fragmentosGrabacion, { type: grabadorMultimedia?.mimeType || tipoMime || 'audio/webm' });
         grabadorMultimedia = null;
         fragmentosGrabacion = [];
-        botonGrabar?.classList.remove('is-recording');
+        botonGrabar?.classList.remove('estado-grabando');
         botonGrabar?.setAttribute('aria-pressed', 'false');
         if (botonGrabar) {
           botonGrabar.disabled = false;
@@ -1982,7 +1982,7 @@ document.addEventListener('visibilitychange', actualizarMensajeria);
 
       grabadorMultimedia.start(250);
       botonGrabar.disabled = false;
-      botonGrabar.classList.add('is-recording');
+      botonGrabar.classList.add('estado-grabando');
       botonGrabar.setAttribute('aria-pressed', 'true');
       botonGrabar.innerHTML = '<span aria-hidden="true">■</span> Detener grabación';
       if (estadoGrabacion) estadoGrabacion.textContent = 'Grabando · 0:00';
@@ -2121,17 +2121,17 @@ function escaparTexto(valor) {
 }
 
 function configurarBotonesFavoritos() {
-  document.querySelectorAll('.prop-heart, .lugar-action-link.guardar').forEach(boton => {
+  document.querySelectorAll('.alojamiento-corazon, .lugar-accion-enlace.guardar').forEach(boton => {
     // Los botones de lugares viven dentro de .lugar-actions, que es hijo
     // directo de la tarjeta. Subir dos niveles seleccionaba .lugares-list
     // y terminaba guardando todas las tarjetas como si fueran Plaza Artigas.
-    const tarjeta = boton.closest('.prop-card, .lugar-card') || boton.parentElement;
-    const titulo = tarjeta.querySelector('.prop-name, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
+    const tarjeta = boton.closest('.alojamiento-tarjeta, .lugar-tarjeta') || boton.parentElement;
+    const titulo = tarjeta.querySelector('.alojamiento-nombre, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
     const identificadorEntidad = boton.dataset.entityId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     boton.dataset.entityId = identificadorEntidad;
     boton.setAttribute('aria-pressed', 'false');
     const sincronizar = async () => {
-      try { const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(identificadorEntidad)}`); boton.setAttribute('aria-pressed', String(Boolean(estado.saved))); boton.classList.toggle('liked', Boolean(estado.saved)); }
+      try { const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(identificadorEntidad)}`); boton.setAttribute('aria-pressed', String(Boolean(estado.saved))); boton.classList.toggle('me-gusta', Boolean(estado.saved)); }
       catch { boton.setAttribute('aria-pressed', 'false'); }
     };
     sincronizar();
@@ -2141,7 +2141,7 @@ function configurarBotonesFavoritos() {
       const activo = boton.getAttribute('aria-pressed') !== 'true'; boton.disabled = true;
       try {
         await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'place', entidad_id: identificadorEntidad, activo: activo, metadata: { nombre: titulo } }) });
-        boton.setAttribute('aria-pressed', String(activo)); boton.classList.toggle('liked', activo);
+        boton.setAttribute('aria-pressed', String(activo)); boton.classList.toggle('me-gusta', activo);
         boton.setAttribute('aria-label', activo ? `Quitar ${titulo} de guardados` : `Guardar ${titulo}`);
       } catch (fallo) { window.alert(fallo.message || 'No se pudo actualizar guardados.'); }
       finally { boton.disabled = false; }
@@ -2150,21 +2150,21 @@ function configurarBotonesFavoritos() {
 }
 
 function configurarPlanificacionTuristica() {
-  const tarjetas = document.querySelectorAll('.alojamientos-section .prop-card');
+  const tarjetas = document.querySelectorAll('.alojamientos-seccion .alojamiento-tarjeta');
   if (!tarjetas.length) return;
   const dialogo = document.createElement('dialog');
-  dialogo.className = 'tourism-plan-dialog';
+  dialogo.className = 'turismo-planificacion-dialogo';
   document.body.appendChild(dialogo);
   dialogo.addEventListener('click', evento => { if (evento.target === dialogo) dialogo.close('cancel'); });
   const abrir = tarjeta => {
-    const nombre = tarjeta.querySelector('.prop-name')?.textContent.trim() || 'Experiencia turística';
-    const precio = tarjeta.querySelector('.prop-price')?.textContent.trim() || 'Consultar tarifa';
+    const nombre = tarjeta.querySelector('.alojamiento-nombre')?.textContent.trim() || 'Experiencia turística';
+    const precio = tarjeta.querySelector('.alojamiento-precio')?.textContent.trim() || 'Consultar tarifa';
     const referenciaLugar = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    dialogo.innerHTML = `<form class="tourism-plan-widget"><header><div><p>Planificá tu visita</p><h2>${escaparTexto(nombre)}</h2></div><button type="button" data-plan-close aria-label="Cerrar">×</button></header><div class="tourism-plan-grid"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reservation-slots"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="tourism-plan-summary"><span>Desde</span><strong>${escaparTexto(precio)}</strong></div><footer><button type="button" data-plan-close>Cancelar</button><button type="submit">Solicitar disponibilidad</button></footer><p class="tourism-plan-status" aria-live="polite"></p></form>`;
-    dialogo.querySelectorAll('[data-plan-close]').forEach(boton => boton.addEventListener('click', () => dialogo.close('cancel')));
+    dialogo.innerHTML = `<form class="turismo-planificacion-widget"><header><div><p>Planificá tu visita</p><h2>${escaparTexto(nombre)}</h2></div><button type="button" data-planificacion-cerrar aria-label="Cerrar">×</button></header><div class="turismo-planificacion-cuadricula"><label>Fecha preferida<input name="date" type="date" min="${new Date().toISOString().slice(0, 10)}" required></label><label>Personas<select name="people"><option value="1">1 persona</option><option value="2">2 personas</option><option value="3">3 personas</option><option value="4">4 personas</option></select></label></div><fieldset><legend>Horario flexible</legend><div class="reserva-horarios"><label><input type="radio" name="schedule" value="Mañana · 09:00–12:00" checked><span>Mañana<small>09:00–12:00</small></span></label><label><input type="radio" name="schedule" value="Tarde · 14:00–18:00"><span>Tarde<small>14:00–18:00</small></span></label><label><input type="radio" name="schedule" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset><div class="turismo-planificacion-resumen"><span>Desde</span><strong>${escaparTexto(precio)}</strong></div><footer><button type="button" data-planificacion-cerrar>Cancelar</button><button type="submit">Solicitar disponibilidad</button></footer><p class="turismo-planificacion-estado" aria-live="polite"></p></form>`;
+    dialogo.querySelectorAll('[data-planificacion-cerrar]').forEach(boton => boton.addEventListener('click', () => dialogo.close('cancel')));
     dialogo.querySelector('form').addEventListener('submit', async evento => {
       evento.preventDefault();
-      const formulario = evento.currentTarget, estado = formulario.querySelector('.tourism-plan-status'), valores = new FormData(formulario);
+      const formulario = evento.currentTarget, estado = formulario.querySelector('.turismo-planificacion-estado'), valores = new FormData(formulario);
       if (!obtenerSesionSigtur()?.token) { window.location.assign('login.html'); return; }
       const enviar = formulario.querySelector('[type="submit"]'); enviar.disabled = true; estado.textContent = 'Guardando planificación…';
       try { await solicitarApiSigtur('/api/reservas/planes', { method: 'POST', body: JSON.stringify({ place_ref: referenciaLugar, place_name: nombre, visit_date: valores.get('date'), people: Number(valores.get('people')), schedule: valores.get('schedule') }) }); estado.textContent = 'Plan guardado en tu perfil.'; window.setTimeout(() => dialogo.close('saved'), 700); }
@@ -2173,17 +2173,17 @@ function configurarPlanificacionTuristica() {
     dialogo.showModal();
   };
   tarjetas.forEach(tarjeta => {
-    const informacion = tarjeta.querySelector('.prop-info');
+    const informacion = tarjeta.querySelector('.alojamiento-informacion');
     if (!informacion) return;
     const boton = document.createElement('button');
-    boton.className = 'tourism-plan-trigger'; boton.type = 'button'; boton.textContent = 'Planificar visita';
+    boton.className = 'turismo-planificacion-activador'; boton.type = 'button'; boton.textContent = 'Planificar visita';
     boton.addEventListener('click', () => abrir(tarjeta));
     informacion.appendChild(boton);
   });
 }
 
 function configurarCuriosidadesTuristicas() {
-  const destino = document.getElementById('tourism-curiosity-text');
+  const destino = document.getElementById('turismo-curiosidad-texto');
   if (!destino) return;
   const datosCuriosos = [
     'Las termas del Daymán son uno de los grandes atractivos de Salto: sus aguas cálidas invitan a descansar todo el año.',
@@ -2201,7 +2201,7 @@ function configurarCuriosidadesTuristicas() {
 }
 
 function configurarInformacionGastronomica() {
-  const tarjetas = document.querySelectorAll('.page-home .food-card');
+  const tarjetas = document.querySelectorAll('.pagina-inicio .comida-tarjeta');
   if (!tarjetas.length) return;
   const descripciones = {
     'Asado criollo': 'El asado criollo se cocina lentamente a las brasas. Es una tradición de encuentro: cortes de carne, fuego paciente y sobremesa compartida.',
@@ -2209,7 +2209,7 @@ function configurarInformacionGastronomica() {
     'Cultura del mate': 'El mate es una infusión de yerba mate que se toma con bombilla. Más que una bebida, es una costumbre cotidiana para conversar y recorrer la ciudad.'
   };
   const dialogo = document.createElement('dialog');
-  dialogo.className = 'food-info-dialog';
+  dialogo.className = 'comida-informacion-dialogo';
   dialogo.id = 'ficha-gastronomia';
   dialogo.setAttribute('aria-labelledby', 'ficha-gastronomia-titulo');
   document.body.appendChild(dialogo);
@@ -2220,10 +2220,10 @@ function configurarInformacionGastronomica() {
     tarjeta.setAttribute('aria-haspopup', 'dialog');
     tarjeta.setAttribute('aria-controls', dialogo.id);
     tarjeta.setAttribute('aria-expanded', 'false');
-    const titulo = tarjeta.querySelector('.food-card-btn')?.textContent.trim() || 'Gastronomía local';
+    const titulo = tarjeta.querySelector('.comida-tarjeta-boton')?.textContent.trim() || 'Gastronomía local';
     const abrir = () => {
       tarjetaActiva = tarjeta;
-      const imagen = tarjeta.querySelector('.food-card-img');
+      const imagen = tarjeta.querySelector('.comida-tarjeta-imagen');
       const urlImagen = imagen?.getAttribute('src') || '';
       const textoAlternativo = imagen?.getAttribute('alt') || titulo;
       const descripcion = descripciones[titulo] || 'Una propuesta gastronómica para descubrir durante tu visita a Salto.';
@@ -2277,10 +2277,10 @@ async function completarLugaresGuardados(lugaresGuardados = [], usuarioIdentific
 }
 
 function representarCuadriculaPerfil(lugaresGuardados = []) {
-  const cuadricula = document.getElementById('content-grid');
+  const cuadricula = document.getElementById('contenido-cuadricula');
   if (!cuadricula) return;
   if (!lugaresGuardados.length) {
-    cuadricula.innerHTML = '<p class="profile-empty">Todavía no guardaste ningún punto. Explorá el mapa para armar tu lista.</p>';
+    cuadricula.innerHTML = '<p class="perfil-vacio">Todavía no guardaste ningún punto. Explorá el mapa para armar tu lista.</p>';
     return;
   }
   cuadricula.innerHTML = lugaresGuardados.map(elemento => {
@@ -2289,54 +2289,54 @@ function representarCuadriculaPerfil(lugaresGuardados = []) {
     const titulo = marcador.nombre || `${tipo} · ${elemento.entidad_id}`;
     const enlace = elemento.entidad_tipo === 'event' ? 'eventos.html' : `mapa.html?focus=${encodeURIComponent(elemento.entidad_id)}`;
     const accion = elemento.entidad_tipo === 'event' ? 'Ver eventos' : 'Ver en el mapa';
-    const etiquetas = Array.isArray(marcador.categorias) && marcador.categorias.length ? `<p class="profile-card-tags">${marcador.categorias.map(etiqueta => `<span>${escaparTexto(etiqueta)}</span>`).join('')}</p>` : '';
+    const etiquetas = Array.isArray(marcador.categorias) && marcador.categorias.length ? `<p class="perfil-tarjeta-etiquetas">${marcador.categorias.map(etiqueta => `<span>${escaparTexto(etiqueta)}</span>`).join('')}</p>` : '';
     const imagen = marcador.imagen ? `<img src="${escaparTexto(marcador.imagen)}" alt="" loading="lazy">` : '';
-    return `<article class="profile-card">${imagen}<div><small class="profile-card-kind">${tipo}</small><h3>${escaparTexto(titulo)}</h3>${marcador.direccion ? `<p>${escaparTexto(marcador.direccion)}</p>` : ''}${etiquetas}<p>Guardado el ${new Date(elemento.created_at).toLocaleDateString('es-UY')}</p><a href="${enlace}">${accion}</a> <button type="button" data-remove-saved="${escaparTexto(elemento.entidad_id)}" data-saved-type="${escaparTexto(elemento.entidad_tipo)}">Quitar de guardados</button></div></article>`;
+    return `<article class="perfil-tarjeta">${imagen}<div><small class="perfil-tarjeta-tipo">${tipo}</small><h3>${escaparTexto(titulo)}</h3>${marcador.direccion ? `<p>${escaparTexto(marcador.direccion)}</p>` : ''}${etiquetas}<p>Guardado el ${new Date(elemento.created_at).toLocaleDateString('es-UY')}</p><a href="${enlace}">${accion}</a> <button type="button" data-eliminar-guardado="${escaparTexto(elemento.entidad_id)}" data-guardado-tipo="${escaparTexto(elemento.entidad_tipo)}">Quitar de guardados</button></div></article>`;
   }).join('');
 }
 
 async function representarReservasPerfil(usuarioIdentificador) {
-  const lista = document.getElementById('reservations-list');
+  const lista = document.getElementById('reservas-lista');
   if (!lista) return;
   lista.setAttribute('aria-busy', 'true');
-  lista.innerHTML = '<p class="ui-list-status is-loading" role="status">Cargando reservas...</p>';
+  lista.innerHTML = '<p class="interfaz-lista-estado estado-cargando" role="status">Cargando reservas...</p>';
   let resultado;
   try { resultado = await solicitarApiSigtur('/api/reservas'); }
-  catch (fallo) { lista.innerHTML = `<p class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus reservas.')}</p>`; lista.setAttribute('aria-busy', 'false'); return; }
+  catch (fallo) { lista.innerHTML = `<p class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar tus reservas.')}</p>`; lista.setAttribute('aria-busy', 'false'); return; }
   const entradas = [
     ...(resultado.events || []).map(elemento => ({ ...elemento, type: 'event', displayName: elemento.event_title, displayDate: elemento.created_at, quantity: elemento.quantity, id: elemento.id })),
     ...(resultado.plans || []).map(elemento => ({ ...elemento, type: 'place', displayName: elemento.place_name, displayDate: elemento.visit_date, created_at: elemento.created_at, people: elemento.people, date: elemento.visit_date, id: elemento.id })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   lista.innerHTML = entradas.length
     ? entradas.map(reserva => reserva.type === 'event'
-      ? `<article class="reservation-card"><div><small>EVENTO</small><strong>${escaparTexto(reserva.displayName || 'Evento')}</strong><p>${reserva.quantity} ${Number(reserva.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escaparTexto(reserva.schedule)} · ${new Date(reserva.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reserva.event_ref)}">Ver evento</a><button type="button" data-cancel-reservation="${reserva.id}" data-reservation-type="eventos">Cancelar</button></article>`
-      : `<article class="reservation-card"><div><small>VISITA / LUGAR</small><strong>${escaparTexto(reserva.displayName || 'Experiencia turística')}</strong><p>${escaparTexto(reserva.date)} · ${reserva.people} ${Number(reserva.people) === 1 ? 'persona' : 'personas'} · ${escaparTexto(reserva.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reservation="${reserva.id}" data-reservation-type="planes">Cancelar</button></article>`).join('')
-    : '<p class="profile-empty">Todavía no tenés reservas ni visitas planificadas.</p>';
+      ? `<article class="reserva-tarjeta"><div><small>EVENTO</small><strong>${escaparTexto(reserva.displayName || 'Evento')}</strong><p>${reserva.quantity} ${Number(reserva.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escaparTexto(reserva.schedule)} · ${new Date(reserva.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reserva.event_ref)}">Ver evento</a><button type="button" data-cancel-reserva="${reserva.id}" data-reserva-tipo="eventos">Cancelar</button></article>`
+      : `<article class="reserva-tarjeta"><div><small>VISITA / LUGAR</small><strong>${escaparTexto(reserva.displayName || 'Experiencia turística')}</strong><p>${escaparTexto(reserva.date)} · ${reserva.people} ${Number(reserva.people) === 1 ? 'persona' : 'personas'} · ${escaparTexto(reserva.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reserva="${reserva.id}" data-reserva-tipo="planes">Cancelar</button></article>`).join('')
+    : '<p class="perfil-vacio">Todavía no tenés reservas ni visitas planificadas.</p>';
   lista.setAttribute('aria-busy', 'false');
   lista.onclick = async evento => {
-    const cancelar = evento.target.closest('[data-cancel-reservation]');
+    const cancelar = evento.target.closest('[data-cancel-reserva]');
     if (!cancelar || !window.confirm('¿Cancelar esta reserva o planificación?')) return;
     cancelar.disabled = true;
-    try { await solicitarApiSigtur(`/api/reservas/${cancelar.dataset.reservationType}/${encodeURIComponent(cancelar.dataset.cancelReservation)}`, { method: 'DELETE' }); await representarReservasPerfil(usuarioIdentificador); }
+    try { await solicitarApiSigtur(`/api/reservas/${cancelar.dataset.reservaTipo}/${encodeURIComponent(cancelar.dataset.cancelReserva)}`, { method: 'DELETE' }); await representarReservasPerfil(usuarioIdentificador); }
     catch (fallo) { cancelar.disabled = false; window.alert(fallo.message || 'No se pudo cancelar.'); }
   };
 }
 
-function configurarAccesoRapidoEventosAdmin() {
+function configurarAccesoRapidoEventosAdministracion() {
   if (obtenerSesionSigtur()?.usuario?.rol !== 'admin') return;
-  const servidor = document.querySelector('.destacados-header');
-  if (!servidor || servidor.querySelector('[data-admin-create-event]')) return;
+  const servidor = document.querySelector('.destacados-encabezado');
+  if (!servidor || servidor.querySelector('[data-administracion-crear-evento]')) return;
   const enlace = document.createElement('a');
   enlace.href = 'admin.html#admin-event-form';
-  enlace.className = 'admin-create-event';
-  enlace.dataset.adminCreateEvent = 'true';
+  enlace.className = 'administracion-crear-evento';
+  enlace.dataset.administracionCrearEvento = 'true';
   enlace.textContent = '+ Crear evento';
   servidor.appendChild(enlace);
 }
 
 async function configurarInteraccionesEventos() {
-  const listaTickets = document.querySelector('.page-eventos .event-tickets');
-  if (!listaTickets) return;
+  const listaEntradas = document.querySelector('.pagina-eventos .evento-entradas');
+  if (!listaEntradas) return;
   const iconoEvento = (nombre) => {
     const rutas = {
       location: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -2366,8 +2366,8 @@ async function configurarInteraccionesEventos() {
       const fecha = new Date(`${evento.date_start}T00:00:00`);
       const categoria = String(evento.categories?.[0] || 'Cultura').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '');
       const fila = document.createElement('article');
-      fila.className = 'ticket-row ticket-row-remote';
-      fila.dataset.cat = categoria;
+      fila.className = 'entrada-fila entrada-fila-remoto';
+      fila.dataset.categoriaEvento = categoria;
       fila.dataset.eventId = `event-${evento.id}`;
       const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
       const multimediaEvento = analizarMultimediaEvento(evento.image_url);
@@ -2378,46 +2378,46 @@ async function configurarInteraccionesEventos() {
       fila.dataset.eventMediaType = multimediaEvento.tipo;
       fila.dataset.eventMediaUrl = multimediaEvento.url;
       fila.dataset.eventLink = enlaceFichaEvento;
-      fila.style.setProperty('--event-color', colorEvento);
+      fila.style.setProperty('--color-evento', colorEvento);
       const horaEvento = evento.event_time ? String(evento.event_time).slice(0, 5) : 'Horario a confirmar';
       const precioEvento = Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis';
       fila.innerHTML = `
-        <div class="ticket-date"><span class="day">${Number.isNaN(fecha.getTime()) ? '--' : String(fecha.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(fecha.getTime()) ? '---' : nombresMeses[fecha.getMonth()]}</span></div>
-        <div class="ticket-divider"></div>
-        <div class="ticket-info">
-          <div class="ticket-heading"><span class="ticket-title">${escaparTexto(evento.title)}</span></div>
-          <span class="ticket-subtitle">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span>
-          <div class="ticket-location">${iconoEvento('location')}<span>${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</span></div>
+        <div class="entrada-fecha"><span class="dia">${Number.isNaN(fecha.getTime()) ? '--' : String(fecha.getDate()).padStart(2, '0')}</span><span class="mes">${Number.isNaN(fecha.getTime()) ? '---' : nombresMeses[fecha.getMonth()]}</span></div>
+        <div class="entrada-separador"></div>
+        <div class="entrada-informacion">
+          <div class="entrada-encabezado"><span class="entrada-titulo">${escaparTexto(evento.title)}</span></div>
+          <span class="entrada-subtitulo">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span>
+          <div class="entrada-ubicacion">${iconoEvento('location')}<span>${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</span></div>
         </div>
-        <span class="ticket-badge badge-green">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span>
-        <span class="ticket-schedule">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span>
-        <span class="ticket-time ticket-price">${iconoEvento('price')}<span>${precioEvento}</span></span>
-        <button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
-      listaTickets.prepend(fila);
+        <span class="entrada-insignia insignia-verde">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span>
+        <span class="entrada-horario">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span>
+        <span class="entrada-hora entrada-precio">${iconoEvento('price')}<span>${precioEvento}</span></span>
+        <button class="entrada-corazon" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="corazon-relleno" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
+      listaEntradas.prepend(fila);
     });
-    listaTickets.dispatchEvent(new Event('eventosactualizados'));
+    listaEntradas.dispatchEvent(new Event('eventosactualizados'));
   } catch (fallo) {
     const estado = document.createElement('p');
-    estado.className = 'form-help event-api-status';
+    estado.className = 'formulario-help evento-api-estado';
     estado.textContent = fallo.message || 'No se pudieron cargar los eventos publicados.';
-    listaTickets.insertAdjacentElement('beforebegin', estado);
+    listaEntradas.insertAdjacentElement('beforebegin', estado);
   }
-  document.querySelectorAll('.page-eventos .ticket-row:not(.ticket-row-remote)').forEach(fila => {
-    const horaAnterior = fila.querySelector('.ticket-time');
-    if (horaAnterior && !fila.querySelector('.ticket-schedule')) {
-      horaAnterior.classList.add('ticket-schedule');
+  document.querySelectorAll('.pagina-eventos .entrada-fila:not(.entrada-fila-remoto)').forEach(fila => {
+    const horaAnterior = fila.querySelector('.entrada-hora');
+    if (horaAnterior && !fila.querySelector('.entrada-horario')) {
+      horaAnterior.classList.add('entrada-horario');
       horaAnterior.innerHTML = `${iconoEvento('time')}<span>${escaparTexto(horaAnterior.textContent.trim())}</span>`;
       const precio = document.createElement('span');
-      precio.className = 'ticket-time ticket-price';
+      precio.className = 'entrada-hora entrada-precio';
       precio.innerHTML = `${iconoEvento('price')}<span>Consultar</span>`;
       horaAnterior.insertAdjacentElement('afterend', precio);
     }
-    const insignia = fila.querySelector('.ticket-badge');
+    const insignia = fila.querySelector('.entrada-insignia');
     if (insignia && !insignia.querySelector('svg')) insignia.insertAdjacentHTML('afterbegin', iconoCategoria(insignia.textContent));
-    const ubicacion = fila.querySelector('.ticket-location');
+    const ubicacion = fila.querySelector('.entrada-ubicacion');
     if (ubicacion && !ubicacion.querySelector('svg')) ubicacion.insertAdjacentHTML('afterbegin', iconoEvento('location'));
   });
-  const filas = document.querySelectorAll('.page-eventos .ticket-row');
+  const filas = document.querySelectorAll('.pagina-eventos .entrada-fila');
   if (!filas.length) return;
 
   const escaparHtml = (valor) => {
@@ -2427,31 +2427,31 @@ async function configurarInteraccionesEventos() {
   };
   const crearIdentificadorUrl = (valor) => String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const obtenerDatosEvento = (fila) => {
-    const titulo = fila.querySelector('.ticket-title')?.textContent.trim() || 'Evento';
-    const fecha = `${fila.querySelector('.day')?.textContent.trim() || ''}-${fila.querySelector('.month')?.textContent.trim() || ''}`;
-    const ubicacion = fila.querySelector('.ticket-location')?.textContent.trim() || '';
-    const categoria = fila.querySelector('.ticket-badge')?.textContent.trim() || 'Evento';
-    const hora = fila.querySelector('.ticket-schedule')?.textContent.trim() || 'Horario a confirmar';
-    const precio = fila.querySelector('.ticket-price')?.textContent.trim() || 'Consultar';
-    const descripcion = fila.querySelector('.ticket-subtitle')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
+    const titulo = fila.querySelector('.entrada-titulo')?.textContent.trim() || 'Evento';
+    const fecha = `${fila.querySelector('.dia')?.textContent.trim() || ''}-${fila.querySelector('.mes')?.textContent.trim() || ''}`;
+    const ubicacion = fila.querySelector('.entrada-ubicacion')?.textContent.trim() || '';
+    const categoria = fila.querySelector('.entrada-insignia')?.textContent.trim() || 'Evento';
+    const hora = fila.querySelector('.entrada-horario')?.textContent.trim() || 'Horario a confirmar';
+    const precio = fila.querySelector('.entrada-precio')?.textContent.trim() || 'Consultar';
+    const descripcion = fila.querySelector('.entrada-subtitulo')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
     return { title: titulo, id: fila.dataset.eventId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.eventImage || '', mediaType: fila.dataset.eventMediaType || (fila.dataset.eventImage ? 'imagen' : 'ninguno'), mediaUrl: fila.dataset.eventMediaUrl || '', link: obtenerEnlaceWebEvento(fila.dataset.eventLink), color: /^#[0-9a-f]{6}$/i.test(fila.dataset.eventColor || '') ? fila.dataset.eventColor : '#087f72' };
   };
   const dialogoDetalle = document.createElement('dialog');
-  dialogoDetalle.className = 'event-detail-dialog';
+  dialogoDetalle.className = 'evento-detalle-dialogo';
   document.body.appendChild(dialogoDetalle);
   const abrirDetalleEvento = evento => {
     const medioEnFicha = evento.mediaType === 'video'
-      ? `<video class="event-detail-video" controls playsinline preload="metadata"><source src="${escaparHtml(evento.mediaUrl)}">Tu navegador no puede reproducir este video.</video>`
+      ? `<video class="evento-detalle-video" controls playsinline preload="metadata"><source src="${escaparHtml(evento.mediaUrl)}">Tu navegador no puede reproducir este video.</video>`
       : ['youtube', 'vimeo'].includes(evento.mediaType)
-        ? `<iframe class="event-detail-video" src="${escaparHtml(evento.mediaUrl)}" title="Video de ${escaparHtml(evento.title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
-        : evento.image ? `<img class="event-detail-image" src="${escaparHtml(evento.image)}" alt="" decoding="async">` : '';
+        ? `<iframe class="evento-detalle-video" src="${escaparHtml(evento.mediaUrl)}" title="Video de ${escaparHtml(evento.title)}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+        : evento.image ? `<img class="evento-detalle-imagen" src="${escaparHtml(evento.image)}" alt="" decoding="async">` : '';
     const enlaceInformacion = evento.link
       ? `<a href="${escaparHtml(evento.link)}" target="_blank" rel="noopener noreferrer">Ver información oficial</a>`
       : '';
-    dialogoDetalle.innerHTML = `<article class="event-detail-card"><div class="event-detail-hero event-detail-${crearIdentificadorUrl(evento.category)}" style="--event-accent:${evento.color}">${medioEnFicha}<button class="event-detail-close" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="event-detail-labels"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="event-detail-kicker">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="event-detail-content"><div class="event-detail-facts"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="event-detail-actions"><button type="button" data-detail-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a>${enlaceInformacion}</div></div></article>`;
+    dialogoDetalle.innerHTML = `<article class="evento-detalle-tarjeta"><div class="evento-detalle-portada evento-detalle-${crearIdentificadorUrl(evento.category)}" style="--acento-evento:${evento.color}">${medioEnFicha}<button class="evento-detalle-cerrar" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="evento-detalle-rotulos"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="evento-detalle-antetitulo">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="evento-detalle-contenido"><div class="evento-detalle-datos"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="evento-detalle-acciones"><button type="button" data-detalle-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a>${enlaceInformacion}</div></div></article>`;
     dialogoDetalle.showModal();
-    dialogoDetalle.querySelector('.event-detail-close').addEventListener('click', () => dialogoDetalle.close());
-    dialogoDetalle.querySelector('[data-detail-reserve]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-event-reservation]')?.click(); });
+    dialogoDetalle.querySelector('.evento-detalle-cerrar').addEventListener('click', () => dialogoDetalle.close());
+    dialogoDetalle.querySelector('[data-detalle-reserve]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-evento-reserva]')?.click(); });
   };
   dialogoDetalle.addEventListener('click', clicEvento => { if (clicEvento.target === dialogoDetalle) dialogoDetalle.close(); });
   const nombreAutor = (comentario) => {
@@ -2461,13 +2461,13 @@ async function configurarInteraccionesEventos() {
   const avatarAutor = (comentario) => {
     const autor = comentario.autor || {};
     const iniciales = nombreAutor(comentario).split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase() || '?';
-    return `<span class="comment-avatar">${autor.avatar_url ? `<img src="${escaparHtml(autor.avatar_url)}" alt="" onerror="this.remove()">` : ''}<span>${escaparHtml(iniciales)}</span></span>`;
+    return `<span class="comentario-avatar">${autor.avatar_url ? `<img src="${escaparHtml(autor.avatar_url)}" alt="" onerror="this.remove()">` : ''}<span>${escaparHtml(iniciales)}</span></span>`;
   };
   const sincronizarBotonMeGusta = async (boton, identificadorEvento) => {
     try {
       const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
       boton.setAttribute('aria-pressed', String(Boolean(estado.liked)));
-      boton.classList.toggle('liked', Boolean(estado.liked));
+      boton.classList.toggle('me-gusta', Boolean(estado.liked));
       boton.setAttribute('aria-label', estado.liked ? 'Quitar like' : 'Dar like');
       const icono = boton.querySelector('[aria-hidden="true"]');
       if (icono) icono.textContent = estado.liked ? '♥' : '♡';
@@ -2476,9 +2476,9 @@ async function configurarInteraccionesEventos() {
     }
   };
   const representarComentarios = (panelActual, comentarios) => {
-    const lista = panelActual.querySelector('[data-event-comment-list]');
+    const lista = panelActual.querySelector('[data-evento-comentario-lista]');
     if (!lista) return;
-    const orden = panelActual.querySelector('[data-comment-order][aria-pressed="true"]')?.dataset.commentOrder || 'newest';
+    const orden = panelActual.querySelector('[data-comentario-orden][aria-pressed="true"]')?.dataset.comentarioOrden || 'newest';
     const porPadre = new Map();
     comentarios.forEach(comentario => { const clave = comentario.parent_id || 'root'; porPadre.set(clave, [...(porPadre.get(clave) || []), comentario]); });
     const ordenar = entradas => [...entradas].sort((a, b) => {
@@ -2487,30 +2487,30 @@ async function configurarInteraccionesEventos() {
     });
     const representarComentario = comentario => {
       const respuestas = ordenar(porPadre.get(comentario.id) || []);
-      const multimedia = window.sigturCommentMediaMarkup?.(comentario.media_urls) || '';
+      const multimedia = window.sigturGenerarMultimediaComentario?.(comentario.media_urls) || '';
       const contenidoPrincipal = comentario.contenido ? `<p>${escaparHtml(comentario.contenido)}</p>` : '';
       const propio = obtenerSesionSigtur()?.usuario?.id === comentario.usuario_id;
       const estadoMeGusta = comentario.likeState || { liked: false, likes: 0 };
-      return `<article class="event-comment ${comentario.fijado ? 'is-pinned' : ''}" data-comment-id="${escaparHtml(comentario.id)}" data-comment-user="${escaparHtml(comentario.usuario_id)}"><div class="comment-author">${avatarAutor(comentario)}<span><strong>${escaparHtml(nombreAutor(comentario))}</strong><small>${comentario.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comentario.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comentario.created_at).toLocaleDateString('es-UY')}</time></div>${contenidoPrincipal}${multimedia}<div class="event-comment-actions"><button type="button" data-comment-like aria-pressed="${estadoMeGusta.liked}">${estadoMeGusta.liked ? '♥' : '♡'} Me gusta (${estadoMeGusta.likes})</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button>${propio ? '<button type="button" data-edit-comment>Editar</button><button type="button" data-delete-own-comment>Eliminar</button>' : ''}${obtenerSesionSigtur()?.usuario?.rol === 'admin' && !propio ? '<button type="button" data-admin-delete-comment>Eliminar</button>' : ''}</div><div class="event-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escaparHtml(nombreAutor(comentario))}..."></textarea><button type="button" data-submit-reply>Publicar respuesta</button></div>${respuestas.length ? `<div class="event-comment-replies"><span>${respuestas.length} ${respuestas.length === 1 ? 'respuesta' : 'respuestas'}</span>${respuestas.map(representarComentario).join('')}</div>` : ''}</article>`;
+      return `<article class="evento-comentario ${comentario.fijado ? 'estado-fijado' : ''}" data-comentario-id="${escaparHtml(comentario.id)}" data-comentario-usuario="${escaparHtml(comentario.usuario_id)}"><div class="comentario-autor">${avatarAutor(comentario)}<span><strong>${escaparHtml(nombreAutor(comentario))}</strong><small>${comentario.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comentario.fijado ? ' · 📌 Fijado' : ''}</small></span><time>${new Date(comentario.created_at).toLocaleDateString('es-UY')}</time></div>${contenidoPrincipal}${multimedia}<div class="evento-comentario-acciones"><button type="button" data-comentario-me-gusta aria-pressed="${estadoMeGusta.liked}">${estadoMeGusta.liked ? '♥' : '♡'} Me gusta (${estadoMeGusta.likes})</button><button type="button" data-comentario-respuesta>↩ Responder</button><button type="button" data-comentario-mensaje>✉ Mensaje</button>${propio ? '<button type="button" data-editar-comentario>Editar</button><button type="button" data-eliminar-propio-comentario>Eliminar</button>' : ''}${obtenerSesionSigtur()?.usuario?.rol === 'admin' && !propio ? '<button type="button" data-administracion-eliminar-comentario>Eliminar</button>' : ''}</div><div class="evento-respuesta-formulario" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${escaparHtml(nombreAutor(comentario))}..."></textarea><button type="button" data-enviar-respuesta>Publicar respuesta</button></div>${respuestas.length ? `<div class="evento-comentario-respuestas"><span>${respuestas.length} ${respuestas.length === 1 ? 'respuesta' : 'respuestas'}</span>${respuestas.map(representarComentario).join('')}</div>` : ''}</article>`;
     };
     const raices = ordenar(porPadre.get('root') || []);
     lista.innerHTML = raices.length
       ? raices.map(representarComentario).join('')
-      : '<p class="event-panel-status">Todavía no hay comentarios.</p>';
+      : '<p class="evento-panel-estado">Todavía no hay comentarios.</p>';
   };
   const cargarComentarios = async (panelActual, identificadorEvento) => {
     if (panelActual._commentsLoading) {
       panelActual._commentsReload = true;
       return;
     }
-    const estado = panelActual.querySelector('[data-event-panel-status]');
+    const estado = panelActual.querySelector('[data-evento-panel-estado]');
     if (!estado) return;
     panelActual._commentsLoading = true;
     try {
       estado.setAttribute('role', 'status');
       estado.setAttribute('aria-busy', 'true');
-      estado.classList.add('ui-list-status', 'is-loading');
-      estado.classList.remove('is-error');
+      estado.classList.add('interfaz-lista-estado', 'estado-cargando');
+      estado.classList.remove('estado-error');
       estado.textContent = 'Cargando comentarios…';
       const resultado = await solicitarApiSigtur(`/api/comentarios?entidad_tipo=event&entidad_id=${encodeURIComponent(identificadorEvento)}`);
       panelActual._eventComments = await Promise.all((resultado.data || []).map(async comentario => {
@@ -2520,12 +2520,12 @@ async function configurarInteraccionesEventos() {
       representarComentarios(panelActual, panelActual._eventComments);
       estado.textContent = '';
       estado.setAttribute('aria-busy', 'false');
-      estado.classList.remove('is-loading');
+      estado.classList.remove('estado-cargando');
     } catch (fallo) {
       estado.setAttribute('role', 'alert');
       estado.setAttribute('aria-busy', 'false');
-      estado.classList.remove('is-loading');
-      estado.classList.add('ui-list-status', 'is-error');
+      estado.classList.remove('estado-cargando');
+      estado.classList.add('interfaz-lista-estado', 'estado-error');
       estado.textContent = fallo.message || 'No se pudieron cargar los comentarios. Revisa database/README.md y aplica las migraciones pendientes con Supabase CLI.';
     } finally {
       panelActual._commentsLoading = false;
@@ -2547,7 +2547,7 @@ async function configurarInteraccionesEventos() {
 
   filas.forEach(fila => {
     const evento = obtenerDatosEvento(fila);
-    const botonMeGusta = fila.querySelector('.ticket-heart');
+    const botonMeGusta = fila.querySelector('.entrada-corazon');
     if (botonMeGusta) {
       sincronizarBotonMeGusta(botonMeGusta, evento.id);
       botonMeGusta.addEventListener('click', async clicEvento => {
@@ -2562,7 +2562,7 @@ async function configurarInteraccionesEventos() {
             body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, activo: activo }),
           });
           botonMeGusta.setAttribute('aria-pressed', String(activo));
-          botonMeGusta.classList.toggle('liked', activo);
+          botonMeGusta.classList.toggle('me-gusta', activo);
           botonMeGusta.setAttribute('aria-label', activo ? 'Quitar like' : 'Dar like');
           const icono = botonMeGusta.querySelector('[aria-hidden="true"]');
           if (icono) icono.textContent = activo ? '♥' : '♡';
@@ -2574,35 +2574,35 @@ async function configurarInteraccionesEventos() {
       });
     }
     const controles = document.createElement('div');
-    controles.className = 'event-interaction-tools';
+    controles.className = 'evento-interaccion-herramientas';
     const idPanelInteraccion = `panel-interaccion-${crearIdentificadorUrl(evento.id) || 'evento'}`;
-    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">${iconoEvento('culture')}<span>Ver ficha</span></button><button class="event-tool" type="button" data-event-comments aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
+    controles.innerHTML = `<button class="evento-herramienta" type="button" data-evento-detalle title="Ver ficha del evento">${iconoEvento('culture')}<span>Ver ficha</span></button><button class="evento-herramienta" type="button" data-evento-comentarios aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="evento-herramienta" type="button" data-evento-guardar aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="evento-herramienta" type="button" data-evento-reserva aria-controls="${idPanelInteraccion}" aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
     fila.appendChild(controles);
 
     const panelActual = document.createElement('div');
-    panelActual.className = 'event-interaction-panel';
+    panelActual.className = 'evento-interaccion-panel';
     panelActual.id = idPanelInteraccion;
     panelActual.setAttribute('aria-labelledby', `${idPanelInteraccion}-titulo`);
     panelActual.hidden = true;
-    panelActual.innerHTML = `<div class="event-panel-head"><div class="event-panel-heading"><span class="event-panel-context" data-panel-context>Foro del evento</span><strong id="${idPanelInteraccion}-titulo">${escaparHtml(evento.title)}</strong></div><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" aria-label="Escribí un comentario" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
+    panelActual.innerHTML = `<div class="encabezado-panel-evento"><div class="titulo-panel-evento"><span class="evento-panel-contexto" data-panel-contexto>Foro del evento</span><strong id="${idPanelInteraccion}-titulo">${escaparHtml(evento.title)}</strong></div><button type="button" class="evento-panel-cerrar" data-evento-cerrar aria-label="Cerrar panel">×</button></div><div class="evento-comentarios-vista"><div class="evento-comentario-aviso">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comentario-filtro" role="group" aria-label="Ordenar comentarios"><button type="button" data-comentario-orden="newest" aria-pressed="true">Recientes</button><button type="button" data-comentario-orden="oldest" aria-pressed="false">Antiguos</button></div><p class="evento-panel-estado" data-evento-panel-estado></p><div class="evento-comentario-lista" data-evento-comentario-lista></div><form data-evento-comentario-formulario data-comentario-multimedia-formulario><textarea name="contenido" rows="2" maxlength="2000" aria-label="Escribí un comentario" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="evento-panel-enviar" type="submit">Publicar</button></form></div><div class="evento-reserva-vista" hidden><p class="evento-panel-estado" data-reserva-estado></p><div class="reserva-widget"><p class="reserva-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reserva-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reserva-horarios"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="evento-panel-enviar" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
     fila._panelInteraccion = panelActual;
-    const contenedorPaneles = fila.closest('.event-carousel-shell')?.querySelector('.event-interaction-panels');
+    const contenedorPaneles = fila.closest('.evento-carrusel-marco')?.querySelector('.evento-interaccion-paneles');
     if (contenedorPaneles) contenedorPaneles.append(panelActual);
     else fila.insertAdjacentElement('afterend', panelActual);
-    sincronizarBotonGuardado(controles.querySelector('[data-event-save]'), evento);
+    sincronizarBotonGuardado(controles.querySelector('[data-evento-guardar]'), evento);
 
     const cerrarPanel = () => {
       panelActual.setAttribute('hidden', '');
-      fila.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
+      fila.querySelectorAll('[data-evento-comentarios],[data-evento-reserva]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
     };
-    panelActual.querySelector('[data-event-close]').addEventListener('click', cerrarEvento => {
+    panelActual.querySelector('[data-evento-cerrar]').addEventListener('click', cerrarEvento => {
       cerrarEvento.preventDefault();
       cerrarEvento.stopPropagation();
       cerrarPanel();
     });
 
     fila.addEventListener('click', async (clicEvento) => {
-      const guardarBoton = clicEvento.target.closest('[data-event-save]');
+      const guardarBoton = clicEvento.target.closest('[data-evento-guardar]');
       if (guardarBoton) {
         clicEvento.stopPropagation();
         try {
@@ -2612,30 +2612,30 @@ async function configurarInteraccionesEventos() {
           await solicitarApiSigtur('/api/guardados', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, activo: activo, metadata: { nombre: evento.title, direccion: evento.location, categorias: [evento.category] } }) });
           guardarBoton.setAttribute('aria-pressed', String(activo));
           guardarBoton.textContent = activo ? '🔖 Guardado' : '🔖 Guardar';
-        } catch (fallo) { panelActual.querySelector('[data-event-panel-status]').textContent = fallo.message || 'No se pudo guardar el evento.'; }
+        } catch (fallo) { panelActual.querySelector('[data-evento-panel-estado]').textContent = fallo.message || 'No se pudo guardar el evento.'; }
         finally { guardarBoton.disabled = false; }
         return;
       }
-      if (clicEvento.target.closest('[data-event-detail]')) { clicEvento.stopPropagation(); abrirDetalleEvento(evento); return; }
-      const botonComentarios = clicEvento.target.closest('[data-event-comments]');
-      const reservaBoton = clicEvento.target.closest('[data-event-reservation]');
+      if (clicEvento.target.closest('[data-evento-detalle]')) { clicEvento.stopPropagation(); abrirDetalleEvento(evento); return; }
+      const botonComentarios = clicEvento.target.closest('[data-evento-comentarios]');
+      const reservaBoton = clicEvento.target.closest('[data-evento-reserva]');
       if (!botonComentarios && !reservaBoton) return;
       clicEvento.stopPropagation();
       const esReserva = Boolean(reservaBoton);
       const activoBoton = esReserva ? reservaBoton : botonComentarios;
       const estabaExpandido = activoBoton.getAttribute('aria-expanded') === 'true';
       if (!estabaExpandido) {
-        contenedorPaneles?.querySelectorAll('.event-interaction-panel:not([hidden])').forEach(panelAbierto => {
+        contenedorPaneles?.querySelectorAll('.evento-interaccion-panel:not([hidden])').forEach(panelAbierto => {
           if (panelAbierto === panelActual) return;
           panelAbierto.hidden = true;
           document.querySelectorAll(`[aria-controls="${panelAbierto.id}"]`).forEach(boton => boton.setAttribute('aria-expanded', 'false'));
         });
       }
       panelActual.hidden = false;
-      panelActual.querySelector('.event-comments-view').hidden = esReserva;
-      panelActual.querySelector('.event-reservation-view').hidden = !esReserva;
-      panelActual.querySelector('[data-panel-context]').textContent = esReserva ? 'Reserva del evento' : 'Foro del evento';
-      fila.querySelectorAll('[data-event-comments],[data-event-reservation]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
+      panelActual.querySelector('.evento-comentarios-vista').hidden = esReserva;
+      panelActual.querySelector('.evento-reserva-vista').hidden = !esReserva;
+      panelActual.querySelector('[data-panel-contexto]').textContent = esReserva ? 'Reserva del evento' : 'Foro del evento';
+      fila.querySelectorAll('[data-evento-comentarios],[data-evento-reserva]').forEach(boton => boton.setAttribute('aria-expanded', 'false'));
       activoBoton.setAttribute('aria-expanded', String(!estabaExpandido));
       panelActual.hidden = estabaExpandido;
       if (!estabaExpandido) {
@@ -2646,23 +2646,23 @@ async function configurarInteraccionesEventos() {
     });
 
     panelActual.addEventListener('click', async (clicEvento) => {
-      const botonFiltro = clicEvento.target.closest('[data-comment-order]');
+      const botonFiltro = clicEvento.target.closest('[data-comentario-orden]');
       if (botonFiltro) {
-        panelActual.querySelectorAll('[data-comment-order]').forEach(boton => boton.setAttribute('aria-pressed', String(boton === botonFiltro)));
+        panelActual.querySelectorAll('[data-comentario-orden]').forEach(boton => boton.setAttribute('aria-pressed', String(boton === botonFiltro)));
         representarComentarios(panelActual, panelActual._eventComments || []);
         return;
       }
-      if (clicEvento.target.closest('[data-event-close]')) {
+      if (clicEvento.target.closest('[data-evento-cerrar]')) {
         cerrarPanel();
         return;
       }
       const reservarBoton = clicEvento.target.closest('[data-reserve-confirm]');
       if (!reservarBoton) return;
-      const estado = panelActual.querySelector('[data-reservation-status]');
+      const estado = panelActual.querySelector('[data-reserva-estado]');
       try {
         if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
         reservarBoton.disabled = true;
-        const cantidad = Number(panelActual.querySelector('[data-reservation-quantity]').value);
+        const cantidad = Number(panelActual.querySelector('[data-reserva-quantity]').value);
         const horario = panelActual.querySelector(`input[name="slot-${CSS.escape(evento.id)}"]:checked`)?.value || 'Flexible · a coordinar';
         await solicitarApiSigtur('/api/reservas/eventos', { method: 'POST', body: JSON.stringify({ event_ref: evento.id, event_title: evento.title, quantity: cantidad, schedule: horario }) });
         estado.textContent = `Reserva registrada: ${cantidad} ${cantidad === 1 ? 'lugar' : 'lugares'} · ${horario}.`;
@@ -2672,68 +2672,68 @@ async function configurarInteraccionesEventos() {
     });
 
     panelActual.addEventListener('click', async (clicEvento) => {
-      const comentario = clicEvento.target.closest('[data-comment-id]');
+      const comentario = clicEvento.target.closest('[data-comentario-id]');
       if (!comentario) return;
       try {
         if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
-        if (clicEvento.target.closest('[data-admin-delete-comment]')) {
+        if (clicEvento.target.closest('[data-administracion-eliminar-comentario]')) {
           if (obtenerSesionSigtur()?.usuario?.rol !== 'admin' || !window.confirm('¿Eliminar este comentario?')) return;
-          await solicitarApiSigtur(`/api/admin/comentarios/${comentario.dataset.commentId}`, { method: 'DELETE' });
+          await solicitarApiSigtur(`/api/admin/comentarios/${comentario.dataset.comentarioId}`, { method: 'DELETE' });
           await cargarComentarios(panelActual, evento.id);
           return;
         }
-        if (clicEvento.target.closest('[data-delete-own-comment]')) {
+        if (clicEvento.target.closest('[data-eliminar-propio-comentario]')) {
           if (!window.confirm('¿Eliminar este comentario y sus respuestas?')) return;
-          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}`, { method: 'DELETE' });
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.comentarioId}`, { method: 'DELETE' });
           await cargarComentarios(panelActual, evento.id); return;
         }
-        if (clicEvento.target.closest('[data-edit-comment]')) {
-          const existente = panelActual._eventComments.find(elemento => elemento.id === comentario.dataset.commentId)?.contenido || '';
+        if (clicEvento.target.closest('[data-editar-comentario]')) {
+          const existente = panelActual._eventComments.find(elemento => elemento.id === comentario.dataset.comentarioId)?.contenido || '';
           const contenido = window.prompt('Editá tu comentario:', existente);
           if (contenido === null || !contenido.trim()) return;
-          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.comentarioId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
           await cargarComentarios(panelActual, evento.id); return;
         }
-        if (clicEvento.target.closest('[data-comment-reply]')) {
-          const formularioRespuesta = comentario.querySelector('.event-reply-form');
-          const nombreDestinatario = comentario.querySelector('.comment-author strong')?.textContent || 'este usuario';
+        if (clicEvento.target.closest('[data-comentario-respuesta]')) {
+          const formularioRespuesta = comentario.querySelector('.evento-respuesta-formulario');
+          const nombreDestinatario = comentario.querySelector('.comentario-autor strong')?.textContent || 'este usuario';
           formularioRespuesta.hidden = false;
           formularioRespuesta.querySelector('textarea')?.setAttribute('aria-label', `Responder a ${nombreDestinatario}`);
           formularioRespuesta.querySelector('textarea')?.focus();
         }
-        if (clicEvento.target.closest('[data-submit-reply]')) {
+        if (clicEvento.target.closest('[data-enviar-respuesta]')) {
           const contenido = comentario.querySelector('textarea').value;
-          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/respuestas`, { method: 'POST', body: JSON.stringify({ contenido }) });
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.comentarioId}/respuestas`, { method: 'POST', body: JSON.stringify({ contenido }) });
           await cargarComentarios(panelActual, evento.id);
         }
-        if (clicEvento.target.closest('[data-comment-like]')) {
-          const boton = clicEvento.target.closest('[data-comment-like]');
-          const estado = await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/likes`);
-          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.commentId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !estado.liked }) });
+        if (clicEvento.target.closest('[data-comentario-me-gusta]')) {
+          const boton = clicEvento.target.closest('[data-comentario-me-gusta]');
+          const estado = await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.comentarioId}/likes`);
+          await solicitarApiSigtur(`/api/comentarios/${comentario.dataset.comentarioId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !estado.liked }) });
           await cargarComentarios(panelActual, evento.id);
         }
-        if (clicEvento.target.closest('[data-comment-message]')) {
-          const destinatario = comentario.dataset.commentUser;
+        if (clicEvento.target.closest('[data-comentario-mensaje]')) {
+          const destinatario = comentario.dataset.comentarioUsuario;
           const contenido = window.prompt('Mensaje para este usuario:');
           if (contenido?.trim()) await solicitarApiSigtur('/api/mensajes', { method: 'POST', body: JSON.stringify({ destinatario_id: destinatario, contenido }) });
         }
       } catch (fallo) {
-        panelActual.querySelector('[data-event-panel-status]').textContent = fallo.message || 'No se pudo completar la acción.';
+        panelActual.querySelector('[data-evento-panel-estado]').textContent = fallo.message || 'No se pudo completar la acción.';
       }
     });
 
-    panelActual.querySelector('[data-event-comment-form]').addEventListener('submit', async (enviarEvento) => {
+    panelActual.querySelector('[data-evento-comentario-formulario]').addEventListener('submit', async (enviarEvento) => {
       enviarEvento.preventDefault();
       const formulario = enviarEvento.currentTarget;
-      const estado = panelActual.querySelector('[data-event-panel-status]');
+      const estado = panelActual.querySelector('[data-evento-panel-estado]');
       try {
         if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
         const contenido = new FormData(formulario).get('contenido');
-        const media_paths = await window.sigturPrepareCommentMedia(formulario);
-        if (!String(contenido || '').trim() && !media_paths.length) throw new Error('Escribí un comentario o adjuntá una imagen.');
-        await solicitarApiSigtur('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, contenido, media_paths }) });
+        const rutasMultimedia = await window.sigturPrepararMultimediaComentario(formulario);
+        if (!String(contenido || '').trim() && !rutasMultimedia.length) throw new Error('Escribí un comentario o adjuntá una imagen.');
+        await solicitarApiSigtur('/api/comentarios', { method: 'POST', body: JSON.stringify({ entidad_tipo: 'event', entidad_id: evento.id, contenido, media_paths: rutasMultimedia }) });
         formulario.reset();
-        window.sigturClearCommentMedia(formulario);
+        window.sigturLimpiarMultimediaComentario(formulario);
         await cargarComentarios(panelActual, evento.id);
       } catch (fallo) { estado.textContent = fallo.message || 'No se pudo publicar el comentario.'; }
     });
@@ -2751,7 +2751,7 @@ async function configurarInteraccionesEventos() {
 // El panel solo aparece despues de validar el rol de administrador.
 // ============================================================================
 async function configurarPaginaAdministracion() {
-  const formulario = document.getElementById('admin-settings-form');
+  const formulario = document.getElementById('administracion-ajustes-formulario');
   if (!formulario) return;
 
   const sesion = obtenerSesionSigtur();
@@ -2761,7 +2761,7 @@ async function configurarPaginaAdministracion() {
     return;
   }
 
-  formulario.closest('.utility-grid')?.setAttribute('hidden', '');
+  formulario.closest('.utilidad-cuadricula')?.setAttribute('hidden', '');
   try {
     await solicitarApiSigtur('/api/auth/es-admin');
   } catch (fallo) {
@@ -2776,22 +2776,22 @@ async function configurarPaginaAdministracion() {
         window.location.replace(`index.${extension}`);
       } else {
         const mensaje = document.createElement('p');
-        mensaje.className = 'auth-status';
+        mensaje.className = 'cuenta-estado';
         mensaje.setAttribute('role', 'status');
         mensaje.textContent = 'No se pudo validar el acceso. Intentá nuevamente.';
-        formulario.closest('.utility-grid')?.before(mensaje);
+        formulario.closest('.utilidad-cuadricula')?.before(mensaje);
       }
     }
     return;
   }
-  formulario.closest('.utility-grid')?.removeAttribute('hidden');
+  formulario.closest('.utilidad-cuadricula')?.removeAttribute('hidden');
 
-  const estado = document.getElementById('admin-save-status');
-  const actividad = document.getElementById('admin-activity');
-  const formularioAviso = document.getElementById('admin-announcement-form');
-  const vistaPrevia = document.getElementById('admin-announcement-preview');
-  const botonLimpiarAviso = document.getElementById('admin-clear-announcement');
-  const botonExportar = document.getElementById('admin-export');
+  const estado = document.getElementById('administracion-guardar-estado');
+  const actividad = document.getElementById('administracion-actividad');
+  const formularioAviso = document.getElementById('administracion-anuncio-formulario');
+  const vistaPrevia = document.getElementById('administracion-anuncio-vista-previa');
+  const botonLimpiarAviso = document.getElementById('administracion-limpiar-anuncio');
+  const botonExportar = document.getElementById('administracion-exportar');
 
   const valoresPredeterminados = {
     featuredEvents: true,
@@ -2829,11 +2829,11 @@ async function configurarPaginaAdministracion() {
 
   let avisoGuardado = null;
   try {
-    const [configuracion, avisoAdmin, metricas] = await Promise.all([solicitarApiSigtur('/api/admin/configuracion'), solicitarApiSigtur('/api/admin/aviso'), solicitarApiSigtur('/api/admin/metricas')]);
+    const [configuracion, avisoAdministracion, metricas] = await Promise.all([solicitarApiSigtur('/api/admin/configuracion'), solicitarApiSigtur('/api/admin/aviso'), solicitarApiSigtur('/api/admin/metricas')]);
     aplicarConfiguracion({ ...valoresPredeterminados, ...configuracion });
-    avisoGuardado = avisoAdmin.data || null;
+    avisoGuardado = avisoAdministracion.data || null;
     if (avisoGuardado && formularioAviso) { formularioAviso.elements.title.value = avisoGuardado.title || ''; formularioAviso.elements.body.value = avisoGuardado.body || ''; }
-    Object.entries(metricas).forEach(([clave, valor]) => { const metrica = document.querySelector(`[data-admin-metric="${clave}"]`); if (metrica) metrica.textContent = String(valor); });
+    Object.entries(metricas).forEach(([clave, valor]) => { const metrica = document.querySelector(`[data-administracion-metrica="${clave}"]`); if (metrica) metrica.textContent = String(valor); });
   } catch (fallo) { establecerEstado(fallo.message || 'No se pudo cargar la configuración.'); }
   actualizarVistaPrevia();
   try { const filas = await solicitarApiSigtur('/api/admin/actividad?page=1&pageSize=8'); if (actividad) actividad.innerHTML = (filas.data || []).map(fila => `<p>${escaparTexto(new Date(fila.created_at).toLocaleString('es-UY'))} · ${escaparTexto(fila.action.replaceAll('.', ' '))}</p>`).join('') || '<p>Sin actividad registrada.</p>'; } catch { if (actividad) actividad.textContent = 'No se pudo cargar la actividad.'; }
@@ -2842,7 +2842,7 @@ async function configurarPaginaAdministracion() {
     const configuracion = recopilarConfiguracion();
     try { await solicitarApiSigtur('/api/admin/configuracion', { method: 'PATCH', body: JSON.stringify(configuracion) }); establecerEstado('Cambios guardados en el servidor'); await cargarConfiguracionPublica(); }
     catch (fallo) { evento.target.checked = !evento.target.checked; establecerEstado(fallo.message || 'No se pudieron guardar los ajustes.'); return; }
-    const etiqueta = evento.target?.closest('.settings-item')?.querySelector('strong')?.textContent || 'Ajuste';
+    const etiqueta = evento.target?.closest('.ajustes-elemento')?.querySelector('strong')?.textContent || 'Ajuste';
     void etiqueta;
   });
 
@@ -2890,17 +2890,17 @@ async function configurarPaginaAdministracion() {
     }
   });
 
-  const formularioEvento = document.getElementById('admin-event-form');
-  const listaEventos = document.getElementById('admin-events-list');
-  const tituloFormularioEvento = document.getElementById('admin-event-form-title');
-  const enviarEvento = document.getElementById('admin-event-submit');
-  const cancelarEvento = document.getElementById('admin-event-cancel');
-  const entradaImagenEvento = document.getElementById('admin-event-image');
-  const vistaPreviaImagenEvento = document.getElementById('admin-event-image-preview');
-  const eventImagePreviewImg = vistaPreviaImagenEvento?.querySelector('img');
-  const elementoMapaEvento = document.getElementById('admin-event-map');
-  const latitudEvento = document.getElementById('admin-event-latitude');
-  const longitudEvento = document.getElementById('admin-event-longitude');
+  const formularioEvento = document.getElementById('administracion-evento-formulario');
+  const listaEventos = document.getElementById('administracion-eventos-lista');
+  const tituloFormularioEvento = document.getElementById('administracion-evento-formulario-titulo');
+  const enviarEvento = document.getElementById('administracion-evento-enviar');
+  const cancelarEvento = document.getElementById('administracion-evento-cancel');
+  const entradaImagenEvento = document.getElementById('administracion-evento-imagen');
+  const vistaPreviaImagenEvento = document.getElementById('administracion-evento-imagen-vista-previa');
+  const imagenVistaPreviaEvento = vistaPreviaImagenEvento?.querySelector('img');
+  const elementoMapaEvento = document.getElementById('administracion-evento-mapa');
+  const latitudEvento = document.getElementById('administracion-evento-latitude');
+  const longitudEvento = document.getElementById('administracion-evento-longitude');
   const simbolosCategoriaEvento = {
     cultura: '🎭', musica: '♫', deportes: '⚽', feria: '▦',
     gastronomia: '♨', religiosos: '✦', infantiles: '★'
@@ -2909,69 +2909,69 @@ async function configurarPaginaAdministracion() {
     const categoria = Array.isArray(categorias) ? categorias[0] : categorias;
     return simbolosCategoriaEvento[String(categoria || '').toLowerCase()] || '◉';
   };
-  const registrosEventosAdmin = new Map();
+  const registrosEventosAdministracion = new Map();
   const representarEventosAdministracion = (eventos) => {
     if (!listaEventos) return;
-    registrosEventosAdmin.clear();
+    registrosEventosAdministracion.clear();
     listaEventos.innerHTML = eventos.map(evento => {
-      registrosEventosAdmin.set(String(evento.id), evento);
+      registrosEventosAdministracion.set(String(evento.id), evento);
       const categoria = Array.isArray(evento.categories) ? evento.categories[0] : '';
       const fechaEvento = evento.date_start ? new Date(`${evento.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
       const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
       const horaEvento = evento.event_time ? ` · ${String(evento.event_time).slice(0, 5)}` : '';
       const multimedia = analizarMultimediaEvento(evento.image_url);
       const imagen = multimedia.tipo === 'imagen'
-        ? `<img src="${escaparTexto(multimedia.url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`
-        : `<span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`;
-      return `<li class="admin-event-item" style="--admin-event-color:${colorEvento}"><div class="admin-event-thumb">${imagen}</div><div class="admin-event-summary"><strong>${escaparTexto(evento.title || 'Evento sin t\u00edtulo')}</strong><span>${simboloCategoriaEvento(evento.categories)} ${escaparTexto(categoria || 'Evento')} | ${fechaEvento}${horaEvento}</span><small>${escaparTexto(evento.location || 'Lugar sin especificar')} | ${Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis'}</small></div><div class="admin-event-actions"><button type="button" class="admin-event-edit" data-edit-event="${escaparTexto(evento.id)}" aria-label="Editar evento">Editar</button><button type="button" class="admin-event-delete" data-delete-event="${escaparTexto(evento.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
-    }).join('') || '<li class="admin-event-empty ui-list-status">Todavía no hay eventos publicados.</li>';
-    listaEventos.querySelectorAll('.admin-event-thumb img').forEach(imagen => imagen.addEventListener('error', () => imagen.remove(), { once: true }));
+        ? `<img src="${escaparTexto(multimedia.url)}" alt="" loading="lazy"><span class="administracion-evento-alternativa" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`
+        : `<span class="administracion-evento-alternativa" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`;
+      return `<li class="administracion-evento-elemento" style="--color-evento-administracion:${colorEvento}"><div class="administracion-evento-miniatura">${imagen}</div><div class="administracion-evento-resumen"><strong>${escaparTexto(evento.title || 'Evento sin t\u00edtulo')}</strong><span>${simboloCategoriaEvento(evento.categories)} ${escaparTexto(categoria || 'Evento')} | ${fechaEvento}${horaEvento}</span><small>${escaparTexto(evento.location || 'Lugar sin especificar')} | ${Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis'}</small></div><div class="administracion-evento-acciones"><button type="button" class="administracion-evento-editar" data-editar-evento="${escaparTexto(evento.id)}" aria-label="Editar evento">Editar</button><button type="button" class="administracion-evento-eliminar" data-eliminar-evento="${escaparTexto(evento.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
+    }).join('') || '<li class="administracion-evento-vacio interfaz-lista-estado">Todavía no hay eventos publicados.</li>';
+    listaEventos.querySelectorAll('.administracion-evento-miniatura img').forEach(imagen => imagen.addEventListener('error', () => imagen.remove(), { once: true }));
   };
   let paginaEventos = 1;
   const cargarAdministracionEventos = async () => {
     if (!listaEventos) return;
-    listaEventos.setAttribute('aria-busy', 'true'); listaEventos.innerHTML = '<li class="admin-event-empty ui-list-status is-loading" role="status">Cargando eventos?</li>;'
+    listaEventos.setAttribute('aria-busy', 'true'); listaEventos.innerHTML = '<li class="administracion-evento-vacio interfaz-lista-estado estado-cargando" role="status">Cargando eventos?</li>;'
     try {
-      const consulta = new URLSearchParams({ page: paginaEventos, pageSize: 10, q: document.getElementById('admin-events-search')?.value || '' });
+      const consulta = new URLSearchParams({ page: paginaEventos, pageSize: 10, q: document.getElementById('administracion-eventos-busqueda')?.value || '' });
       const respuesta = await solicitarApiSigtur(`/api/admin/eventos?${consulta}`);
       representarEventosAdministracion(respuesta.data || []); listaEventos.setAttribute('aria-busy', 'false');
-      const etiqueta = document.getElementById('admin-events-page'); if (etiqueta) etiqueta.textContent = `Página ${paginaEventos} · ${respuesta.total} eventos`;
+      const etiqueta = document.getElementById('administracion-eventos-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginaEventos} · ${respuesta.total} eventos`;
     } catch (fallo) {
-      listaEventos.innerHTML = `<li class="admin-event-empty ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los eventos.')}</li>`; listaEventos.setAttribute('aria-busy', 'false');
+      listaEventos.innerHTML = `<li class="administracion-evento-vacio interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los eventos.')}</li>`; listaEventos.setAttribute('aria-busy', 'false');
     }
   };
   const actualizarVistaPreviaImagenEvento = () => {
     const urlImagen = String(entradaImagenEvento?.value || '').trim();
-    if (!vistaPreviaImagenEvento || !eventImagePreviewImg) return;
+    if (!vistaPreviaImagenEvento || !imagenVistaPreviaEvento) return;
     if (!urlImagen) {
       vistaPreviaImagenEvento.hidden = true;
-      eventImagePreviewImg.removeAttribute('src');
+      imagenVistaPreviaEvento.removeAttribute('src');
       return;
     }
     const multimedia = analizarMultimediaEvento(urlImagen);
     const textoPrevia = vistaPreviaImagenEvento.querySelector('span');
     if (multimedia.tipo !== 'imagen') {
-      eventImagePreviewImg.hidden = true;
-      eventImagePreviewImg.removeAttribute('src');
+      imagenVistaPreviaEvento.hidden = true;
+      imagenVistaPreviaEvento.removeAttribute('src');
       vistaPreviaImagenEvento.hidden = false;
       if (textoPrevia) textoPrevia.textContent = ['video', 'youtube', 'vimeo'].includes(multimedia.tipo)
         ? 'Video: se verá dentro de la ficha'
         : 'Es una página web: agregala en el enlace oficial';
       return;
     }
-    eventImagePreviewImg.hidden = false;
+    imagenVistaPreviaEvento.hidden = false;
     if (textoPrevia) textoPrevia.textContent = 'Vista previa de portada';
-    eventImagePreviewImg.onload = () => { vistaPreviaImagenEvento.hidden = false; };
-    eventImagePreviewImg.onerror = () => { vistaPreviaImagenEvento.hidden = true; };
-    eventImagePreviewImg.src = multimedia.url;
+    imagenVistaPreviaEvento.onload = () => { vistaPreviaImagenEvento.hidden = false; };
+    imagenVistaPreviaEvento.onerror = () => { vistaPreviaImagenEvento.hidden = true; };
+    imagenVistaPreviaEvento.src = multimedia.url;
   };
   entradaImagenEvento?.addEventListener('input', actualizarVistaPreviaImagenEvento);
   entradaImagenEvento?.addEventListener('change', actualizarVistaPreviaImagenEvento);
   cargarAdministracionEventos();
-  document.querySelectorAll('[data-admin-page="events"]').forEach(boton => boton.addEventListener('click', () => { paginaEventos = Math.max(1, paginaEventos + Number(boton.dataset.direction)); cargarAdministracionEventos(); }));
-  document.getElementById('admin-events-search')?.addEventListener('input', () => { paginaEventos = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(cargarAdministracionEventos, 250); });
-  let establecerPuntoEventoAdmin = null;
-  let limpiarMarcadorEventoAdmin = () => {};
+  document.querySelectorAll('[data-administracion-pagina="events"]').forEach(boton => boton.addEventListener('click', () => { paginaEventos = Math.max(1, paginaEventos + Number(boton.dataset.direction)); cargarAdministracionEventos(); }));
+  document.getElementById('administracion-eventos-busqueda')?.addEventListener('input', () => { paginaEventos = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(cargarAdministracionEventos, 250); });
+  let establecerPuntoEventoAdministracion = null;
+  let limpiarMarcadorEventoAdministracion = () => {};
   if (elementoMapaEvento && latitudEvento && longitudEvento && window.L) {
     // El clic en el mapa completa las coordenadas que viajan al backend.
     const mapaEvento = L.map(elementoMapaEvento).setView([-31.383, -57.964], 13);
@@ -2983,8 +2983,8 @@ async function configurarPaginaAdministracion() {
       if (marcadorEvento) marcadorEvento.setLatLng([latitud, longitud]);
       else marcadorEvento = L.marker([latitud, longitud]).addTo(mapaEvento);
     };
-    establecerPuntoEventoAdmin = (latitud, longitud) => { establecerPuntoEvento(latitud, longitud); mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15)); };
-    limpiarMarcadorEventoAdmin = () => { if (marcadorEvento) mapaEvento.removeLayer(marcadorEvento); marcadorEvento = null; };
+    establecerPuntoEventoAdministracion = (latitud, longitud) => { establecerPuntoEvento(latitud, longitud); mapaEvento.setView([latitud, longitud], Math.max(mapaEvento.getZoom(), 15)); };
+    limpiarMarcadorEventoAdministracion = () => { if (marcadorEvento) mapaEvento.removeLayer(marcadorEvento); marcadorEvento = null; };
     mapaEvento.on('click', clicEvento => establecerPuntoEvento(clicEvento.latlng.lat, clicEvento.latlng.lng));
     // Tambien permite pegar coordenadas manuales para ajustar el punto.
     [latitudEvento, longitudEvento].forEach(entrada => entrada.addEventListener('change', () => {
@@ -3001,9 +3001,9 @@ async function configurarPaginaAdministracion() {
     window.setTimeout(recalcularTamanoMapa, 250);
     if ('ResizeObserver' in window) new ResizeObserver(recalcularTamanoMapa).observe(elementoMapaEvento);
   }
-  const usuariosLista = document.getElementById('admin-users-list');
-  const listaComentarios = document.getElementById('admin-comments-list');
-  const administracionEstado = document.getElementById('admin-resource-status');
+  const usuariosLista = document.getElementById('administracion-usuarios-lista');
+  const listaComentarios = document.getElementById('administracion-comentarios-lista');
+  const administracionEstado = document.getElementById('administracion-recurso-estado');
   const mostrarEstadoRecurso = (mensaje) => { if (administracionEstado) administracionEstado.textContent = mensaje; };
   const normalizarResultadoPaginado = resultado => {
     let paginaAnidada = resultado;
@@ -3018,39 +3018,39 @@ async function configurarPaginaAdministracion() {
   };
   const representarUsuarios = (usuarios) => {
     if (!usuariosLista) return;
-    usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-ban-user="${usuario.id}" data-banned="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
+    usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-ban-usuario="${usuario.id}" data-banned="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
   };
   const paginas = { users: 1, comments: 1, support: 1 };
   const cargarUsuarios = async () => {
-    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando usuarios…</li>'; }
+    if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando usuarios…</li>'; }
     try {
-      const q = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('admin-users-search')?.value || '' });
-      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/usuarios?${q}`));
+      const consulta = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('administracion-usuarios-busqueda')?.value || '' });
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/usuarios?${consulta}`));
       representarUsuarios(resultado.data || []);
-      const etiqueta = document.getElementById('admin-users-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.users} · ${resultado.total} usuarios`;
+      const etiqueta = document.getElementById('administracion-usuarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.users} · ${resultado.total} usuarios`;
     } catch (fallo) {
-      if (usuariosLista) usuariosLista.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los usuarios.')}</li>`;
+      if (usuariosLista) usuariosLista.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los usuarios.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
     } finally { usuariosLista?.setAttribute('aria-busy', 'false'); }
   };
   const cargarComentarios = async () => {
-    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando comentarios…</li>'; }
+    if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando comentarios…</li>'; }
     try {
-      const q = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('admin-comments-search')?.value || '' });
-      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/comentarios?${q}`));
-      if (listaComentarios) listaComentarios.innerHTML = resultado.data.map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(String(comentario.contenido || '').slice(0, 120))}</span><span><button type="button" data-pin-comment="${comentario.id}" data-pinned="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-delete-comment="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="ui-list-status">No hay comentarios.</li>';
-      const etiqueta = document.getElementById('admin-comments-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comments} · ${resultado.total} comentarios`;
+      const consulta = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('administracion-comentarios-busqueda')?.value || '' });
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/comentarios?${consulta}`));
+      if (listaComentarios) listaComentarios.innerHTML = resultado.data.map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(String(comentario.contenido || '').slice(0, 120))}</span><span><button type="button" data-pin-comentario="${comentario.id}" data-fijado="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-eliminar-comentario="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="interfaz-lista-estado">No hay comentarios.</li>';
+      const etiqueta = document.getElementById('administracion-comentarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comments} · ${resultado.total} comentarios`;
     } catch (fallo) {
-      if (listaComentarios) listaComentarios.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los comentarios.')}</li>`;
+      if (listaComentarios) listaComentarios.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los comentarios.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
     } finally { listaComentarios?.setAttribute('aria-busy', 'false'); }
   };
   const cargarSoporte = async () => {
-    const lista = document.getElementById('admin-support-list');
-    if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="ui-list-status is-loading" role="status">Cargando consultas?</li>'; }
+    const lista = document.getElementById('administracion-soporte-lista');
+    if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando consultas?</li>'; }
     try {
-      const q = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('admin-support-status')?.value || '', type: document.getElementById('admin-support-type')?.value || '' });
-      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/soporte?${q}`));
+      const consulta = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('administracion-soporte-estado')?.value || '', type: document.getElementById('administracion-soporte-tipo')?.value || '' });
+      const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/soporte?${consulta}`));
       if (lista) lista.innerHTML = resultado.data.map(tique => {
         const verificacion = tique.ticket_type === 'business_verification', detalles = tique.details || {};
         const tiposOrganizacion = { company: 'Empresa o comercio', nonprofit: 'Organización o asociación', tourism_service: 'Servicio turístico', independent_professional: 'Profesional independiente' };
@@ -3062,28 +3062,28 @@ async function configurarPaginaAdministracion() {
           ['Web o red social', detalles.website], ['Enlace de referencia', detalles.evidence_url],
           ['ID de cuenta', tique.user_id],
         ].filter(([, valor]) => valor);
-        const marcadoDetalles = verificacion ? `<details class="admin-verification-data"><summary>Ver datos de verificación</summary><dl>${filas.map(([etiqueta, valor]) => `<div><dt>${escaparTexto(etiqueta)}</dt><dd>${escaparTexto(valor)}</dd></div>`).join('')}</dl></details>` : '';
-        return `<li class="admin-support-ticket ${verificacion ? 'is-verification' : ''}"><div class="admin-support-ticket-content"><span><strong>${verificacion ? 'Verificación de cuenta' : escaparTexto(tique.topic)}</strong> · ${escaparTexto(tique.name)} (${escaparTexto(tique.email)})</span><p>${escaparTexto(tique.message.slice(0, 500))}</p>${marcadoDetalles}<small>${escaparTexto(tique.created_at ? new Date(tique.created_at).toLocaleString('es-UY') : '')}</small></div><select data-ticket-status="${escaparTexto(tique.id)}" aria-label="Estado del ticket"><option value="open" ${tique.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${tique.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${tique.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
-      }).join('') || '<li class="ui-list-status">No hay consultas.</li>';
-      const etiqueta = document.getElementById('admin-support-page'); if (etiqueta) etiqueta.textContent = `Página ${paginas.support} · ${resultado.total} consultas`;
+        const marcadoDetalles = verificacion ? `<details class="administracion-verificacion-datos"><summary>Ver datos de verificación</summary><dl>${filas.map(([etiqueta, valor]) => `<div><dt>${escaparTexto(etiqueta)}</dt><dd>${escaparTexto(valor)}</dd></div>`).join('')}</dl></details>` : '';
+        return `<li class="administracion-soporte-entrada ${verificacion ? 'estado-verificacion' : ''}"><div class="administracion-soporte-entrada-contenido"><span><strong>${verificacion ? 'Verificación de cuenta' : escaparTexto(tique.topic)}</strong> · ${escaparTexto(tique.name)} (${escaparTexto(tique.email)})</span><p>${escaparTexto(tique.message.slice(0, 500))}</p>${marcadoDetalles}<small>${escaparTexto(tique.created_at ? new Date(tique.created_at).toLocaleString('es-UY') : '')}</small></div><select data-entrada-estado="${escaparTexto(tique.id)}" aria-label="Estado del ticket"><option value="open" ${tique.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${tique.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${tique.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
+      }).join('') || '<li class="interfaz-lista-estado">No hay consultas.</li>';
+      const etiqueta = document.getElementById('administracion-soporte-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.support} · ${resultado.total} consultas`;
     } catch (fallo) {
-      if (lista) lista.innerHTML = `<li class="ui-list-status is-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar las consultas.')}</li>`;
+      if (lista) lista.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar las consultas.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
     } finally { lista?.setAttribute('aria-busy', 'false'); }
   };
   try { await Promise.all([cargarUsuarios(), cargarComentarios(), cargarSoporte()]); } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
-  document.querySelectorAll('[data-admin-page]').forEach(boton => boton.addEventListener('click', async () => { const clave = boton.dataset.adminPage; paginas[clave] = Math.max(1, paginas[clave] + Number(boton.dataset.direction)); try { await ({ users: cargarUsuarios, comments: cargarComentarios, support: cargarSoporte })[clave](); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } }));
+  document.querySelectorAll('[data-administracion-pagina]').forEach(boton => boton.addEventListener('click', async () => { const clave = boton.dataset.administracionPagina; paginas[clave] = Math.max(1, paginas[clave] + Number(boton.dataset.direction)); try { await ({ users: cargarUsuarios, comments: cargarComentarios, support: cargarSoporte })[clave](); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } }));
   [['admin-users-search','users',cargarUsuarios],['admin-comments-search','comments',cargarComentarios]].forEach(([identificador,clave,cargador]) => document.getElementById(identificador)?.addEventListener('input', () => { paginas[clave] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => cargador().catch(fallo => mostrarEstadoRecurso(fallo.message)), 250); }));
-  document.getElementById('admin-support-status')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
-  document.getElementById('admin-support-type')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
-  document.getElementById('admin-support-list')?.addEventListener('change', async evento => { const seleccionar = evento.target.closest('[data-ticket-status]'); if (!seleccionar) return; try { await solicitarApiSigtur(`/api/admin/soporte/${seleccionar.dataset.ticketStatus}`, { method: 'PATCH', body: JSON.stringify({ status: seleccionar.value }) }); await cargarSoporte(); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } });
+  document.getElementById('administracion-soporte-estado')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('administracion-soporte-tipo')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('administracion-soporte-lista')?.addEventListener('change', async evento => { const seleccionar = evento.target.closest('[data-entrada-estado]'); if (!seleccionar) return; try { await solicitarApiSigtur(`/api/admin/soporte/${seleccionar.dataset.entradaEstado}`, { method: 'PATCH', body: JSON.stringify({ status: seleccionar.value }) }); await cargarSoporte(); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } });
   const restablecerEditorEvento = () => {
     formularioEvento?.reset();
     if (formularioEvento) delete formularioEvento.dataset.editingId;
     if (tituloFormularioEvento) tituloFormularioEvento.textContent = 'Crear evento';
     if (enviarEvento) enviarEvento.textContent = 'Publicar evento';
     if (cancelarEvento) cancelarEvento.hidden = true;
-    limpiarMarcadorEventoAdmin();
+    limpiarMarcadorEventoAdministracion();
     actualizarVistaPreviaImagenEvento();
   };
   const iniciarEdicionEvento = (registroEvento) => {
@@ -3114,7 +3114,7 @@ async function configurarPaginaAdministracion() {
     formularioEvento.dataset.editingId = registroEvento.id;
     if (registroEvento.latitude != null && registroEvento.longitude != null) {
       const latitud = Number(registroEvento.latitude), longitud = Number(registroEvento.longitude);
-      if (Number.isFinite(latitud) && Number.isFinite(longitud)) establecerPuntoEventoAdmin?.(latitud, longitud);
+      if (Number.isFinite(latitud) && Number.isFinite(longitud)) establecerPuntoEventoAdministracion?.(latitud, longitud);
     }
     if (tituloFormularioEvento) tituloFormularioEvento.textContent = 'Editar evento';
     if (enviarEvento) enviarEvento.textContent = 'Guardar cambios';
@@ -3147,19 +3147,19 @@ async function configurarPaginaAdministracion() {
     }
   });
   listaEventos?.addEventListener('click', async (evento) => {
-    const botonEditar = evento.target.closest('[data-edit-event]');
+    const botonEditar = evento.target.closest('[data-editar-evento]');
     if (botonEditar) {
-      const grabacion = registrosEventosAdmin.get(String(botonEditar.dataset.editEvent));
+      const grabacion = registrosEventosAdministracion.get(String(botonEditar.dataset.editarEvento));
       if (grabacion) iniciarEdicionEvento(grabacion);
       else mostrarEstadoRecurso('No se pudo encontrar ese evento. Actualiza la lista e intenta nuevamente.');
       return;
     }
-    const boton = evento.target.closest('[data-delete-event]');
+    const boton = evento.target.closest('[data-eliminar-evento]');
     if (!boton || !window.confirm('Eliminar este evento? Esta accion no se puede deshacer.')) return;
     boton.disabled = true;
     try {
-      await solicitarApiSigtur(`/api/admin/eventos/${encodeURIComponent(boton.dataset.deleteEvent)}`, { method: 'DELETE' });
-      if (formularioEvento?.dataset.editingId === boton.dataset.deleteEvent) restablecerEditorEvento();
+      await solicitarApiSigtur(`/api/admin/eventos/${encodeURIComponent(boton.dataset.eliminarEvento)}`, { method: 'DELETE' });
+      if (formularioEvento?.dataset.editingId === boton.dataset.eliminarEvento) restablecerEditorEvento();
       mostrarEstadoRecurso('Evento eliminado.');
       await cargarAdministracionEventos();
     } catch (fallo) {
@@ -3168,23 +3168,23 @@ async function configurarPaginaAdministracion() {
     }
   });
   usuariosLista?.addEventListener('click', async (evento) => {
-    const boton = evento.target.closest('[data-ban-user]');
+    const boton = evento.target.closest('[data-ban-usuario]');
     if (!boton) return;
     try {
       const duracion = boton.dataset.banned === 'true' ? 'none' : '24h';
-      await solicitarApiSigtur(`/api/admin/usuarios/${boton.dataset.banUser}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration: duracion }) });
+      await solicitarApiSigtur(`/api/admin/usuarios/${boton.dataset.banUsuario}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration: duracion }) });
       boton.dataset.banned = duracion === 'none' ? 'false' : 'true';
       boton.textContent = duracion === 'none' ? 'Banear 24 h' : 'Desbanear';
       mostrarEstadoRecurso(duracion === 'none' ? 'Usuario desbaneado.' : 'Usuario baneado por 24 horas.');
     } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
   });
   listaComentarios?.addEventListener('click', async evento => {
-    const botonMarcador = evento.target.closest('[data-pin-comment]');
+    const botonMarcador = evento.target.closest('[data-pin-comentario]');
     if (botonMarcador) {
       try {
-        const fijado = botonMarcador.dataset.pinned !== 'true';
-        await solicitarApiSigtur(`/api/admin/comentarios/${botonMarcador.dataset.pinComment}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fijado }) });
-        botonMarcador.dataset.pinned = String(fijado);
+        const fijado = botonMarcador.dataset.fijado !== 'true';
+        await solicitarApiSigtur(`/api/admin/comentarios/${botonMarcador.dataset.pinComentario}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fijado }) });
+        botonMarcador.dataset.fijado = String(fijado);
         botonMarcador.textContent = fijado ? 'Desfijar' : 'Fijar';
         const texto = botonMarcador.closest('li')?.querySelector('span');
         if (texto) texto.innerHTML = `${fijado ? '📌 ' : ''}${texto.textContent.replace(/^📌\s*/, '')}`;
@@ -3192,10 +3192,10 @@ async function configurarPaginaAdministracion() {
       } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
       return;
     }
-    const boton = evento.target.closest('[data-delete-comment]');
+    const boton = evento.target.closest('[data-eliminar-comentario]');
     if (!boton || !window.confirm('¿Borrar este comentario?')) return;
     try {
-      await solicitarApiSigtur(`/api/admin/comentarios/${boton.dataset.deleteComment}`, { method: 'DELETE' });
+      await solicitarApiSigtur(`/api/admin/comentarios/${boton.dataset.eliminarComentario}`, { method: 'DELETE' });
       boton.closest('li')?.remove();
       mostrarEstadoRecurso('Comentario borrado.');
     } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
@@ -3209,25 +3209,25 @@ async function configurarPaginaAdministracion() {
 async function cargarConfiguracionPublica() {
   try {
     const sitio = await solicitarApiSigtur('/api/public/site');
-    let cartel = document.getElementById('site-announcement');
-    if (sitio.announcement?.title && !cartel) { cartel = document.createElement('aside'); cartel.id = 'site-announcement'; cartel.className = 'site-announcement'; document.body.prepend(cartel); }
+    let cartel = document.getElementById('sitio-anuncio');
+    if (sitio.announcement?.title && !cartel) { cartel = document.createElement('aside'); cartel.id = 'sitio-anuncio'; cartel.className = 'sitio-anuncio'; document.body.prepend(cartel); }
     if (cartel) { cartel.hidden = !sitio.announcement?.title; cartel.textContent = sitio.announcement?.title ? `${sitio.announcement.title}: ${sitio.announcement.body}` : ''; }
     if (sitio.settings?.showSupport === false) document.querySelectorAll('a[href*="soporte.html"]').forEach(enlace => { enlace.hidden = true; });
-    let mantenimiento = document.getElementById('site-maintenance-notice');
-    if (sitio.settings?.maintenanceMode && !mantenimiento) { mantenimiento = document.createElement('aside'); mantenimiento.id = 'site-maintenance-notice'; mantenimiento.className = 'site-announcement'; mantenimiento.textContent = 'Estamos realizando tareas de mantenimiento. Algunas funciones pueden cambiar temporalmente.'; document.body.prepend(mantenimiento); }
+    let mantenimiento = document.getElementById('sitio-maintenance-aviso');
+    if (sitio.settings?.maintenanceMode && !mantenimiento) { mantenimiento = document.createElement('aside'); mantenimiento.id = 'sitio-maintenance-aviso'; mantenimiento.className = 'sitio-anuncio'; mantenimiento.textContent = 'Estamos realizando tareas de mantenimiento. Algunas funciones pueden cambiar temporalmente.'; document.body.prepend(mantenimiento); }
     if (mantenimiento) mantenimiento.hidden = !sitio.settings?.maintenanceMode;
   } catch { /* el sitio sigue disponible si el backend temporalmente no responde */ }
 }
 
 function configurarPaginaSoporte() {
-  const formulario = document.getElementById('support-form');
+  const formulario = document.getElementById('soporte-formulario');
   if (!formulario) return;
 
-  const lista = document.getElementById('support-ticket-list');
-  const estado = document.getElementById('support-status');
+  const lista = document.getElementById('soporte-entrada-lista');
+  const estado = document.getElementById('soporte-estado');
   const tema = formulario.elements.namedItem('topic');
-  const camposVerificacion = document.getElementById('support-business-fields');
-  const etiquetaMensaje = document.getElementById('support-message-label');
+  const camposVerificacion = document.getElementById('soporte-negocio-fields');
+  const etiquetaMensaje = document.getElementById('soporte-mensaje-rotulo');
   const campoMensaje = formulario.elements.namedItem('message');
   const actualizarCamposVerificacion = () => {
     const verificacion = tema?.value === 'business_verification';
@@ -3244,9 +3244,9 @@ function configurarPaginaSoporte() {
   formulario.addEventListener('reset', () => window.setTimeout(actualizarCamposVerificacion, 0));
   actualizarCamposVerificacion();
 
-  const representar = tickets => {
+  const representar = entradas => {
     if (!lista) return;
-    lista.innerHTML = tickets.length ? tickets.map(tique => `<article class="support-ticket"><div><strong>${escaparTexto(tique.topic)}</strong><span>${escaparTexto(tique.name)} · ${escaparTexto(tique.email)}</span></div><p>${escaparTexto(tique.message)}</p><small>${escaparTexto(new Date(tique.created_at).toLocaleString('es-UY'))} · ${escaparTexto(tique.status)}</small></article>`).join('') : '<p class="empty-state">Todavía no hay tickets.</p>';
+    lista.innerHTML = entradas.length ? entradas.map(tique => `<article class="soporte-entrada"><div><strong>${escaparTexto(tique.topic)}</strong><span>${escaparTexto(tique.name)} · ${escaparTexto(tique.email)}</span></div><p>${escaparTexto(tique.message)}</p><small>${escaparTexto(new Date(tique.created_at).toLocaleString('es-UY'))} · ${escaparTexto(tique.status)}</small></article>`).join('') : '<p class="vacio-estado">Todavía no hay tickets.</p>';
   };
   const cargarPropios = async () => {
     if (!obtenerSesionSigtur()?.token || !lista) return;

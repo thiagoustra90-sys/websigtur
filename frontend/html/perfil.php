@@ -8,107 +8,107 @@
   <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
   <link rel="stylesheet" href="../css/profile.css?v=20261118-reservas" />
 </head>
-<body class="profile-page">
-  <main class="profile-wrapper">
-    <a class="profile-back" href="index.php">← Volver a explorar</a>
-    <section class="profile-header" aria-labelledby="profile-title">
-      <div class="profile-avatar" id="avatar" aria-hidden="true">?</div>
-      <div class="user-info">
-        <p class="profile-kicker">Tu cuenta SIGTUR</p>
-        <h1 id="profile-title">Cargando...</h1>
+<body class="perfil-pagina">
+  <main class="perfil-wrapper">
+    <a class="perfil-volver" href="index.php">← Volver a explorar</a>
+    <section class="perfil-encabezado" aria-labelledby="perfil-titulo">
+      <div class="perfil-avatar" id="avatar" aria-hidden="true">?</div>
+      <div class="usuario-informacion">
+        <p class="perfil-antetitulo">Tu cuenta SIGTUR</p>
+        <h1 id="perfil-titulo">Cargando...</h1>
         <p id="bio">Cargando datos...</p>
-        <div id="role-tags" class="role-tags"></div>
-        <button class="profile-edit-trigger" type="button" data-profile-edit>Editar perfil</button>
+        <div id="rol-etiquetas" class="rol-etiquetas"></div>
+        <button class="perfil-editar-activador" type="button" data-perfil-editar>Editar perfil</button>
       </div>
     </section>
 
-    <section class="profile-editor" data-profile-editor hidden aria-labelledby="profile-editor-title">
-      <div class="profile-section-heading"><p class="profile-kicker">Personalización</p><h2 id="profile-editor-title">Editar perfil</h2></div>
-      <form id="profile-edit-form">
-        <label class="profile-photo-picker" for="profile-avatar-input"><span id="profile-avatar-preview" class="profile-avatar-preview">?</span><span>Cambiar foto<small>JPG, PNG o WebP</small></span></label>
-        <input id="profile-avatar-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-        <div class="profile-form-grid"><label>Nombre<input name="nombre" maxlength="100" required></label><label>Ubicación<input name="ubicacion" maxlength="100" placeholder="Salto, Uruguay"></label></div>
+    <section class="perfil-editor" data-perfil-editor hidden aria-labelledby="perfil-editor-titulo">
+      <div class="perfil-seccion-encabezado"><p class="perfil-antetitulo">Personalización</p><h2 id="perfil-editor-titulo">Editar perfil</h2></div>
+      <form id="perfil-editar-formulario">
+        <label class="perfil-foto-selector" for="perfil-avatar-entrada"><span id="perfil-avatar-vista-previa" class="perfil-avatar-vista-previa">?</span><span>Cambiar foto<small>JPG, PNG o WebP</small></span></label>
+        <input id="perfil-avatar-entrada" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="perfil-formulario-cuadricula"><label>Nombre<input name="nombre" maxlength="100" required></label><label>Ubicación<input name="ubicacion" maxlength="100" placeholder="Salto, Uruguay"></label></div>
         <label>Biografía<textarea name="biografia" rows="3" maxlength="300" placeholder="Contanos algo sobre vos..."></textarea></label>
         <label>Sitio web<input name="sitio_web" type="url" maxlength="500" placeholder="https://ejemplo.com"></label>
-        <div class="profile-editor-actions"><button type="button" data-profile-edit-cancel>Cancelar</button><button type="submit">Guardar cambios</button></div><p class="profile-editor-status" data-profile-editor-status></p>
+        <div class="perfil-editor-acciones"><button type="button" data-perfil-editar-cancel>Cancelar</button><button type="submit">Guardar cambios</button></div><p class="perfil-editor-estado" data-perfil-editor-estado></p>
       </form>
     </section>
 
-    <nav class="profile-tabs" aria-label="Secciones de tu perfil">
-      <a href="#content-title">Guardados</a>
-      <a href="#reservations-title">Mi agenda</a>
-      <a href="#messages-title">Mensajes</a>
+    <nav class="perfil-tabs" aria-label="Secciones de tu perfil">
+      <a href="#contenido-titulo">Guardados</a>
+      <a href="#reservas-titulo">Mi agenda</a>
+      <a href="#mensajes-titulo">Mensajes</a>
     </nav>
 
-    <section class="profile-messages" aria-labelledby="messages-title">
-      <div class="profile-section-heading">
-        <p class="profile-kicker">Conversaciones</p>
-        <h2 id="messages-title">Mensajes</h2>
+    <section class="perfil-mensajes" aria-labelledby="mensajes-titulo">
+      <div class="perfil-seccion-encabezado">
+        <p class="perfil-antetitulo">Conversaciones</p>
+        <h2 id="mensajes-titulo">Mensajes</h2>
       </div>
-      <div class="dm-layout">
-        <aside class="dm-contacts">
-          <label for="dm-contact-search">Buscar conversación o usuario</label>
-          <input id="dm-contact-search" type="search" placeholder="Nombre o correo" aria-label="Buscar conversación o usuario" />
-          <label for="dm-contact">Nueva conversación</label>
-          <select id="dm-contact"><option value="">Elegí un usuario</option></select>
-          <div id="dm-contact-list" aria-live="polite"></div>
+      <div class="mensaje-directo-disposicion">
+        <aside class="mensaje-directo-contactos">
+          <label for="mensaje-directo-contacto-busqueda">Buscar conversación o usuario</label>
+          <input id="mensaje-directo-contacto-busqueda" type="search" placeholder="Nombre o correo" aria-label="Buscar conversación o usuario" />
+          <label for="mensaje-directo-contacto">Nueva conversación</label>
+          <select id="mensaje-directo-contacto"><option value="">Elegí un usuario</option></select>
+          <div id="mensaje-directo-contacto-lista" aria-live="polite"></div>
         </aside>
-        <section class="dm-thread" aria-live="polite">
-          <header class="dm-thread-header">
-            <div><small>MENSAJES PRIVADOS</small><strong id="dm-active-contact">Seleccioná una conversación</strong></div>
+        <section class="mensaje-directo-hilo" aria-live="polite">
+          <header class="mensaje-directo-hilo-encabezado">
+            <div><small>MENSAJES PRIVADOS</small><strong id="mensaje-directo-activo-contacto">Seleccioná una conversación</strong></div>
             <span>🔒 Privado · se entrega al reconectar</span>
-            <button id="dm-cleanup-files" type="button">Eliminar archivos sin uso de más de 30 días</button>
+            <button id="mensaje-directo-cleanup-files" type="button">Eliminar archivos sin uso de más de 30 días</button>
           </header>
-          <div id="dm-thread-list" class="dm-thread-list"><p class="dm-empty">Seleccioná una conversación para comenzar.</p></div>
-          <form id="dm-form" class="dm-form">
-            <div class="dm-compose-row">
-              <textarea id="dm-message" rows="2" maxlength="5000" placeholder="Escribí un mensaje... (Enter para enviar)" disabled></textarea>
-              <button class="dm-send-text" type="submit" disabled><span aria-hidden="true">➤</span> Enviar</button>
+          <div id="mensaje-directo-hilo-lista" class="mensaje-directo-hilo-lista"><p class="mensaje-directo-vacio">Seleccioná una conversación para comenzar.</p></div>
+          <form id="mensaje-directo-formulario" class="mensaje-directo-formulario">
+            <div class="mensaje-directo-redaccion-fila">
+              <textarea id="mensaje-directo-mensaje" rows="2" maxlength="5000" placeholder="Escribí un mensaje... (Enter para enviar)" disabled></textarea>
+              <button class="mensaje-directo-enviar-texto" type="submit" disabled><span aria-hidden="true">➤</span> Enviar</button>
             </div>
-            <div class="dm-audio-tools">
-              <button id="dm-record" class="dm-record-button" type="button" aria-pressed="false" disabled><span aria-hidden="true">🎙</span> Grabar audio</button>
-              <span id="dm-recording-status" class="dm-recording-status" aria-live="polite">El audio dura hasta 2 minutos.</span>
+            <div class="mensaje-directo-audio-herramientas">
+              <button id="mensaje-directo-grabar" class="mensaje-directo-grabar-boton" type="button" aria-pressed="false" disabled><span aria-hidden="true">🎙</span> Grabar audio</button>
+              <span id="mensaje-directo-grabando-estado" class="mensaje-directo-grabando-estado" aria-live="polite">El audio dura hasta 2 minutos.</span>
             </div>
-            <section id="dm-audio-preview" class="dm-audio-preview" hidden aria-label="Vista previa del audio">
-              <audio id="dm-audio-playback" controls preload="metadata"></audio>
-              <div class="dm-audio-preview-actions">
-                <button id="dm-audio-discard" type="button">Descartar</button>
-                <button id="dm-audio-send" type="button" disabled>Enviar audio</button>
+            <section id="mensaje-directo-audio-vista-previa" class="mensaje-directo-audio-vista-previa" hidden aria-label="Vista previa del audio">
+              <audio id="mensaje-directo-audio-playback" controls preload="metadata"></audio>
+              <div class="mensaje-directo-audio-vista-previa-acciones">
+                <button id="mensaje-directo-audio-discard" type="button">Descartar</button>
+                <button id="mensaje-directo-audio-enviar" type="button" disabled>Enviar audio</button>
               </div>
             </section>
-            <div class="dm-attachment-tools">
-              <button id="dm-attach" class="dm-attach-button" type="button" disabled><span aria-hidden="true">📎</span> Fotos, GIF o PDF</button>
-              <input id="dm-attachment-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple hidden disabled>
-              <span id="dm-attachment-status" aria-live="polite">Pegá o arrastrá imágenes y GIF · hasta 3 archivos de 10 MB</span>
+            <div class="mensaje-directo-adjunto-herramientas">
+              <button id="mensaje-directo-adjuntar" class="mensaje-directo-adjuntar-boton" type="button" disabled><span aria-hidden="true">📎</span> Fotos, GIF o PDF</button>
+              <input id="mensaje-directo-adjunto-entrada" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple hidden disabled>
+              <span id="mensaje-directo-adjunto-estado" aria-live="polite">Pegá o arrastrá imágenes y GIF · hasta 3 archivos de 10 MB</span>
             </div>
-            <div id="dm-attachment-preview" class="dm-attachment-preview" aria-live="polite"></div>
+            <div id="mensaje-directo-adjunto-vista-previa" class="mensaje-directo-adjunto-vista-previa" aria-live="polite"></div>
           </form>
-          <p id="dm-status" class="dm-status"></p>
+          <p id="mensaje-directo-estado" class="mensaje-directo-estado"></p>
         </section>
       </div>
     </section>
 
-    <div class="stats-row" aria-label="Resumen de actividad">
-      <div class="stat"><span id="total-count">0</span><small>Visitas guardadas</small></div>
-      <div class="stat"><span id="following">0</span><small>Preferencias</small></div>
-      <div class="stat"><span id="followers">0</span><small>Sesión activa</small></div>
+    <div class="estadisticas-fila" aria-label="Resumen de actividad">
+      <div class="estadistica"><span id="total-cantidad">0</span><small>Visitas guardadas</small></div>
+      <div class="estadistica"><span id="siguiendo">0</span><small>Preferencias</small></div>
+      <div class="estadistica"><span id="seguidores">0</span><small>Sesión activa</small></div>
     </div>
 
-    <section class="profile-content" aria-labelledby="content-title">
-      <div class="profile-section-heading">
-        <p class="profile-kicker">Tu tablero</p>
-        <h2 id="content-title">Descubre Salto</h2>
+    <section class="perfil-contenido" aria-labelledby="contenido-titulo">
+      <div class="perfil-seccion-encabezado">
+        <p class="perfil-antetitulo">Tu tablero</p>
+        <h2 id="contenido-titulo">Descubre Salto</h2>
       </div>
-      <div class="grid-container" id="content-grid"></div>
+      <div class="cuadricula-container" id="contenido-cuadricula"></div>
     </section>
 
-    <section class="profile-reservations" aria-labelledby="reservations-title">
-      <div class="profile-section-heading"><p class="profile-kicker">Tu agenda</p><h2 id="reservations-title">Eventos reservados</h2></div>
-      <div id="reservations-list" class="reservations-list"></div>
+    <section class="perfil-reservas" aria-labelledby="reservas-titulo">
+      <div class="perfil-seccion-encabezado"><p class="perfil-antetitulo">Tu agenda</p><h2 id="reservas-titulo">Eventos reservados</h2></div>
+      <div id="reservas-lista" class="reservas-lista"></div>
     </section>
 
-    <footer class="profile-footer">
-      <button type="button" data-profile-logout>🔒 Cerrar sesión</button>
+    <footer class="perfil-pie-pagina">
+      <button type="button" data-perfil-logout>🔒 Cerrar sesión</button>
       <a href="login.php">🔑 Cambiar de cuenta</a>
     </footer>
   </main>

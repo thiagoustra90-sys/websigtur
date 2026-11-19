@@ -14,7 +14,7 @@
 </head>
 
 <!-- page-lugares, siguiendo la misma convención que vimos en turismo -->
-<body class="page-lugares">
+<body class="pagina-lugares">
 
 <!--
      NAVBAR
@@ -30,12 +30,12 @@
      que si actualizan el logo se olviden de una copia
  -->
 <header>
-  <nav class="navbar">
-    <a class="nav-logo" href="index.php">
+  <nav class="barra-navegacion">
+    <a class="navegacion-logotipo" href="index.php">
       <img src="../imagenes/lugares/logo-salto.svg" alt="Explora Salto" />
     </a>
 
-    <div class="nav-search">
+    <div class="navegacion-busqueda">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
@@ -43,10 +43,10 @@
     </div>
 
     <!-- acá "active" está en Lugares, tal cual toca en esta página -->
-    <div class="nav-links">
+    <div class="navegacion-enlaces">
       <a href="eventos.php">Eventos</a>
       <a href="turismo.php">Turismo</a>
-      <a href="lugares.php" class="active">Lugares</a>
+      <a href="lugares.php" class="activo">Lugares</a>
     </div>
   </nav>
 </header>
@@ -55,10 +55,10 @@
 <!--
      HERO
 -->
-<section class="hero">
-  <div class="hero-inner">
-    <h1 class="hero-title">LUGARES</h1>
-    <p class="hero-text">
+<section class="portada">
+  <div class="portada-interior">
+    <h1 class="portada-titulo">LUGARES</h1>
+    <p class="texto-portada">
       Plazas con historia, parques para disfrutar en familia y una costanera
       que acompaña al río Uruguay kilómetro a kilómetro. Estos son los
       rincones que hacen especial a Salto.
@@ -83,9 +83,9 @@
      pago, es solo un link con parametros. mismo truco para las 4
      tarjetas de acá abajo.
  -->
-<section class="lugares-section">
-  <div class="lugares-inner">
-    <div class="lugares-list">
+<section class="lugares-seccion">
+  <div class="lugares-interior">
+    <div class="lugares-lista">
 
       <!--
         Plaza Artigas
@@ -95,8 +95,8 @@
         Si cambian este id, se rompen esos links en TODOS los archivos
         donde esté copiado el footer (o sea, en todos).
       -->
-      <div class="lugar-card" id="plaza-artigas">
-        <div class="lugar-img">
+      <div class="lugar-tarjeta" id="plaza-artigas">
+        <div class="lugar-imagen">
           <img src="../imagenes/turismo/plaza_artigas_01.jpg.webp" alt="Plaza Artigas" loading="lazy" decoding="async" />
           <!-- fijate el nombre del archivo: "plaza_artigas_01.jpg.webp".
                tiene DOS extensiones (.jpg.webp). esto pasa cuando
@@ -105,9 +105,9 @@
                funciona perfecto igual (el navegador lee la ultima
                extension, .webp), pero es un poco cochino. -->
         </div>
-        <div class="lugar-info">
+        <div class="lugar-informacion">
           <h3>Plaza Artigas</h3>
-          <p class="lugar-desc">
+          <p class="lugar-descripcion">
             El corazón cívico de Salto, rodeada de edificios históricos y
             siempre lista para un paseo de tarde entre plátanos y bancos
             de plaza. Es el principal paseo público del centro de Salto, ubicada en la manzana de las calles Uruguay, Artigas, 25 de agosto y 18 de julio.
@@ -125,16 +125,16 @@
             puro, hay que aceptar la repetición (o generarla con JS,
             que no parece ser el caso)
           -->
-          <div class="lugar-tags">
-            <span class="lugar-tag">
+          <div class="lugar-etiquetas">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               Centro
             </span>
-            <span class="lugar-tag">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13" r="3.5"/></svg>
               Vista Increíble
             </span>
-            <span class="lugar-tag">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><circle cx="18" cy="9" r="2.5"/><path d="M21.5 21v-1.5a4 4 0 0 0-3-3.87"/></svg>
               Accesible
             </span>
@@ -148,9 +148,9 @@
             Estos colores DEBEN estar definidos en styles.css
             (buscar .badge-purple, .badge-blue, .badge-green)
           -->
-          <div class="lugar-badges">
-            <span class="place-badge badge-purple">Histórico</span>
-            <span class="place-badge badge-blue">Imperdible</span>
+          <div class="lugar-insignias">
+            <span class="lugar-insignia insignia-purpura">Histórico</span>
+            <span class="lugar-insignia insignia-azul">Imperdible</span>
           </div>
         </div>
 
@@ -164,16 +164,16 @@
           original via window.opener. buena práctica, alguien del
           equipo sabia lo que hacia acá.
         -->
-        <div class="lugar-actions">
-          <button type="button" class="lugar-action-link guardar" aria-label="Guardar Plaza Artigas">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="heart-fill" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div class="lugar-acciones">
+          <button type="button" class="lugar-accion-enlace guardar" aria-label="Guardar Plaza Artigas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="corazon-relleno" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Guardar
           </button>
-          <a class="lugar-action-link" href="mapa.php?focus=plaza-artigas">
+          <a class="lugar-accion-enlace" href="mapa.php?focus=plaza-artigas">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-7h14l2 7"/><rect x="3" y="13" width="18" height="6" rx="2"/><circle cx="7.5" cy="19" r="1.2"/><circle cx="16.5" cy="19" r="1.2"/></svg>
             Cómo llegar
           </a>
-          <a class="ver-detalles-btn" href="mapa.php?focus=plaza-artigas">Ver detalles</a>
+          <a class="ver-detalles-boton" href="mapa.php?focus=plaza-artigas">Ver detalles</a>
         </div>
       </div>
 
@@ -186,43 +186,43 @@
         organizado por seccion. funciona, pero para alguien nuevo en el
         proyecto es confuso no saber donde buscar cada imagen
       -->
-      <div class="lugar-card" id="costanera-norte">
-        <div class="lugar-img">
+      <div class="lugar-tarjeta" id="costanera-norte">
+        <div class="lugar-imagen">
           <img src="../imagenes/eventos/whatsapp-image-2025-03-17-92805-am-1.jpeg" alt="Costanera Norte" loading="lazy" decoding="async" />
         </div>
-        <div class="lugar-info">
+        <div class="lugar-informacion">
           <h3>Costanera Norte</h3>
-          <p class="lugar-desc">
+          <p class="lugar-descripcion">
             La Costanera Norte es un paseo costero y zona recreativa de la ciudad de Salto que bordea el Río Uruguay.
             Es muy popular tanto para lugareños como para turistas, ideal para recorrer sus senderos, disfrutar de áreas verdes,
             miradores y apreciar los famosos atardeceres sobre el río. Además, cuenta con espacios para actividades al aire libre,
             como caminatas, ciclismo y deportes acuáticos.
           </p>
-          <div class="lugar-tags">
-            <span class="lugar-tag">
+          <div class="lugar-etiquetas">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><circle cx="18" cy="9" r="2.5"/><path d="M21.5 21v-1.5a4 4 0 0 0-3-3.87"/></svg>
               Accesible
             </span>
-            <span class="lugar-tag">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l1.5-3h5L16 7"/><circle cx="12" cy="13" r="3.5"/></svg>
               Vista Increíble
             </span>
           </div>
-          <div class="lugar-badges">
-            <span class="place-badge badge-green">Deportes</span>
-            <span class="place-badge badge-blue">Imperdible</span>
+          <div class="lugar-insignias">
+            <span class="lugar-insignia insignia-verde">Deportes</span>
+            <span class="lugar-insignia insignia-azul">Imperdible</span>
           </div>
         </div>
-        <div class="lugar-actions">
-          <button type="button" class="lugar-action-link guardar" aria-label="Guardar Costanera Norte">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="heart-fill" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div class="lugar-acciones">
+          <button type="button" class="lugar-accion-enlace guardar" aria-label="Guardar Costanera Norte">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="corazon-relleno" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Guardar
           </button>
-          <a class="lugar-action-link" href="mapa.php?focus=costanera-norte">
+          <a class="lugar-accion-enlace" href="mapa.php?focus=costanera-norte">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-7h14l2 7"/><rect x="3" y="13" width="18" height="6" rx="2"/><circle cx="7.5" cy="19" r="1.2"/><circle cx="16.5" cy="19" r="1.2"/></svg>
             Cómo llegar
           </a>
-          <a class="ver-detalles-btn" href="mapa.php?focus=costanera-norte">Ver detalles</a>
+          <a class="ver-detalles-boton" href="mapa.php?focus=costanera-norte">Ver detalles</a>
         </div>
       </div>
 
@@ -235,19 +235,19 @@
         consecutivos en uno solo. no hay que arreglarlo, es solo
         prolijidad del código fuente
       -->
-      <div class="lugar-card" id="parque-solari">
-        <div class="lugar-img">
+      <div class="lugar-tarjeta" id="parque-solari">
+        <div class="lugar-imagen">
           <img src="../imagenes/turismo/solari.jpg" alt="Parque Solari" loading="lazy" decoding="async" />
         </div>
-        <div class="lugar-info">
+        <div class="lugar-informacion">
           <h3>Parque Solari</h3>
-          <p class="lugar-desc">
+          <p class="lugar-descripcion">
             El Parque Benito Solari es un histórico espacio verde de 17 hectáreas ubicado al norte de la ciudad de Salto.
              Inaugurado en 1924 tras ser legado al pueblo por su dueño original, destaca por su diseño de estilo francés,
               frondosa vegetación, un lago artificial, esculturas en mármol y el área del Jardín del Descubrimiento.
           </p>
-          <div class="lugar-tags">
-            <span class="lugar-tag">
+          <div class="lugar-etiquetas">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><circle cx="18" cy="9" r="2.5"/><path d="M21.5 21v-1.5a4 4 0 0 0-3-3.87"/></svg>
               Accesible
             </span>
@@ -261,26 +261,26 @@
             deportiva y el texto no lo menciona. Vale la pena
             preguntarle a quien cargó los datos, por las dudas.
           -->
-          <div class="lugar-badges">
-            <span class="place-badge badge-green">Deportes</span>
+          <div class="lugar-insignias">
+            <span class="lugar-insignia insignia-verde">Deportes</span>
           </div>
         </div>
-        <div class="lugar-actions">
-          <button type="button" class="lugar-action-link guardar" aria-label="Guardar Parque Solari">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="heart-fill" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div class="lugar-acciones">
+          <button type="button" class="lugar-accion-enlace guardar" aria-label="Guardar Parque Solari">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="corazon-relleno" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Guardar
           </button>
-          <a class="lugar-action-link" href="mapa.php?focus=parque-solari">
+          <a class="lugar-accion-enlace" href="mapa.php?focus=parque-solari">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-7h14l2 7"/><rect x="3" y="13" width="18" height="6" rx="2"/><circle cx="7.5" cy="19" r="1.2"/><circle cx="16.5" cy="19" r="1.2"/></svg>
             Cómo llegar
           </a>
-          <a class="ver-detalles-btn" href="mapa.php?focus=parque-solari">Ver detalles</a>
+          <a class="ver-detalles-boton" href="mapa.php?focus=parque-solari">Ver detalles</a>
         </div>
       </div>
 
       <!-- Plaza Treinta y Tres -->
-      <div class="lugar-card" id="plaza-33">
-        <div class="lugar-img">
+      <div class="lugar-tarjeta" id="plaza-33">
+        <div class="lugar-imagen">
           <img src="../imagenes/turismo/plaza.png" alt="Plaza Treinta y Tres" loading="lazy" decoding="async" />
           <!-- esta es la unica imagen del bloque que es .png en vez de
                .jpg/.webp. no es un problema real (el png también anda),
@@ -288,33 +288,33 @@
                dia el sitio va lento, convertir esta imagen a webp es
                una victoria fácil de optimizacion -->
         </div>
-        <div class="lugar-info">
+        <div class="lugar-informacion">
           <h3>Plaza Treinta y Tres</h3>
-          <p class="lugar-desc">
+          <p class="lugar-descripcion">
             Una plaza tradicional con historia propia, ideal para combinar
             con una vuelta por el centro y sus comercios. Es la plaza más antigua,
             su nacimiento es casi coincidente con el de la ciudad, se la conoció como plaza Vieja.
           </p>
-          <div class="lugar-tags">
-            <span class="lugar-tag">
+          <div class="lugar-etiquetas">
+            <span class="lugar-etiqueta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               Centro
             </span>
           </div>
-          <div class="lugar-badges">
-            <span class="place-badge badge-purple">Histórico</span>
+          <div class="lugar-insignias">
+            <span class="lugar-insignia insignia-purpura">Histórico</span>
           </div>
         </div>
-        <div class="lugar-actions">
-          <button type="button" class="lugar-action-link guardar" aria-label="Guardar Plaza Treinta y Tres">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="heart-fill" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <div class="lugar-acciones">
+          <button type="button" class="lugar-accion-enlace guardar" aria-label="Guardar Plaza Treinta y Tres">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path class="corazon-relleno" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Guardar
           </button>
-          <a class="lugar-action-link" href="mapa.php?focus=plaza-33">
+          <a class="lugar-accion-enlace" href="mapa.php?focus=plaza-33">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-7h14l2 7"/><rect x="3" y="13" width="18" height="6" rx="2"/><circle cx="7.5" cy="19" r="1.2"/><circle cx="16.5" cy="19" r="1.2"/></svg>
             Cómo llegar
           </a>
-          <a class="ver-detalles-btn" href="mapa.php?focus=plaza-33">Ver detalles</a>
+          <a class="ver-detalles-boton" href="mapa.php?focus=plaza-33">Ver detalles</a>
         </div>
       </div>
 
@@ -331,9 +331,9 @@
      toda la sección de arriba, para el que quiere ver todo junto en
      el mapa en vez de lugar por lugar.
  -->
-<section class="mapa-section">
-  <div class="mapa-left">
-    <div class="mapa-icon">
+<section class="mapa-seccion">
+  <div class="mapa-izquierda">
+    <div class="mapa-icono">
       <!-- icono de "mapa plegado", el mismo dibujo se repite en el
            boton de abajo (btn-ver-mapa). Redundante tenerlo 2 veces
            pero visualmente tiene sentido: uno es el icono grande
@@ -342,12 +342,12 @@
         <path d="M3 6l6-2 6 2 6-2v15l-6 2-6-2-6 2V6z"/><path d="M9 4v15"/><path d="M15 6v15"/>
       </svg>
     </div>
-    <div class="mapa-text">
+    <div class="mapa-texto">
       <h2>Explora en el mapa</h2>
       <p>Descubrí todos los lugares de Salto y planificá tu recorrido.</p>
     </div>
   </div>
-  <a class="btn-ver-mapa" href="mapa.php">
+  <a class="boton-ver-mapa" href="mapa.php">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v15l-6 2-6-2-6 2V6z"/><path d="M9 4v15"/><path d="M15 6v15"/></svg>
     Ver mapa SIGTUR
   </a>
@@ -373,11 +373,11 @@
      pegar sin pensar. Es un poco mas "repetitivo" pero muchisimo
      menos propenso a errores.
 -->
-<footer class="footer">
-  <div class="footer-top-row">
-    <div class="footer-cols">
-    <div class="footer-col">
-      <h4 class="footer-col-title">EVENTOS</h4>
+<footer class="pie-pagina">
+  <div class="pie-pagina-superior-fila">
+    <div class="pie-pagina-columnas">
+    <div class="pie-pagina-columna">
+      <h4 class="pie-pagina-columna-titulo">EVENTOS</h4>
       <ul>
         <li><a href="eventos.php">Eventos Destacados</a></li>
         <li><a href="eventos.php">Todos los Eventos</a></li>
@@ -385,8 +385,8 @@
       </ul>
     </div>
 
-    <div class="footer-col">
-      <h4 class="footer-col-title">TURISMO</h4>
+    <div class="pie-pagina-columna">
+      <h4 class="pie-pagina-columna-titulo">TURISMO</h4>
       <ul>
         <li><a href="turismo.php#alojamientos">Hoteles</a></li>
         <li><a href="turismo.php#restaurantes">Restaurantes</a></li>
@@ -395,8 +395,8 @@
       </ul>
     </div>
 
-    <div class="footer-col">
-      <h4 class="footer-col-title">LUGARES</h4>
+    <div class="pie-pagina-columna">
+      <h4 class="pie-pagina-columna-titulo">LUGARES</h4>
       <ul>
         <!-- ^ ver comentario grande arriba: estos 4 links son
              relativos a ESTA página (sin "lugares.php" adelante) -->
@@ -407,8 +407,8 @@
       </ul>
     </div>
 
-    <div class="footer-col">
-      <h4 class="footer-col-title">SIGTUR</h4>
+    <div class="pie-pagina-columna">
+      <h4 class="pie-pagina-columna-titulo">SIGTUR</h4>
       <ul>
         <li><a href="#">Sobre VPI</a></li>
         <li><a href="#">UTU Catalina Harrigue de Castaños</a></li>
@@ -416,51 +416,51 @@
     </div>
   </div>
 
-    <aside class="footer-suporte-card">
-      <p class="footer-suporte-eyebrow">Suporte</p>
-      <p class="footer-suporte-message">
-        <span class="footer-suporte-headline">¿Tienes alguna sugerencia?</span>
-        <span class="footer-suporte-body">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
+    <aside class="pie-pagina-soporte-tarjeta">
+      <p class="pie-pagina-soporte-antetitulo">Suporte</p>
+      <p class="pie-pagina-soporte-mensaje">
+        <span class="pie-pagina-soporte-titular">¿Tienes alguna sugerencia?</span>
+        <span class="pie-pagina-soporte-cuerpo">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
       </p>
-      <a class="footer-suporte-btn" href="soporte.php">Ir a soporte</a>
+      <a class="pie-pagina-soporte-boton" href="soporte.php">Ir a soporte</a>
     </aside>
   </div>
 
-  <div class="footer-divider"></div>
+  <div class="pie-pagina-separador"></div>
 
   <!-- iconos sociales, identicos byte a byte a los de turismo.php.
        ver esa página para el detalle de cada uno, acá no repito
        comentario por comentario para no hacer el archivo eterno -->
-  <div class="footer-socials">
-    <a class="social-icon icon-instagram" href="#" aria-label="Instagram">
+  <div class="pie-pagina-redes-sociales">
+    <a class="red-social-icono icono-instagram" href="#" aria-label="Instagram">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M11.5821 2.09315C14.652 2.09315 15.0707 2.09315 16.3266 2.09315C17.4429 2.09315 18.0011 2.37224 18.4197 2.51178C18.9779 2.79087 19.3965 2.93041 19.8151 3.34904C20.2338 3.76767 20.5129 4.1863 20.6524 4.74447C20.7919 5.1631 20.9315 5.72127 21.071 6.83762C21.071 8.09351 21.071 8.3726 21.071 11.5821C21.071 14.7916 21.071 15.0707 21.071 16.3266C21.071 17.4429 20.7919 18.0011 20.6524 18.4197C20.3733 18.9779 20.2338 19.3965 19.8151 19.8151C19.3965 20.2338 18.9779 20.5129 18.4197 20.6524C18.0011 20.7919 17.4429 20.9315 16.3266 21.071C15.0707 21.071 14.7916 21.071 11.5821 21.071C8.3726 21.071 8.09351 21.071 6.83762 21.071C5.72127 21.071 5.1631 20.7919 4.74447 20.6524C4.1863 20.3733 3.76767 20.2338 3.34904 19.8151C2.93041 19.3965 2.65132 18.9779 2.51178 18.4197C2.37224 18.0011 2.23269 17.4429 2.09315 16.3266C2.09315 15.0707 2.09315 14.7916 2.09315 11.5821C2.09315 8.3726 2.09315 8.09351 2.09315 6.83762C2.09315 5.72127 2.37224 5.1631 2.51178 4.74447C2.79087 4.1863 2.93041 3.76767 3.34904 3.34904C3.76767 2.93041 4.1863 2.65132 4.74447 2.51178C5.1631 2.37224 5.72127 2.23269 6.83762 2.09315C8.09351 2.09315 8.51214 2.09315 11.5821 2.09315ZM11.5821 0C8.3726 0 8.09351 0 6.83762 0C5.58173 0 4.74447 0.279087 4.04676 0.558174C3.34904 0.83726 2.65132 1.25589 1.95361 1.95361C1.25589 2.65132 0.976804 3.2095 0.558174 4.04676C0.279087 4.74447 0.139543 5.58173 0 6.83762C0 8.09351 0 8.51214 0 11.5821C0 14.7916 0 15.0707 0 16.3266C0 17.5824 0.279087 18.4197 0.558174 19.1174C0.83726 19.8151 1.25589 20.5129 1.95361 21.2106C2.65132 21.9083 3.2095 22.1874 4.04676 22.606C4.74447 22.8851 5.58173 23.0246 6.83762 23.1642C8.09351 23.1642 8.51214 23.1642 11.5821 23.1642C14.652 23.1642 15.0707 23.1642 16.3266 23.1642C17.5824 23.1642 18.4197 22.8851 19.1174 22.606C19.8151 22.3269 20.5129 21.9083 21.2106 21.2106C21.9083 20.5129 22.1874 19.9547 22.606 19.1174C22.8851 18.4197 23.0246 17.5824 23.1642 16.3266C23.1642 15.0707 23.1642 14.652 23.1642 11.5821C23.1642 8.51214 23.1642 8.09351 23.1642 6.83762C23.1642 5.58173 22.8851 4.74447 22.606 4.04676C22.3269 3.34904 21.9083 2.65132 21.2106 1.95361C20.5129 1.25589 19.9547 0.976804 19.1174 0.558174C18.4197 0.279087 17.5824 0.139543 16.3266 0C15.0707 0 14.7916 0 11.5821 0Z" fill="white"/>
         <path d="M11.5821 5.58173C8.23305 5.58173 5.58173 8.23305 5.58173 11.5821C5.58173 14.9311 8.23305 17.5824 11.5821 17.5824C14.9311 17.5824 17.5824 14.9311 17.5824 11.5821C17.5824 8.23305 14.9311 5.58173 11.5821 5.58173ZM11.5821 15.4893C9.48894 15.4893 7.67488 13.8148 7.67488 11.5821C7.67488 9.48894 9.3494 7.67488 11.5821 7.67488C13.6752 7.67488 15.4893 9.3494 15.4893 11.5821C15.4893 13.6752 13.6752 15.4893 11.5821 15.4893Z" fill="white"/>
         <path d="M17.722 6.83762C18.4927 6.83762 19.1174 6.21286 19.1174 5.44219C19.1174 4.67151 18.4927 4.04676 17.722 4.04676C16.9513 4.04676 16.3266 4.67151 16.3266 5.44219C16.3266 6.21286 16.9513 6.83762 17.722 6.83762Z" fill="white"/>
       </svg>
     </a>
-    <a class="social-icon icon-facebook" href="#" aria-label="Facebook">
+    <a class="red-social-icono icono-facebook" href="#" aria-label="Facebook">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M20.2687 0H2.89552C1.29864 0 0 1.29864 0 2.89552V20.2687C0 21.8655 1.29864 23.1642 2.89552 23.1642H11.5821V15.2015H8.68657V11.5821H11.5821V8.68657C11.5821 7.53466 12.0397 6.42993 12.8542 5.6154C13.6687 4.80088 14.7735 4.34328 15.9254 4.34328H18.8209V7.96269H17.3731C16.574 7.96269 15.9254 7.8874 15.9254 8.68657V11.5821H19.5448L18.097 15.2015H15.9254V23.1642H20.2687C21.8655 23.1642 23.1642 21.8655 23.1642 20.2687V2.89552C23.1642 1.29864 21.8655 0 20.2687 0Z" fill="white"/>
       </svg>
     </a>
-    <a class="social-icon icon-twitter" href="#" aria-label="Twitter">
+    <a class="red-social-icono icono-twitter" href="#" aria-label="Twitter">
       <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M27.5075 2.69347C26.5595 3.3412 25.4465 3.68514 24.3089 3.68188C25.5251 2.94389 26.4357 1.77139 26.8678 0.387186C25.8596 1.26507 24.5892 1.75942 23.2694 1.78743C22.3992 0.869392 21.2634 0.266809 20.0326 0.070111C18.8017 -0.126587 17.5421 0.0932115 16.4427 0.69652C15.3434 1.29983 14.4637 2.2541 13.9356 3.41614C13.4075 4.57817 13.2595 5.88528 13.5138 7.14131C11.2743 7.01952 9.08473 6.41393 7.08719 5.36385C5.08966 4.31377 3.32886 2.84269 1.91913 1.04612C1.22929 2.33191 1.02731 3.83567 1.35232 5.26609C1.67732 6.6965 2.50618 7.95175 3.67832 8.78865C2.7937 8.80153 1.9181 8.60423 1.11949 8.21208C1.141 9.53888 1.59388 10.8199 2.4057 11.8503C3.21752 12.8806 4.34136 13.6007 5.59745 13.8954C4.76131 14.1203 3.88675 14.1485 3.03862 13.9778C3.40449 15.1532 4.1173 16.1817 5.07768 16.92C6.03806 17.6582 7.19813 18.0694 8.39617 18.0962C5.86592 19.6772 2.95938 20.5041 0 20.4848C2.4785 22.1515 5.35742 23.077 8.31628 23.1583C11.2752 23.2396 14.1979 22.4735 16.7591 20.9452C19.3203 19.4169 21.4195 17.1864 22.823 14.5021C24.2266 11.8178 24.8794 8.78489 24.7087 5.74106C25.7639 4.85221 26.7045 3.82804 27.5075 2.69347Z" fill="white"/>
       </svg>
     </a>
-    <a class="social-icon icon-youtube" href="#" aria-label="Youtube">
+    <a class="red-social-icono icono-youtube" href="#" aria-label="Youtube">
       <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M31.0545 3.51599C30.6564 2.06823 29.661 1.03412 28.2676 0.620469C25.8788 3.57628e-07 15.7263 0 15.7263 0C15.7263 0 5.77296 3.57628e-07 3.18509 0.620469C1.79162 1.03412 0.796263 2.06823 0.398128 3.51599C-6.07967e-06 6.20469 0 11.5821 0 11.5821C0 11.5821 6.07967e-06 16.9595 0.597208 19.6482C0.995342 21.0959 1.99067 22.1301 3.38414 22.5437C5.77294 23.1642 15.9254 23.1642 15.9254 23.1642C15.9254 23.1642 25.8787 23.1642 28.4666 22.5437C29.86 22.1301 30.8554 21.0959 31.2536 19.6482C31.8508 16.9595 31.8507 11.5821 31.8507 11.5821C31.8507 11.5821 31.8508 6.20469 31.0545 3.51599ZM12.7403 16.5458V6.61834L21.1011 11.5821L12.7403 16.5458Z" fill="white"/>
       </svg>
     </a>
   </div>
 
-  <div class="footer-divider2"></div>
+  <div class="pie-pagina-divider2"></div>
 
-  <div class="footer-bottom">
-    <span class="footer-copy">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
-    <div class="footer-legal">
+  <div class="pie-pagina-inferior">
+    <span class="pie-pagina-texto">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
+    <div class="pie-pagina-legal">
       <a href="#">Términos y Condiciones</a>
       <a href="#">Políticas de Privacidad</a>
       <a href="#">Bases Legales</a>

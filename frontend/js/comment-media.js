@@ -8,7 +8,7 @@
   })[caracter]);
 
   async function subirArchivo(archivo) {
-    const solicitud = window.sigturApiFetch || window.sigturInteractionFetch;
+    const solicitud = window.sigturSolicitarApi || window.sigturSolicitarInteraccion;
     if (typeof solicitud === 'function') {
       return solicitud('/api/comentarios/medios', {
         method: 'POST',
@@ -48,19 +48,19 @@
     }
   }
 
-  window.sigturCommentMediaMarkup = urlsMultimedia => {
+  window.sigturGenerarMultimediaComentario = urlsMultimedia => {
     if (!Array.isArray(urlsMultimedia)) return '';
     const adjuntos = urlsMultimedia.map((urlOriginal, indice) => {
       try {
         const url = new URL(urlOriginal, window.location.href);
         if (!['http:', 'https:'].includes(url.protocol)) return '';
         const urlSegura = escaparHtml(url.href);
-        return `<figure class="comment-attachment"><a href="${urlSegura}" target="_blank" rel="noopener noreferrer"><img src="${urlSegura}" alt="Imagen adjunta al comentario ${indice + 1}" loading="lazy"></a></figure>`;
+        return `<figure class="comentario-adjunto"><a href="${urlSegura}" target="_blank" rel="noopener noreferrer"><img src="${urlSegura}" alt="Imagen adjunta al comentario ${indice + 1}" loading="lazy"></a></figure>`;
       } catch {
         return '';
       }
     }).join('');
-    return adjuntos ? `<div class="comment-attachments">${adjuntos}</div>` : '';
+    return adjuntos ? `<div class="comentario-adjuntos">${adjuntos}</div>` : '';
   };
 
   function mejorarFormulario(formulario) {
@@ -69,27 +69,27 @@
     formulario._commentMediaFiles = [];
 
     const selector = document.createElement('div');
-    selector.className = 'comment-media-controls';
+    selector.className = 'comentario-multimedia-controles';
     const entrada = document.createElement('input');
     entrada.type = 'file';
     entrada.accept = [...TIPOS_ACEPTADOS].join(',');
     entrada.multiple = true;
     entrada.hidden = true;
-    entrada.className = 'comment-media-input';
+    entrada.className = 'comentario-multimedia-entrada';
 
     const boton = document.createElement('button');
     boton.type = 'button';
-    boton.className = 'comment-media-picker';
+    boton.className = 'comentario-multimedia-selector';
     boton.textContent = '＋ Adjuntar imágenes o GIF';
     boton.addEventListener('click', () => entrada.click());
 
     const estado = document.createElement('span');
-    estado.className = 'comment-media-status';
+    estado.className = 'comentario-multimedia-estado';
     estado.setAttribute('aria-live', 'polite');
     estado.textContent = 'Hasta 3 archivos · 5 MB cada uno';
 
     const vistaPrevia = document.createElement('div');
-    vistaPrevia.className = 'comment-media-preview';
+    vistaPrevia.className = 'comentario-multimedia-vista-previa';
     selector.append(entrada, boton, estado, vistaPrevia);
 
     const enviar = formulario.querySelector('[type="submit"]');
@@ -102,14 +102,14 @@
       vistaPrevia.replaceChildren();
       formulario._commentMediaFiles.forEach((archivo, indice) => {
         const tarjeta = document.createElement('span');
-        tarjeta.className = 'comment-media-preview-item';
+        tarjeta.className = 'comentario-multimedia-vista-previa-elemento';
         const imagen = document.createElement('img');
         imagen.src = URL.createObjectURL(archivo);
         formulario._commentPreviewUrls.push(imagen.src);
         imagen.alt = `Vista previa: ${archivo.name}`;
         const quitar = document.createElement('button');
         quitar.type = 'button';
-        quitar.className = 'comment-media-remove';
+        quitar.className = 'comentario-multimedia-eliminar';
         quitar.setAttribute('aria-label', `Quitar ${archivo.name}`);
         quitar.textContent = '×';
         quitar.addEventListener('click', () => {
@@ -143,14 +143,14 @@
   const observador = new MutationObserver(registros => {
     registros.forEach(grabacion => grabacion.addedNodes.forEach(nodo => {
       if (!(nodo instanceof Element)) return;
-      if (nodo.matches('form[data-comment-media-form]')) mejorarFormulario(nodo);
-      nodo.querySelectorAll?.('form[data-comment-media-form]').forEach(mejorarFormulario);
+      if (nodo.matches('form[data-comentario-multimedia-formulario]')) mejorarFormulario(nodo);
+      nodo.querySelectorAll?.('form[data-comentario-multimedia-formulario]').forEach(mejorarFormulario);
     }));
   });
   observador.observe(document.documentElement, { childList: true, subtree: true });
-  document.querySelectorAll('form[data-comment-media-form]').forEach(mejorarFormulario);
+  document.querySelectorAll('form[data-comentario-multimedia-formulario]').forEach(mejorarFormulario);
 
-  window.sigturPrepareCommentMedia = async formulario => {
+  window.sigturPrepararMultimediaComentario = async formulario => {
     const archivos = formulario?._commentMediaFiles || [];
     if (!archivos.length) return [];
     if (archivos.length > ARCHIVOS_MAXIMOS) throw new Error(`Podés adjuntar hasta ${ARCHIVOS_MAXIMOS} imágenes.`);
@@ -159,7 +159,7 @@
     for (let indice = 0; indice < archivos.length; indice += 1) {
       const archivo = archivos[indice];
       if (!TIPOS_ACEPTADOS.has(archivo.type) || archivo.size > BYTES_MAXIMOS) throw new Error('Adjuntá JPG, PNG, WebP o GIF de hasta 5 MB.');
-      const estado = formulario.querySelector('.comment-media-status');
+      const estado = formulario.querySelector('.comentario-multimedia-estado');
       if (estado) estado.textContent = `Subiendo imagen ${indice + 1} de ${archivos.length}…`;
       const resultado = await subirArchivo(archivo);
       if (!resultado?.path) throw new Error('No se pudo completar la carga de la imagen.');
@@ -168,16 +168,16 @@
     return rutas;
   };
 
-  window.sigturClearCommentMedia = formulario => {
+  window.sigturLimpiarMultimediaComentario = formulario => {
     if (!formulario) return;
     formulario._commentMediaFiles = [];
     (formulario._commentPreviewUrls || []).forEach(URL.revokeObjectURL);
     formulario._commentPreviewUrls = [];
-    const entrada = formulario.querySelector('.comment-media-input');
+    const entrada = formulario.querySelector('.comentario-multimedia-entrada');
     if (entrada) entrada.value = '';
-    const vistaPrevia = formulario.querySelector('.comment-media-preview');
+    const vistaPrevia = formulario.querySelector('.comentario-multimedia-vista-previa');
     if (vistaPrevia) vistaPrevia.replaceChildren();
-    const estado = formulario.querySelector('.comment-media-status');
+    const estado = formulario.querySelector('.comentario-multimedia-estado');
     if (estado) estado.textContent = 'Hasta 3 archivos · 5 MB cada uno';
   };
 })();

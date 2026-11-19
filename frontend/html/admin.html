@@ -11,7 +11,7 @@
 </head>
 
 
-<body class="page-admin">
+<body class="pagina-administracion">
 
 <!--
   Navbar simplificada: mismo logo y links de siempre, pero SIN
@@ -23,12 +23,12 @@
   vale la pena unificarlo
 -->
 <header>
-  <nav class="navbar">
-    <a class="nav-logo" href="index.html" aria-label="Abrir menu">
+  <nav class="barra-navegacion">
+    <a class="navegacion-logotipo" href="index.html" aria-label="Abrir menu">
       <img src="../imagenes/logo-salto.svg" alt="Explora Salto" />
     </a>
 
-    <div class="nav-search">
+    <div class="navegacion-busqueda">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
@@ -36,7 +36,7 @@
     </div>
 
     <!--
-      curioso: acá NINGÚN link tiene class="active", ni siquiera algo
+      curioso: acá NINGÚN link tiene class="activo", ni siquiera algo
       relacionado a "Admin" (que ni existe como opción en este menú).
       Tiene sentido porque Admin no es una de las 3 secciones
       principales (Eventos/Turismo/Lugares), es más una pantalla
@@ -44,7 +44,7 @@
       logo que arma buildLogoMenu() en main.js, según vimos comentado
       en index.html)
     -->
-    <div class="nav-links">
+    <div class="navegacion-enlaces">
       <a href="eventos.html">Eventos</a>
       <a href="turismo.html">Turismo</a>
       <a href="lugares.html">Lugares</a>
@@ -63,11 +63,11 @@
   de estilos ahí, a diferencia de otras partes del sitio donde todo
   se hardcodea de nuevo.
  -->
-<main class="utility-page">
-  <div class="utility-shell">
-    <div class="utility-header">
-      <div class="utility-kicker">Panel interno</div>
-      <a class="utility-back-link" href="index.html" aria-label="Volver al inicio">
+<main class="utilidad-pagina">
+  <div class="utilidad-marco">
+    <div class="utilidad-encabezado">
+      <div class="utilidad-antetitulo">Panel interno</div>
+      <a class="utilidad-volver-enlace" href="index.html" aria-label="Volver al inicio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M15 18l-6-6 6-6"/>
         </svg>
@@ -81,7 +81,7 @@
     </p>
 
 
-    <div class="utility-grid admin-grid" hidden>
+    <div class="utilidad-cuadricula administracion-cuadricula" hidden>
 
       <!--
 
@@ -89,8 +89,8 @@
 
         4 switches (toggle on/off) para prender/apagar features del
         sitio. Cada uno es un <label> que envuelve un checkbox real
-        (input type=checkbox, class="switch-input") + un span decorativo
-        (class="switch-control") que es el que se ve como el toggle
+        (input type=checkbox, class="interruptor-entrada") + un span decorativo
+        (class="interruptor-control") que es el que se ve como el toggle
         visual -- patrón clásico de "checkbox escondido + CSS que
         dibuja el interruptor encima" (buscar .switch-input y
         .switch-control en styles.css para ver el truco de CSS).
@@ -98,40 +98,40 @@
         debajo, funciona con teclado y con lectores de pantalla,
         no es solo un div con onclick.
       -->
-      <section class="admin-panel">
-        <div class="panel-heading">
+      <section class="administracion-panel">
+        <div class="panel-encabezado">
           <h2>Ajustes de página</h2>
           <!-- este span probablemente lo actualiza main.js cuando
                guarda cambios (algo tipo "Guardando..." -> "Guardado
                local" con un setTimeout, es un patrón común) -->
-          <span class="status-pill" id="admin-save-status">Guardado local</span>
+          <span class="estado-pastilla" id="administracion-guardar-estado">Guardado local</span>
         </div>
-        <form id="admin-settings-form" class="settings-list">
-          <label class="settings-item">
+        <form id="administracion-ajustes-formulario" class="ajustes-lista">
+          <label class="ajustes-elemento">
             <div>
               <strong>Publicar eventos destacados</strong>
               <span>Permite mostrar eventos nuevos en la página principal.</span>
             </div>
-            <input class="switch-input" type="checkbox" name="featuredEvents" checked />
-            <span class="switch-control" aria-hidden="true"></span>
+            <input class="interruptor-entrada" type="checkbox" name="featuredEvents" checked />
+            <span class="interruptor-control" aria-hidden="true"></span>
           </label>
-          <label class="settings-item">
+          <label class="ajustes-elemento">
             <div>
               <strong>Revisar lugares antes de publicar</strong>
               <span>Deja las fichas nuevas en revision visual.</span>
             </div>
-            <input class="switch-input" type="checkbox" name="reviewPlaces" checked />
-            <span class="switch-control" aria-hidden="true"></span>
+            <input class="interruptor-entrada" type="checkbox" name="reviewPlaces" checked />
+            <span class="interruptor-control" aria-hidden="true"></span>
           </label>
-          <label class="settings-item">
+          <label class="ajustes-elemento">
             <div>
               <strong>Mostrar soporte en menu</strong>
               <span>Acceso rapido para consultas de usuarios y comercios.</span>
             </div>
-            <input class="switch-input" type="checkbox" name="showSupport" checked />
-            <span class="switch-control" aria-hidden="true"></span>
+            <input class="interruptor-entrada" type="checkbox" name="showSupport" checked />
+            <span class="interruptor-control" aria-hidden="true"></span>
           </label>
-          <label class="settings-item">
+          <label class="ajustes-elemento">
             <div>
               <strong>Modo mantenimiento</strong>
               <span>Muestra una advertencia interna para evitar publicar cambios incompletos.</span>
@@ -139,8 +139,8 @@
             <!-- este es el único switch que arranca DESAPAGADO (sin
                  "checked") de los 4 -- tiene sentido, el modo
                  mantenimiento no debería estar prendido por defecto -->
-            <input class="switch-input" type="checkbox" name="maintenanceMode" />
-            <span class="switch-control" aria-hidden="true"></span>
+            <input class="interruptor-entrada" type="checkbox" name="maintenanceMode" />
+            <span class="interruptor-control" aria-hidden="true"></span>
           </label>
         </form>
       </section>
@@ -149,7 +149,7 @@
 
         PANEL: Resumen (metricas)
 
-        4 numeritos tipo "dashboard". Los data-admin-metric="..." son
+        4 numeritos tipo "dashboard". Los data-administracion-metrica="..." son
         ganchos para que main.js los actualice dinámicamente (aunque
         acá vienen con valores hardcodeados de partida: 12, 8, 3, 2).
         No hay ningún cálculo real detrás -- no cuenta cuántos
@@ -160,13 +160,13 @@
         un backend, algo) de la que main.js pueda leer los conteos
         de verdad.
       -->
-      <section class="utility-card">
+      <section class="utilidad-tarjeta">
         <h2>Resumen</h2>
-        <div class="metric-grid">
-          <article><span>Eventos activos</span><strong data-admin-metric="events">—</strong></article>
-          <article><span>Lugares publicados</span><strong data-admin-metric="places">—</strong></article>
-          <article><span>Consultas pendientes</span><strong data-admin-metric="tickets">—</strong></article>
-          <article><span>Comentarios para revisar</span><strong data-admin-metric="review">—</strong></article>
+        <div class="metrica-cuadricula">
+          <article><span>Eventos activos</span><strong data-administracion-metrica="events">—</strong></article>
+          <article><span>Lugares publicados</span><strong data-administracion-metrica="places">—</strong></article>
+          <article><span>Consultas pendientes</span><strong data-administracion-metrica="tickets">—</strong></article>
+          <article><span>Comentarios para revisar</span><strong data-administracion-metrica="review">—</strong></article>
         </div>
       </section>
 
@@ -179,28 +179,28 @@
         algún lado del sitio (no vimos todavía DÓNDE se muestra ese
         aviso en las otras páginas -- puede ser que esta feature esté
         a medio conectar, o que se muestre solo dentro de esta misma
-        pantalla en el <p id="admin-announcement-preview">).
+        pantalla en el <p id="administracion-anuncio-vista-previa">).
       -->
-      <section class="admin-panel">
+      <section class="administracion-panel">
         <h2>Aviso del sitio</h2>
-        <form id="admin-announcement-form">
-          <div class="form-row">
-            <label for="announcement-title">Titulo</label>
-            <input id="announcement-title" name="title" type="text" placeholder="Ej: Termas abiertas este finde" />
+        <form id="administracion-anuncio-formulario">
+          <div class="formulario-fila">
+            <label for="anuncio-titulo">Titulo</label>
+            <input id="anuncio-titulo" name="title" type="text" placeholder="Ej: Termas abiertas este finde" />
           </div>
-          <div class="form-row">
-            <label for="announcement-body">Mensaje</label>
-            <textarea id="announcement-body" name="body" placeholder="Escribi un aviso corto para mostrar al equipo"></textarea>
+          <div class="formulario-fila">
+            <label for="anuncio-cuerpo">Mensaje</label>
+            <textarea id="anuncio-cuerpo" name="body" placeholder="Escribi un aviso corto para mostrar al equipo"></textarea>
           </div>
-          <div class="button-row">
-            <button class="btn-primary" type="submit">Guardar aviso</button>
-            <button class="btn-secondary" type="button" id="admin-clear-announcement">Limpiar</button>
+          <div class="boton-fila">
+            <button class="boton-principal" type="submit">Guardar aviso</button>
+            <button class="boton-secundario" type="button" id="administracion-limpiar-anuncio">Limpiar</button>
           </div>
           <!-- este parrafo probablemente se actualiza en vivo con lo
                que vas escribiendo arriba (o al guardar), mostrando
                una vista previa del aviso. arranca con el texto por
                defecto "Sin aviso publicado." -->
-          <p class="form-help" id="admin-announcement-preview">Sin aviso publicado.</p>
+          <p class="formulario-help" id="administracion-anuncio-vista-previa">Sin aviso publicado.</p>
         </form>
       </section>
 
@@ -211,18 +211,18 @@
         3 links directos (Eventos / Lugares / Soporte) + un botón de
         "Exportar estado" que NO es un link, es un <button> con JS
         atrás (probablemente arma un JSON o similar con la
-        configuración actual y lo descarga, ver id="admin-export"
+        configuración actual y lo descarga, ver id="administracion-exportar"
         en main.js). Los 3 primeros usan la clase "glass-action"
         tanto en <a> como en el <button>, mostrando que la clase de
         estilo no depende del tag HTML, es puramente visual.
       -->
-      <section class="utility-card">
+      <section class="utilidad-tarjeta">
         <h2>Acciones rápidas</h2>
-        <div class="admin-actions">
-          <a class="glass-action" href="eventos.html">Revisar eventos</a>
-          <a class="glass-action" href="lugares.html">Ver lugares</a>
-          <a class="glass-action" href="soporte.html">Abrir soporte</a>
-          <button class="glass-action" type="button" id="admin-export">Exportar estado</button>
+        <div class="administracion-acciones">
+          <a class="cristal-accion" href="eventos.html">Revisar eventos</a>
+          <a class="cristal-accion" href="lugares.html">Ver lugares</a>
+          <a class="cristal-accion" href="soporte.html">Abrir soporte</a>
+          <button class="cristal-accion" type="button" id="administracion-exportar">Exportar estado</button>
         </div>
         <!--
           este div vacío es donde main.js probablemente va agregando
@@ -231,49 +231,49 @@
           nuevo para que se anuncie automáticamente a lectores de
           pantalla apenas se agrega una entrada nueva
         -->
-        <div class="activity-list" id="admin-activity" aria-live="polite"></div>
+        <div class="actividad-lista" id="administracion-actividad" aria-live="polite"></div>
       </section>
 
-      <section class="admin-panel">
-        <h2 id="admin-event-form-title">Crear evento</h2>
-        <form id="admin-event-form" class="settings-list">
-          <div class="form-row"><label for="admin-event-title">Título</label><input id="admin-event-title" name="title" required></div>
-          <div class="form-row"><label for="admin-event-description">Descripción</label><textarea id="admin-event-description" name="description" placeholder="Opcional"></textarea></div>
-          <div class="form-row"><label for="admin-event-location">Lugar</label><input id="admin-event-location" name="location" required></div>
+      <section class="administracion-panel">
+        <h2 id="administracion-evento-formulario-titulo">Crear evento</h2>
+        <form id="administracion-evento-formulario" class="ajustes-lista">
+          <div class="formulario-fila"><label for="administracion-evento-titulo">Título</label><input id="administracion-evento-titulo" name="title" required></div>
+          <div class="formulario-fila"><label for="administracion-evento-descripcion">Descripción</label><textarea id="administracion-evento-descripcion" name="description" placeholder="Opcional"></textarea></div>
+          <div class="formulario-fila"><label for="administracion-evento-ubicacion">Lugar</label><input id="administracion-evento-ubicacion" name="location" required></div>
           <!-- El mapa define el punto exacto que usaran los marcadores públicos. -->
-          <div class="form-row"><label>Ubicación en el mapa</label><div id="admin-event-map" class="admin-event-map" aria-label="Selector de ubicación del evento"></div><p class="form-help">Hacé clic en el mapa para fijar el punto del evento.</p><div class="admin-event-coordinates"><label for="admin-event-latitude">Latitud<input id="admin-event-latitude" name="latitude" type="number" step="any" min="-90" max="90" required></label><label for="admin-event-longitude">Longitud<input id="admin-event-longitude" name="longitude" type="number" step="any" min="-180" max="180" required></label></div></div>
-          <div class="form-row"><label for="admin-event-date-start">Desde</label><input id="admin-event-date-start" name="date_start" type="date" required></div>
-          <div class="form-row"><label for="admin-event-date-end">Hasta</label><input id="admin-event-date-end" name="date_end" type="date"></div>
-          <div class="form-row"><label for="admin-event-time">Horario</label><input id="admin-event-time" name="event_time" type="time"><small class="form-help">Se muestra separado del precio en la agenda.</small></div>
-          <div class="form-row"><label for="admin-event-categories">Categoría principal</label><select id="admin-event-categories" name="category"><option value="cultura">🎭 Cultura</option><option value="musica">♫ Música</option><option value="deportes">⚽ Deportes</option><option value="feria">▦ Feria</option><option value="gastronomia">♨ Gastronomía</option><option value="religiosos">✦ Religiosos</option><option value="infantiles">★ Infantiles</option></select></div>
-          <div class="form-row"><label for="admin-event-price">Precio (0 para gratuito)</label><input id="admin-event-price" name="price" type="number" min="0" step="1" value="0"></div>
-          <div class="form-row"><label for="admin-event-color">Color del evento</label><input id="admin-event-color" name="color" type="color" value="#16b3a3" title="Elegí el color principal del evento"></div>
-          <div class="form-row"><label for="admin-event-image">Imagen o video para la ficha</label><input id="admin-event-image" name="image_url" type="url" placeholder="URL directa de imagen, video o YouTube/Vimeo" autocomplete="url"><small class="form-help">Se muestra dentro de la ficha. Para un artículo o una web, usá el enlace oficial de abajo.</small><div id="admin-event-image-preview" class="admin-event-image-preview" hidden><img alt="Vista previa de portada" loading="lazy" decoding="async"><span>Vista previa</span></div></div>
-          <div class="form-row"><label for="admin-event-link">Enlace oficial o más información</label><input id="admin-event-link" name="link" type="url" placeholder="https://..." autocomplete="url"><small class="form-help">Se abre desde la ficha del evento; nunca reemplaza la ficha.</small></div>
-          <div class="admin-event-form-actions"><button class="btn-primary" id="admin-event-submit" type="submit">Publicar evento</button><button class="btn-secondary" id="admin-event-cancel" type="button" hidden>Cancelar edición</button></div>
+          <div class="formulario-fila"><label>Ubicación en el mapa</label><div id="administracion-evento-mapa" class="administracion-evento-mapa" aria-label="Selector de ubicación del evento"></div><p class="formulario-help">Hacé clic en el mapa para fijar el punto del evento.</p><div class="administracion-evento-coordenadas"><label for="administracion-evento-latitude">Latitud<input id="administracion-evento-latitude" name="latitude" type="number" step="any" min="-90" max="90" required></label><label for="administracion-evento-longitude">Longitud<input id="administracion-evento-longitude" name="longitude" type="number" step="any" min="-180" max="180" required></label></div></div>
+          <div class="formulario-fila"><label for="administracion-evento-fecha-inicio">Desde</label><input id="administracion-evento-fecha-inicio" name="date_start" type="date" required></div>
+          <div class="formulario-fila"><label for="administracion-evento-fecha-fin">Hasta</label><input id="administracion-evento-fecha-fin" name="date_end" type="date"></div>
+          <div class="formulario-fila"><label for="administracion-evento-hora">Horario</label><input id="administracion-evento-hora" name="event_time" type="time"><small class="formulario-help">Se muestra separado del precio en la agenda.</small></div>
+          <div class="formulario-fila"><label for="administracion-evento-categorias">Categoría principal</label><select id="administracion-evento-categorias" name="category"><option value="cultura">🎭 Cultura</option><option value="musica">♫ Música</option><option value="deportes">⚽ Deportes</option><option value="feria">▦ Feria</option><option value="gastronomia">♨ Gastronomía</option><option value="religiosos">✦ Religiosos</option><option value="infantiles">★ Infantiles</option></select></div>
+          <div class="formulario-fila"><label for="administracion-evento-precio">Precio (0 para gratuito)</label><input id="administracion-evento-precio" name="price" type="number" min="0" step="1" value="0"></div>
+          <div class="formulario-fila"><label for="administracion-evento-color">Color del evento</label><input id="administracion-evento-color" name="color" type="color" value="#16b3a3" title="Elegí el color principal del evento"></div>
+          <div class="formulario-fila"><label for="administracion-evento-imagen">Imagen o video para la ficha</label><input id="administracion-evento-imagen" name="image_url" type="url" placeholder="URL directa de imagen, video o YouTube/Vimeo" autocomplete="url"><small class="formulario-help">Se muestra dentro de la ficha. Para un artículo o una web, usá el enlace oficial de abajo.</small><div id="administracion-evento-imagen-vista-previa" class="administracion-evento-imagen-vista-previa" hidden><img alt="Vista previa de portada" loading="lazy" decoding="async"><span>Vista previa</span></div></div>
+          <div class="formulario-fila"><label for="administracion-evento-enlace">Enlace oficial o más información</label><input id="administracion-evento-enlace" name="link" type="url" placeholder="https://..." autocomplete="url"><small class="formulario-help">Se abre desde la ficha del evento; nunca reemplaza la ficha.</small></div>
+          <div class="administracion-evento-formulario-acciones"><button class="boton-principal" id="administracion-evento-enviar" type="submit">Publicar evento</button><button class="boton-secundario" id="administracion-evento-cancel" type="button" hidden>Cancelar edición</button></div>
         </form>
         <h3>Eventos publicados</h3>
-        <label>Buscar eventos <input id="admin-events-search" type="search" placeholder="Título o lugar"></label>
-        <ul id="admin-events-list" class="admin-events-list" aria-live="polite"></ul>
-        <nav class="admin-pagination" aria-label="Páginas de eventos"><button type="button" data-admin-page="events" data-direction="-1">Anterior</button><span id="admin-events-page">Página 1</span><button type="button" data-admin-page="events" data-direction="1">Siguiente</button></nav>
+        <label>Buscar eventos <input id="administracion-eventos-busqueda" type="search" placeholder="Título o lugar"></label>
+        <ul id="administracion-eventos-lista" class="administracion-eventos-lista" aria-live="polite"></ul>
+        <nav class="administracion-paginacion" aria-label="Páginas de eventos"><button type="button" data-administracion-pagina="events" data-direction="-1">Anterior</button><span id="administracion-eventos-pagina">Página 1</span><button type="button" data-administracion-pagina="events" data-direction="1">Siguiente</button></nav>
       </section>
 
-      <section class="admin-panel">
+      <section class="administracion-panel">
         <h2>Usuarios y moderación</h2>
-        <p id="admin-resource-status" class="form-help" aria-live="polite"></p>
-        <label>Buscar usuarios <input id="admin-users-search" type="search" placeholder="Nombre o correo"></label>
-        <ul id="admin-users-list" class="admin-users-list"></ul>
-        <nav class="admin-pagination" aria-label="Páginas de usuarios"><button type="button" data-admin-page="users" data-direction="-1">Anterior</button><span id="admin-users-page">Página 1</span><button type="button" data-admin-page="users" data-direction="1">Siguiente</button></nav>
+        <p id="administracion-recurso-estado" class="formulario-help" aria-live="polite"></p>
+        <label>Buscar usuarios <input id="administracion-usuarios-busqueda" type="search" placeholder="Nombre o correo"></label>
+        <ul id="administracion-usuarios-lista" class="administracion-usuarios-lista"></ul>
+        <nav class="administracion-paginacion" aria-label="Páginas de usuarios"><button type="button" data-administracion-pagina="users" data-direction="-1">Anterior</button><span id="administracion-usuarios-pagina">Página 1</span><button type="button" data-administracion-pagina="users" data-direction="1">Siguiente</button></nav>
         <h3>Comentarios recientes</h3>
-        <label>Buscar comentarios <input id="admin-comments-search" type="search" placeholder="Texto del comentario"></label>
-        <ul id="admin-comments-list" class="admin-users-list"></ul>
-        <nav class="admin-pagination" aria-label="Páginas de comentarios"><button type="button" data-admin-page="comments" data-direction="-1">Anterior</button><span id="admin-comments-page">Página 1</span><button type="button" data-admin-page="comments" data-direction="1">Siguiente</button></nav>
+        <label>Buscar comentarios <input id="administracion-comentarios-busqueda" type="search" placeholder="Texto del comentario"></label>
+        <ul id="administracion-comentarios-lista" class="administracion-usuarios-lista"></ul>
+        <nav class="administracion-paginacion" aria-label="Páginas de comentarios"><button type="button" data-administracion-pagina="comments" data-direction="-1">Anterior</button><span id="administracion-comentarios-pagina">Página 1</span><button type="button" data-administracion-pagina="comments" data-direction="1">Siguiente</button></nav>
         <h3>Consultas de soporte</h3>
-        <label>Estado <select id="admin-support-status"><option value="">Todos</option><option value="open">Abiertas</option><option value="in_progress">En curso</option><option value="resolved">Resueltas</option></select></label>
-        <label>Tipo de solicitud <select id="admin-support-type"><option value="">Todas</option><option value="general">Consultas generales</option><option value="business_verification">Verificaciones de empresa</option></select></label>
-        <ul id="admin-support-list" class="admin-users-list"></ul>
-        <nav class="admin-pagination" aria-label="Páginas de soporte"><button type="button" data-admin-page="support" data-direction="-1">Anterior</button><span id="admin-support-page">Página 1</span><button type="button" data-admin-page="support" data-direction="1">Siguiente</button></nav>
-        <p class="form-help">Los permisos de administración se asignan desde el entorno Supabase protegido del proyecto.</p>
+        <label>Estado <select id="administracion-soporte-estado"><option value="">Todos</option><option value="open">Abiertas</option><option value="in_progress">En curso</option><option value="resolved">Resueltas</option></select></label>
+        <label>Tipo de solicitud <select id="administracion-soporte-tipo"><option value="">Todas</option><option value="general">Consultas generales</option><option value="business_verification">Verificaciones de empresa</option></select></label>
+        <ul id="administracion-soporte-lista" class="administracion-usuarios-lista"></ul>
+        <nav class="administracion-paginacion" aria-label="Páginas de soporte"><button type="button" data-administracion-pagina="support" data-direction="-1">Anterior</button><span id="administracion-soporte-pagina">Página 1</span><button type="button" data-administracion-pagina="support" data-direction="1">Siguiente</button></nav>
+        <p class="formulario-help">Los permisos de administración se asignan desde el entorno Supabase protegido del proyecto.</p>
       </section>
     </div>
   </div>
