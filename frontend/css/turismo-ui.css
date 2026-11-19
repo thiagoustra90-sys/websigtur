@@ -1,0 +1,206 @@
+/* Sistema visual de alojamientos y gastronomía. */
+body.page-turismo {
+  --color-superficie-turismo: #fff;
+  --color-texto-turismo: #173b36;
+  --color-secundario-turismo: #5e716d;
+  --color-borde-turismo: #dce9e5;
+  --sombra-tarjeta-turismo: 0 12px 34px rgb(16 42 67 / 10%);
+  --radio-tarjeta-turismo: 20px;
+}
+
+body.theme-dark.page-turismo {
+  --color-superficie-turismo: #102a3a;
+  --color-texto-turismo: #f0faf8;
+  --color-secundario-turismo: #bed2cf;
+  --color-borde-turismo: #355762;
+  --sombra-tarjeta-turismo: 0 16px 38px rgb(0 0 0 / 22%);
+}
+
+body.page-turismo .alojamientos-section,
+body.page-turismo .restaurantes-section {
+  padding: clamp(44px, 6vw, 78px) 24px;
+}
+body.page-turismo .alojamientos-inner,
+body.page-turismo .restaurantes-inner { width: min(1160px, 100%); margin-inline: auto; }
+body.page-turismo .alojamientos-header { align-items: center; gap: 24px; margin-bottom: 28px; }
+body.page-turismo .alojamientos-header .section-heading { margin: 0; }
+body.page-turismo .alojamientos-header > div:last-child { display: flex; flex-wrap: wrap; gap: 10px !important; }
+body.page-turismo .section-ver-mas {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border: 1px solid var(--color-borde-turismo);
+  border-radius: 999px;
+  background: var(--color-superficie-turismo);
+  color: var(--color-texto-turismo);
+  font: 800 .78rem/1.2 'Nunito', sans-serif;
+  text-decoration: none;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+body.page-turismo .section-ver-mas:hover { transform: translateY(-1px); border-color: #168575; background: #eaf7f4; opacity: 1; }
+body.page-turismo .cards-grid,
+body.page-turismo .restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 22px;
+}
+body.page-turismo .prop-card,
+body.page-turismo .restaurant-card {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-borde-turismo);
+  border-radius: var(--radio-tarjeta-turismo);
+  background: var(--color-superficie-turismo);
+  box-shadow: var(--sombra-tarjeta-turismo);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+body.page-turismo .prop-card:hover,
+body.page-turismo .restaurant-card:hover { transform: translateY(-3px); border-color: #69b7a9; box-shadow: 0 18px 40px rgb(16 42 67 / 16%); }
+body.page-turismo .prop-media,
+body.page-turismo .restaurant-img-placeholder {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dce9e5, #b8ccc5);
+}
+body.page-turismo .prop-img,
+body.page-turismo .restaurant-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .35s ease;
+}
+body.page-turismo .prop-card:hover .prop-img,
+body.page-turismo .restaurant-card:hover .restaurant-img { transform: scale(1.025); }
+body.page-turismo .prop-info {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: stretch;
+  gap: 9px 10px;
+  padding: 17px;
+}
+body.page-turismo .prop-name,
+body.page-turismo .prop-address { grid-column: 1 / -1; margin: 0; color: var(--color-texto-turismo); }
+body.page-turismo .prop-name { font: 800 1rem/1.3 'Nunito', sans-serif; }
+body.page-turismo .prop-address {
+  min-height: 3.1em;
+  color: var(--color-secundario-turismo);
+  font: 500 .9rem/1.5 'Nunito', sans-serif;
+  overflow-wrap: anywhere;
+}
+body.page-turismo .prop-info .place-map-link,
+body.page-turismo .prop-info .tourism-plan-trigger,
+body.page-turismo .restaurant-info .place-map-link {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 11px;
+  border: 1px solid #cfe2dd;
+  border-radius: 12px;
+  background: #f5faf8;
+  color: #17665c;
+  cursor: pointer;
+  font: 800 .8rem/1.25 'Nunito', sans-serif;
+  text-align: center;
+  text-decoration: none;
+  transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+}
+body.page-turismo .prop-info .place-map-link:hover,
+body.page-turismo .restaurant-info .place-map-link:hover { transform: translateY(-1px); border-color: #168575; background: #e8f6f2; }
+body.page-turismo .prop-info .tourism-plan-trigger {
+  width: 100%;
+  border-color: #087f72;
+  background: #087f72;
+  color: #fff;
+}
+body.page-turismo .prop-info .tourism-plan-trigger:hover { transform: translateY(-1px); border-color: #06685e; background: #06685e; }
+body.page-turismo .prop-info :is(.place-map-link, .tourism-plan-trigger):focus-visible,
+body.page-turismo .section-ver-mas:focus-visible,
+body.page-turismo .prop-heart:focus-visible,
+body.page-turismo .restaurant-info .place-map-link:focus-visible { outline: 3px solid #e9a834; outline-offset: 3px; }
+body.page-turismo .prop-heart {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 50%;
+  background: rgb(8 30 39 / 54%);
+  backdrop-filter: blur(8px);
+}
+body.page-turismo .prop-heart svg { width: 21px; height: 21px; fill: transparent; stroke: #fff; stroke-width: 1.8; }
+body.page-turismo .prop-heart:hover svg,
+body.page-turismo .prop-heart.liked svg { fill: #ec6673; stroke: #ec6673; }
+body.page-turismo .restaurant-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 17px;
+}
+body.page-turismo .restaurant-name { margin: 0; color: var(--color-texto-turismo); font: 800 1rem/1.3 'Nunito', sans-serif; }
+body.page-turismo .restaurant-desc {
+  display: -webkit-box;
+  min-height: 4.5em;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-secundario-turismo);
+  font: 500 .9rem/1.5 'Nunito', sans-serif;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+body.page-turismo .restaurant-address { margin: auto 0 0; color: var(--color-texto-turismo); font: 600 .86rem/1.45 'Nunito', sans-serif; overflow-wrap: anywhere; }
+body.page-turismo .restaurant-info .place-map-link { width: 100%; margin-top: 2px; }
+body.theme-dark.page-turismo .section-ver-mas { border-color: #3a6069; background: #142f3a; color: #d8eeea; }
+body.theme-dark.page-turismo .section-ver-mas:hover,
+body.theme-dark.page-turismo .prop-info .place-map-link:hover,
+body.theme-dark.page-turismo .restaurant-info .place-map-link:hover { border-color: #18a99a; background: #173e45; color: #e9fbf7; }
+body.theme-dark.page-turismo .prop-info .place-map-link,
+body.theme-dark.page-turismo .restaurant-info .place-map-link { border-color: #3a6268; background: #173642; color: #c1eee5; }
+body.theme-dark.page-turismo .prop-info .tourism-plan-trigger { border-color: #18a99a; background: #18a99a; color: #062322; }
+body.theme-dark.page-turismo .prop-info .tourism-plan-trigger:hover { border-color: #5ce0ce; background: #37c5b2; }
+
+@media (max-width: 980px) {
+  body.page-turismo .cards-grid,
+  body.page-turismo .restaurant-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+@media (max-width: 680px) {
+  body.page-turismo .alojamientos-section,
+  body.page-turismo .restaurantes-section { padding: 38px 18px; }
+  body.page-turismo .alojamientos-header { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 22px; }
+  body.page-turismo .alojamientos-header > div:last-child { width: 100%; }
+  body.page-turismo .section-ver-mas { flex: 1; }
+  body.page-turismo .cards-grid,
+  body.page-turismo .restaurant-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  body.page-turismo .prop-media,
+  body.page-turismo .restaurant-img-placeholder { aspect-ratio: 16 / 9; }
+  body.page-turismo .prop-info { padding: 15px; }
+  body.page-turismo .restaurant-info { gap: 8px; padding: 15px; }
+}
+@media (max-width: 380px) {
+  body.page-turismo .prop-info { grid-template-columns: 1fr; }
+  body.page-turismo .prop-info :is(.prop-name, .prop-address, .place-map-link, .tourism-plan-trigger) { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.page-turismo .prop-card,
+  body.page-turismo .restaurant-card,
+  body.page-turismo .prop-img,
+  body.page-turismo .restaurant-img,
+  body.page-turismo .section-ver-mas,
+  body.page-turismo .prop-info :is(.place-map-link, .tourism-plan-trigger) { transition: none; }
+}
