@@ -85,6 +85,43 @@ function crearRespuestaSesion(array $autenticacion): array {
     ];
 }
 
+function asegurarPerfilUsuario(array $usuarioAuth): array {
+    $id = (string) ($usuarioAuth['id'] ?? '');
+    $correo = strtolower(trim((string) ($usuarioAuth['email'] ?? '')));
+    if ($id === '' || $correo === '') return [];
+
+    [$estadoPerfil, $perfiles] = solicitarSupabase(
+        'GET',
+        '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode($id)
+    );
+    if ($estadoPerfil >= 200 && $estadoPerfil < 300 && !empty($perfiles[0])) {
+        return $perfiles[0];
+    }
+
+    $metadatos = is_array($usuarioAuth['user_metadata'] ?? null) ? $usuarioAuth['user_metadata'] : [];
+    $nombre = trim((string) ($metadatos['nombre'] ?? $metadatos['full_name'] ?? strstr($correo, '@', true) ?: 'Usuario'));
+    [$estadoCreacion, $creado] = solicitarSupabase('POST', '/rest/v1/usuarios', [
+        'id' => $id,
+        'nombre' => $nombre,
+        'apellido' => null,
+        'correo' => $correo,
+        'rol' => 'usuario',
+    ]);
+    if ($estadoCreacion < 200 || $estadoCreacion >= 300) return [];
+
+    [$estadoLectura, $perfiles] = solicitarSupabase(
+        'GET',
+        '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode($id)
+    );
+    return $estadoLectura >= 200 && $estadoLectura < 300 && !empty($perfiles[0]) ? $perfiles[0] : [
+        'id' => $id,
+        'nombre' => $nombre,
+        'apellido' => null,
+        'correo' => $correo,
+        'rol' => 'usuario',
+    ];
+}
+
 function leerTokenPortador(): string {
     $encabezado = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
     if ($encabezado === '' && function_exists('getallheaders')) {
@@ -115,12 +152,12 @@ if ($accion === 'login' && $metodo === 'POST') {
     if (!preg_match($expresionCorreo, $correo) || $contrasena === '') { http_response_code(400); responderJson(['error' => 'Correo o contraseña inválidos.']); exit; }
     [$estado, $autenticacion] = solicitarSupabase('POST', '/auth/v1/token?grant_type=password', ['email' => $correo, 'password' => $contrasena]);
     if ($estado < 200 || $estado >= 300 || empty($autenticacion['access_token'])) { http_response_code(401); responderJson(['error' => 'Correo o contraseña incorrectos.']); exit; }
-    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) $autenticacion['user']['id']), null, $autenticacion['access_token']);
-    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) {
+    $perfil = asegurarPerfilUsuario($autenticacion['user'] ?? []);
+    if ($perfil === []) {
         http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit;
     }
     $resultado = crearRespuestaSesion($autenticacion);
-    $resultado['usuario'] = $perfiles[0];
+    $resultado['usuario'] = $perfil;
     responderJson($resultado, JSON_UNESCAPED_UNICODE); exit;
 }
 
@@ -133,10 +170,10 @@ if ($accion === 'refresh' && $metodo === 'POST') {
         $estadoCliente = $estado === 400 || $estado === 401 ? 401 : 503;
         http_response_code($estadoCliente); responderJson(['error' => $estadoCliente === 401 ? 'La sesión venció. Inicia sesión nuevamente.' : 'No se pudo renovar la sesión. Intentá nuevamente.']); exit;
     }
-    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol&id=eq.' . rawurlencode((string) ($autenticacion['user']['id'] ?? '')), null, $autenticacion['access_token']);
-    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
+    $perfil = asegurarPerfilUsuario($autenticacion['user'] ?? []);
+    if ($perfil === []) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
     $resultado = crearRespuestaSesion($autenticacion);
-    $resultado['usuario'] = $perfiles[0];
+    $resultado['usuario'] = $perfil;
     responderJson($resultado, JSON_UNESCAPED_UNICODE); exit;
 }
 
@@ -176,6 +213,18 @@ if ($accion === 'register' && $metodo === 'POST') {
         responderJson(['error' => 'La cuenta se creó, pero no se pudo crear el perfil.']);
         exit;
     }
+    if (!empty($autenticacion['access_token'])) {
+        $resultado = crearRespuestaSesion($autenticacion);
+        $resultado['usuario'] = [
+            'id' => $usuarioCreado['id'],
+            'nombre' => $nombre,
+            'apellido' => null,
+            'correo' => $correo,
+            'rol' => 'usuario',
+        ];
+        responderJson($resultado, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     responderJson([
         'pending' => true,
         'message' => 'Cuenta creada. Revisá tu correo para confirmar la cuenta antes de iniciar sesión.',
@@ -187,9 +236,8 @@ if ($accion === 'me' && $metodo === 'GET') {
     $token = leerTokenPortador();
     [$estado, $usuario] = solicitarSupabase('GET', '/auth/v1/user', null, $token);
     if ($estado < 200 || $estado >= 300 || empty($usuario['id'])) { http_response_code(401); responderJson(['error' => 'Sesión inválida o vencida.']); exit; }
-    [$estadoPerfil, $perfiles] = solicitarSupabase('GET', '/rest/v1/usuarios?select=id,nombre,apellido,correo,rol,created_at&id=eq.' . rawurlencode((string) $usuario['id']), null, $token);
-    if ($estadoPerfil < 200 || $estadoPerfil >= 300 || empty($perfiles[0])) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
-    $perfil = $perfiles[0];
+    $perfil = asegurarPerfilUsuario($usuario);
+    if ($perfil === []) { http_response_code(503); responderJson(['error' => 'No se pudo validar el perfil de la cuenta.']); exit; }
     responderJson(['usuario' => $perfil], JSON_UNESCAPED_UNICODE); exit;
 }
 
