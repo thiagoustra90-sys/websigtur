@@ -293,6 +293,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // filtro de categorías: muestra/oculta tickets según data-cat
+    const prepararCarruselesEventos = () => {
+      document.querySelectorAll('.page-eventos .event-tickets').forEach(lista => {
+        if (lista.closest('.event-carousel-shell')) return;
+        const contenedor = document.createElement('div');
+        contenedor.className = 'event-carousel-shell';
+        const carrusel = document.createElement('div');
+        carrusel.className = 'event-carousel';
+        const botonAnteriorEventos = document.createElement('button');
+        botonAnteriorEventos.className = 'event-carousel-control';
+        botonAnteriorEventos.type = 'button';
+        botonAnteriorEventos.setAttribute('aria-label', 'Ver eventos anteriores');
+        botonAnteriorEventos.innerHTML = '<span aria-hidden="true">‹</span>';
+        const botonSiguienteEventos = document.createElement('button');
+        botonSiguienteEventos.className = 'event-carousel-control';
+        botonSiguienteEventos.type = 'button';
+        botonSiguienteEventos.setAttribute('aria-label', 'Ver más eventos');
+        botonSiguienteEventos.innerHTML = '<span aria-hidden="true">›</span>';
+        const panelesInteraccion = document.createElement('div');
+        panelesInteraccion.className = 'event-interaction-panels';
+        botonAnteriorEventos.setAttribute('aria-controls', lista.id);
+        botonSiguienteEventos.setAttribute('aria-controls', lista.id);
+        lista.tabIndex = 0;
+        lista.parentNode.insertBefore(contenedor, lista);
+        contenedor.append(carrusel, panelesInteraccion);
+        carrusel.append(botonAnteriorEventos, lista, botonSiguienteEventos);
+
+        const actualizarControles = () => {
+          const hayDesplazamiento = lista.scrollWidth > lista.clientWidth + 2;
+          botonAnteriorEventos.disabled = !hayDesplazamiento || lista.scrollLeft <= 2;
+          botonSiguienteEventos.disabled = !hayDesplazamiento || lista.scrollLeft + lista.clientWidth >= lista.scrollWidth - 2;
+          contenedor.classList.toggle('sin-desplazamiento', !hayDesplazamiento);
+        };
+        const desplazar = direccion => {
+          const tarjeta = lista.querySelector('.ticket-row:not([style*="display: none"])');
+          const separacion = Number.parseFloat(getComputedStyle(lista).gap) || 16;
+          const distancia = tarjeta ? tarjeta.getBoundingClientRect().width + separacion : lista.clientWidth * .8;
+          lista.scrollBy({ left: direccion * distancia, behavior: 'smooth' });
+        };
+        botonAnteriorEventos.addEventListener('click', () => desplazar(-1));
+        botonSiguienteEventos.addEventListener('click', () => desplazar(1));
+        lista.addEventListener('scroll', actualizarControles, { passive: true });
+        lista.addEventListener('eventosactualizados', actualizarControles);
+        window.addEventListener('resize', actualizarControles);
+        actualizarControles();
+      });
+    };
+
     document.querySelectorAll('.category-tabs').forEach(grupo => {
       const pestanas = grupo.querySelectorAll('.cat-tab');
       const seccion = grupo.closest('section');
@@ -320,9 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const categoriaFila = fila.dataset.cat || '';
             const visible = filtro === 'todos' || categoriaFila === filtro;
             fila.style.display = visible ? '' : 'none';
-            const panelActual = fila.nextElementSibling;
+            const panelActual = fila._panelInteraccion || fila.nextElementSibling;
             if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
           });
+          lista?.dispatchEvent(new Event('eventosactualizados'));
         });
       });
       grupo.addEventListener('keydown', evento => {
@@ -333,6 +381,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    prepararCarruselesEventos();
+
     // búsqueda en tiempo real: filtra mientras escribís, sin botón de submit
     const entradaBusqueda = document.querySelector('.search-pill input');
     entradaBusqueda?.addEventListener('input', () => {
@@ -340,9 +390,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.próximos-section .ticket-row').forEach(fila => {
         const visible = !q || fila.textContent.toLowerCase().includes(q);
         fila.style.display = visible ? '' : 'none';
-        const panelActual = fila.nextElementSibling;
+        const panelActual = fila._panelInteraccion || fila.nextElementSibling;
         if (!visible && panelActual?.classList.contains('event-interaction-panel')) panelActual.hidden = true;
       });
+      document.querySelector('.próximos-section .event-tickets')?.dispatchEvent(new Event('eventosactualizados'));
     });
 
     configurarInteraccionesEventos();
@@ -2273,6 +2324,7 @@ async function configurarInteraccionesEventos() {
       fila.querySelector('.ticket-thumbnail')?.addEventListener('error', errorImagen => errorImagen.currentTarget.remove(), { once: true });
       listaTickets.prepend(fila);
     });
+    listaTickets.dispatchEvent(new Event('eventosactualizados'));
   } catch (fallo) {
     const estado = document.createElement('p');
     estado.className = 'form-help event-api-status';
@@ -2451,7 +2503,10 @@ async function configurarInteraccionesEventos() {
     panelActual.className = 'event-interaction-panel';
     panelActual.hidden = true;
     panelActual.innerHTML = `<div class="event-panel-head"><strong>${escaparHtml(evento.title)}</strong><button type="button" class="event-panel-close" data-event-close aria-label="Cerrar panel">×</button></div><div class="event-comments-view"><div class="event-comment-notice">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="event-panel-status" data-event-panel-status></p><div class="event-comment-list" data-event-comment-list></div><form data-event-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="event-panel-submit" type="submit">Publicar</button></form></div><div class="event-reservation-view" hidden><p class="event-panel-status" data-reservation-status></p><div class="reservation-widget"><p class="reservation-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reservation-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reservation-slots"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="event-panel-submit" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
-    fila.insertAdjacentElement('afterend', panelActual);
+    fila._panelInteraccion = panelActual;
+    const contenedorPaneles = fila.closest('.event-carousel-shell')?.querySelector('.event-interaction-panels');
+    if (contenedorPaneles) contenedorPaneles.append(panelActual);
+    else fila.insertAdjacentElement('afterend', panelActual);
     sincronizarBotonGuardado(controles.querySelector('[data-event-save]'), evento);
 
     const cerrarPanel = () => {
