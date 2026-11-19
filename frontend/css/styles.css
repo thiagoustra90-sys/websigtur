@@ -9694,3 +9694,105 @@ body.pagina-inicio .comida-informacion-dialogo .ficha-gastronomia-cerrar { top: 
   .pie-pagina-licencia { flex-basis: 100%; font-size: .72rem; }
   .pie-pagina-licencia-iconos img { width: 17px; height: 17px; }
 }
+
+@media (max-width: 600px) {
+  .navegacion-enlaces a,
+  .logotipo-menu a,
+  .menu-cuenta-logotipo,
+  .tema-interruptor {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .navegacion-logotipo {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    flex: 0 0 44px;
+    box-sizing: border-box;
+  }
+
+  .navegacion-enlaces a {
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pie-pagina-redes-sociales .red-social-icono {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .pie-pagina-columna-titulo,
+  .preguntas-frecuentes-elemento summary,
+  .pastilla-lista a {
+    min-height: 44px;
+  }
+
+  .pie-pagina-columna-titulo {
+    display: flex;
+    align-items: center;
+  }
+
+  .preguntas-frecuentes-elemento summary {
+    padding-block: 10px;
+  }
+
+  .pastilla-lista a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  body.pagina-inicio .carrusel-boton {
+    width: 44px;
+    height: 44px;
+  }
+
+  body.pagina-inicio .carrusel-puntos .punto {
+    position: relative;
+    display: grid;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  body.pagina-inicio .carrusel-puntos .punto::before {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #b0b0b0;
+    content: "";
+  }
+
+  body.pagina-inicio .carrusel-puntos .punto.activo::before {
+    background: #1d2939;
+    transform: scale(1.4);
+  }
+
+  body.tema-oscuro.pagina-inicio .carrusel-puntos .punto.activo::before {
+    background: #fff;
+  }
+
+  .carrusel-seccion .punto-carrusel {
+    width: 44px;
+    height: 44px;
+  }
+
+  .alojamiento-corazon {
+    width: 44px;
+    height: 44px;
+  }
+
+  body.cuenta-redisenada .cuenta-pestana {
+    min-height: 44px;
+  }
+
+  body.cuenta-redisenada .cuenta-alternar-contrasena {
+    min-height: 44px;
+  }
+}

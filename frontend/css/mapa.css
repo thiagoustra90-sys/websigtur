@@ -129,3 +129,27 @@ body.tema-oscuro .comentario-respuesta-formulario textarea { border-color: var(-
   .comentario-respuesta-formulario { grid-template-columns: minmax(0, 1fr); }
   .comentario-respuesta-formulario > button { justify-self: end; }
 }
+
+@media (max-width: 600px) {
+  .tema-alternar,
+  .volver,
+  .ruta-panel select,
+  .guia-enlaces a {
+    min-height: 44px;
+  }
+
+  .volver,
+  .guia-enlaces a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .guia-enlaces a {
+    width: 100%;
+  }
+
+  .comentario-acciones button,
+  .comentario-respuesta-formulario > button {
+    min-height: 44px !important;
+  }
+}

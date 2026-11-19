@@ -449,6 +449,26 @@ body.pagina-eventos .evento-detalle-acciones a[target="_blank"]:hover { border-c
   body.pagina-eventos .entrada-titulo { font-size: .98rem; }
 }
 
+@media (max-width: 600px) {
+  body.pagina-eventos .evento-carrusel {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+
+  body.pagina-eventos .evento-carrusel-control {
+    width: 44px;
+    height: 44px;
+  }
+
+  body.pagina-eventos .categoria-pestanas .categoria-pestana {
+    min-height: 44px;
+  }
+
+  body.pagina-eventos .carrusel-seccion .punto-carrusel {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 /* Foro: corregir estados ocultos y compactar la conversación y su compositor. */
 body.pagina-eventos .evento-interaccion-paneles { gap: 10px; }
 body.pagina-eventos .evento-interaccion-panel {
