@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
 
   <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261118-clima-lateral2" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261118-clima-lateral3" />
 
 </head>
 <body class="page-home">

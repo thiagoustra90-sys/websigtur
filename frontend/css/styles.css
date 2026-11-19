@@ -9595,9 +9595,9 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
   body.page-home .hero-tagline { grid-area: auto; }
   body.page-home .weather-widget {
     grid-area: weather;
-    justify-self: stretch;
+    justify-self: end;
     align-self: center;
-    width: 100%;
+    width: min(100%, 390px);
     margin: 0;
   }
 }
