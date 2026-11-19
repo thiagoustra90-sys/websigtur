@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soporte - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
-  <link rel="stylesheet" href="../css/support-events.css?v=20261118" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
+  <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 
 <!-- page-soporte, misma convención de siempre -->
@@ -135,7 +135,7 @@
             <button class="boton-principal" type="submit">Crear ticket</button>
             <button class="boton-secundario" type="reset">Limpiar</button>
           </div>
-          <p class="formulario-help">La consulta se envía al equipo de SIGTUR y queda registrada para su seguimiento.</p>
+          <p class="formulario-ayuda">La consulta se envía al equipo de SIGTUR y queda registrada para su seguimiento.</p>
 
         </form>
       </section>
@@ -208,6 +208,6 @@
 </main>
 
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>

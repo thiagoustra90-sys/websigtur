@@ -111,9 +111,9 @@ body.pagina-administracion .administracion-panel .administracion-paginacion span
 body.pagina-administracion .administracion-usuarios-lista > li { gap: 12px; min-width: 0; }
 body.pagina-administracion .administracion-usuarios-lista > li > span { min-width: 0; overflow-wrap: anywhere; }
 body.pagina-administracion .administracion-usuarios-lista button { flex: 0 0 auto; min-height: 36px; padding: 7px 10px; }
-body.pagina-administracion .administracion-usuarios-lista button[data-banned="false"],
+body.pagina-administracion .administracion-usuarios-lista button[data-suspendido="false"],
 body.pagina-administracion .administracion-evento-acciones .administracion-evento-eliminar { border-color: #efc5c0; background: #fff5f3; color: #a83e32; }
-body.pagina-administracion .administracion-usuarios-lista button[data-banned="false"]:hover,
+body.pagina-administracion .administracion-usuarios-lista button[data-suspendido="false"]:hover,
 body.pagina-administracion .administracion-evento-acciones .administracion-evento-eliminar:hover { border-color: #d99086; background: #ffebe8; }
 body.pagina-administracion .administracion-evento-mapa {
   position: relative;
@@ -138,9 +138,9 @@ body.tema-oscuro.pagina-administracion .administracion-usuarios-lista button,
 body.tema-oscuro.pagina-administracion .administracion-evento-acciones button,
 body.tema-oscuro.pagina-administracion .boton-fila .boton-secundario,
 body.tema-oscuro.pagina-administracion .administracion-evento-formulario-acciones .boton-secundario { border-color: #3b6268; background: #173642; color: #c1eee5; }
-body.tema-oscuro.pagina-administracion .administracion-usuarios-lista button[data-banned="false"],
+body.tema-oscuro.pagina-administracion .administracion-usuarios-lista button[data-suspendido="false"],
 body.tema-oscuro.pagina-administracion .administracion-evento-acciones .administracion-evento-eliminar { border-color: #724744; background: #3a2b32; color: #ffd1ca; }
-body.tema-oscuro.pagina-administracion .administracion-usuarios-lista button[data-banned="false"]:hover,
+body.tema-oscuro.pagina-administracion .administracion-usuarios-lista button[data-suspendido="false"]:hover,
 body.tema-oscuro.pagina-administracion .administracion-evento-acciones .administracion-evento-eliminar:hover { border-color: #a55d55; background: #4a3035; }
 body.tema-oscuro.pagina-administracion .boton-fila .boton-principal,
 body.tema-oscuro.pagina-administracion .administracion-evento-formulario-acciones .boton-principal { border-color: #18a99a; background: #18a99a; color: #062322; }
@@ -168,7 +168,7 @@ body.pagina-soporte .boton-fila { align-items: center; }
 
 body.pagina-soporte .soporte-accion,
 body.pagina-soporte .boton-fila button,
-body.pagina-eventos .categoria-tab,
+body.pagina-eventos .categoria-pestana,
 body.pagina-eventos .evento-herramienta,
 body.pagina-eventos .entrada-corazon {
   display: inline-flex;
@@ -236,10 +236,10 @@ body.pagina-soporte .soporte-entrada small { color: var(--color-secundario-utili
 body.pagina-soporte .soporte-entrada p { margin: 0; overflow-wrap: anywhere; line-height: 1.55; }
 body.pagina-soporte .soporte-entrada small { font-size: .78rem; }
 body.pagina-soporte :is(.soporte-accion, .boton-fila button):focus-visible,
-body.pagina-eventos :is(.categoria-tab, .evento-herramienta, .entrada-corazon):focus-visible { outline: 3px solid #f0aa35; outline-offset: 3px; }
+body.pagina-eventos :is(.categoria-pestana, .evento-herramienta, .entrada-corazon):focus-visible { outline: 3px solid #f0aa35; outline-offset: 3px; }
 
-body.pagina-eventos .categoria-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
-body.pagina-eventos .categoria-tabs .categoria-tab {
+body.pagina-eventos .categoria-pestanas { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+body.pagina-eventos .categoria-pestanas .categoria-pestana {
   min-height: 40px;
   padding: 8px 15px;
   border: 1px solid #d5e6e1;
@@ -249,8 +249,8 @@ body.pagina-eventos .categoria-tabs .categoria-tab {
   cursor: pointer;
   white-space: nowrap;
 }
-body.pagina-eventos .categoria-tabs .categoria-tab:hover { border-color: #087f72; background: #eff8f5; }
-body.pagina-eventos .categoria-tabs .categoria-tab.activo { border-color: #087f72; background: #087f72; color: #fff; box-shadow: 0 4px 12px rgb(8 127 114 / 18%); }
+body.pagina-eventos .categoria-pestanas .categoria-pestana:hover { border-color: #087f72; background: #eff8f5; }
+body.pagina-eventos .categoria-pestanas .categoria-pestana.activo { border-color: #087f72; background: #087f72; color: #fff; box-shadow: 0 4px 12px rgb(8 127 114 / 18%); }
 body.pagina-eventos .entrada-fila { min-width: 0; }
 body.pagina-eventos .entrada-corazon { flex: 0 0 42px; padding: 0; cursor: pointer; }
 body.pagina-eventos .entrada-corazon:hover { border-color: #d96c76; background: #fff4f4; transform: scale(1.04); }
@@ -271,16 +271,16 @@ body.tema-oscuro.pagina-soporte .soporte-accion.principal,
 body.tema-oscuro.pagina-soporte .boton-fila .boton-principal { border-color: #18a99a; background: #18a99a; color: #062322; }
 body.tema-oscuro.pagina-soporte .soporte-entrada span,
 body.tema-oscuro.pagina-soporte .soporte-entrada small { color: #b8ceca; }
-body.tema-oscuro.pagina-eventos .categoria-tabs .categoria-tab { border-color: #355762; background: #142f3a; color: #c1d9d5; }
-body.tema-oscuro.pagina-eventos .categoria-tabs .categoria-tab.activo { border-color: #18a99a; background: #18a99a; color: #062322; }
+body.tema-oscuro.pagina-eventos .categoria-pestanas .categoria-pestana { border-color: #355762; background: #142f3a; color: #c1d9d5; }
+body.tema-oscuro.pagina-eventos .categoria-pestanas .categoria-pestana.activo { border-color: #18a99a; background: #18a99a; color: #062322; }
 body.tema-oscuro.pagina-eventos .entrada-corazon:hover { border-color: #df8590; background: #422d39; }
 
 @media (max-width: 560px) {
   body.pagina-soporte .soporte-accion-barra { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.pagina-soporte .soporte-accion { padding-inline: 8px; text-align: center; }
   body.pagina-soporte .boton-fila button { flex: 1 1 140px; }
-  body.pagina-eventos .categoria-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  body.pagina-eventos .categoria-tabs .categoria-tab { width: 100%; padding-inline: 8px; }
+  body.pagina-eventos .categoria-pestanas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.pagina-eventos .categoria-pestanas .categoria-pestana { width: 100%; padding-inline: 8px; }
   body.pagina-eventos .evento-interaccion-herramientas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.pagina-eventos .evento-herramienta { width: 100%; min-width: 0; padding-inline: 7px; }
 }
@@ -288,7 +288,7 @@ body.tema-oscuro.pagina-eventos .entrada-corazon:hover { border-color: #df8590; 
 @media (prefers-reduced-motion: reduce) {
   body.pagina-soporte .soporte-accion,
   body.pagina-soporte .boton-fila button,
-  body.pagina-eventos .categoria-tab,
+  body.pagina-eventos .categoria-pestana,
   body.pagina-eventos .evento-herramienta,
   body.pagina-eventos .entrada-corazon { transition: none; }
 }
@@ -323,7 +323,7 @@ body.pagina-eventos .anteriores-seccion {
 }
 body.pagina-eventos .próximos-encabezado,
 body.pagina-eventos .anteriores-encabezado { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
-body.pagina-eventos .categoria-tabs { gap: 8px; margin: 16px 0 18px; }
+body.pagina-eventos .categoria-pestanas { gap: 8px; margin: 16px 0 18px; }
 body.pagina-eventos .busqueda-filtro-barra { margin: 0 auto 18px; }
 body.pagina-eventos .evento-carrusel-marco { display: grid; gap: 6px; }
 body.pagina-eventos .evento-carrusel {
@@ -430,8 +430,8 @@ body.pagina-eventos .evento-detalle-acciones a[target="_blank"]:hover { border-c
 @media (max-width: 700px) {
   body.pagina-eventos .próximos-seccion,
   body.pagina-eventos .anteriores-seccion { width: min(560px, calc(100% - 28px)); padding-block: 28px; }
-  body.pagina-eventos .categoria-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 7px; scrollbar-width: thin; }
-  body.pagina-eventos .categoria-tabs .categoria-tab { flex: 0 0 auto; width: auto; }
+  body.pagina-eventos .categoria-pestanas { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 7px; scrollbar-width: thin; }
+  body.pagina-eventos .categoria-pestanas .categoria-pestana { flex: 0 0 auto; width: auto; }
   body.pagina-eventos .evento-carrusel { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 7px; }
   body.pagina-eventos .evento-carrusel-control { width: 32px; height: 32px; font-size: 1.6rem; }
   body.pagina-eventos .entrada-fila { flex-basis: min(82vw, 360px); min-height: 270px; padding: 17px; }
@@ -502,7 +502,7 @@ body.pagina-eventos .evento-panel-enviar:disabled,
 body.pagina-eventos .evento-respuesta-formulario button:disabled { cursor: wait; opacity: .6; }
 body.pagina-eventos .evento-interaccion-panel :is(button, textarea, select, input):focus-visible { outline: 3px solid #f0ad42; outline-offset: 2px; }
 body.pagina-eventos .evento-reserva-vista { gap: 10px; }
-body.pagina-eventos .evento-reserva-vista [data-reserve-confirm] { grid-column: auto; grid-row: auto; justify-self: start; min-height: 42px; }
+body.pagina-eventos .evento-reserva-vista [data-reserva-confirmar] { grid-column: auto; grid-row: auto; justify-self: start; min-height: 42px; }
 
 body.tema-oscuro.pagina-eventos .evento-interaccion-panel { border-color: #2a4a58; background: linear-gradient(145deg, #102633, #0e202c); box-shadow: 0 16px 36px rgb(0 0 0 / 20%); }
 body.tema-oscuro.pagina-eventos .encabezado-panel-evento { border-color: #294654; }
@@ -553,5 +553,5 @@ body.tema-oscuro.pagina-eventos .evento-panel-enviar { border-color: #44cabb; ba
   body.pagina-eventos .evento-comentario > .comentario-autor { align-items: flex-start; }
   body.pagina-eventos .evento-comentario > .comentario-autor time { padding-top: 4px; }
   body.pagina-eventos .reserva-horarios { grid-template-columns: 1fr; }
-  body.pagina-eventos .evento-reserva-vista [data-reserve-confirm] { justify-self: stretch; }
+  body.pagina-eventos .evento-reserva-vista [data-reserva-confirmar] { justify-self: stretch; }
 }

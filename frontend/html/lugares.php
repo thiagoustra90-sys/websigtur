@@ -10,10 +10,10 @@
   <title>Lugares ” SIGTUR Salto</title>
 
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
 </head>
 
-<!-- page-lugares, siguiendo la misma convención que vimos en turismo -->
+<!-- pagina-lugares, siguiendo la misma convención que vimos en turismo -->
 <body class="pagina-lugares">
 
 <!--
@@ -381,7 +381,7 @@
       <ul>
         <li><a href="eventos.php">Eventos Destacados</a></li>
         <li><a href="eventos.php">Todos los Eventos</a></li>
-        <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+        <li><a href="eventos.php#anteriores-pestanas">Eventos Posteriores</a></li>
       </ul>
     </div>
 
@@ -417,7 +417,7 @@
   </div>
 
     <aside class="pie-pagina-soporte-tarjeta">
-      <p class="pie-pagina-soporte-antetitulo">Suporte</p>
+      <p class="pie-pagina-soporte-antetitulo">Soporte</p>
       <p class="pie-pagina-soporte-mensaje">
         <span class="pie-pagina-soporte-titular">¿Tienes alguna sugerencia?</span>
         <span class="pie-pagina-soporte-cuerpo">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
@@ -469,6 +469,6 @@
 </footer>
 
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>

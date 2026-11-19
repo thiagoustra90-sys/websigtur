@@ -368,29 +368,29 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    document.querySelectorAll('.categoria-tabs').forEach(grupo => {
-      const pestanas = grupo.querySelectorAll('.categoria-tab');
+    document.querySelectorAll('.categoria-pestanas').forEach(grupo => {
+      const pestanas = grupo.querySelectorAll('.categoria-pestana');
       const seccion = grupo.closest('section');
-      const identificadorListaPestanas = grupo.id || `category-tabs-${Math.random().toString(36).slice(2)}`;
+      const identificadorListaPestanas = grupo.id || `categoria-pestanas-${Math.random().toString(36).slice(2)}`;
       grupo.id = identificadorListaPestanas;
       grupo.setAttribute('role', 'tablist');
       grupo.setAttribute('aria-label', 'Filtrar eventos por categoría');
       const lista = grupo.parentElement?.querySelector('.evento-entradas');
-      if (lista) { lista.id ||= `${identificadorListaPestanas}-events`; lista.setAttribute('role', 'tabpanel'); lista.setAttribute('aria-labelledby', pestanas[0]?.id || `${identificadorListaPestanas}-tab-0`); }
-      pestanas.forEach((tab, indice) => {
-        tab.type = 'button'; tab.setAttribute('role', 'tab');
-        if (!tab.id) tab.id = `${identificadorListaPestanas}-tab-${indice}`;
-        tab.setAttribute('aria-controls', lista?.id || identificadorListaPestanas);
-        tab.setAttribute('aria-selected', String(tab.classList.contains('activo')));
-        tab.tabIndex = tab.classList.contains('activo') ? 0 : -1;
+      if (lista) { lista.id ||= `${identificadorListaPestanas}-eventos`; lista.setAttribute('role', 'tabpanel'); lista.setAttribute('aria-labelledby', pestanas[0]?.id || `${identificadorListaPestanas}-pestana-0`); }
+      pestanas.forEach((pestana, indice) => {
+        pestana.type = 'button'; pestana.setAttribute('role', 'tab');
+        if (!pestana.id) pestana.id = `${identificadorListaPestanas}-pestana-${indice}`;
+        pestana.setAttribute('aria-controls', lista?.id || identificadorListaPestanas);
+        pestana.setAttribute('aria-selected', String(pestana.classList.contains('activo')));
+        pestana.tabIndex = pestana.classList.contains('activo') ? 0 : -1;
       });
-      pestanas.forEach(tab => {
-        tab.addEventListener('click', () => {
+      pestanas.forEach(pestana => {
+        pestana.addEventListener('click', () => {
           pestanas.forEach(elemento => { elemento.classList.remove('activo'); elemento.setAttribute('aria-selected', 'false'); elemento.tabIndex = -1; });
-          tab.classList.add('activo');
-          tab.setAttribute('aria-selected', 'true'); tab.tabIndex = 0;
-          if (lista) lista.setAttribute('aria-labelledby', tab.id);
-          const filtro = tab.dataset.categoriaEvento;
+          pestana.classList.add('activo');
+          pestana.setAttribute('aria-selected', 'true'); pestana.tabIndex = 0;
+          if (lista) lista.setAttribute('aria-labelledby', pestana.id);
+          const filtro = pestana.dataset.categoriaEvento;
           seccion?.querySelectorAll('.entrada-fila').forEach(fila => {
             const categoriaFila = fila.dataset.categoriaEvento || '';
             const visible = filtro === 'todos' || categoriaFila === filtro;
@@ -640,9 +640,9 @@ function configurarAcordeonesPie() {
   columnas.forEach((columna, indice) => {
     const titulo = columna.querySelector('.pie-pagina-columna-titulo');
     const lista = columna.querySelector('ul');
-    if (!titulo || !lista || titulo.dataset.accordionReady) return;
+    if (!titulo || !lista || titulo.dataset.acordeonListo) return;
 
-    titulo.dataset.accordionReady = 'true';
+    titulo.dataset.acordeonListo = 'true';
     titulo.setAttribute('role', 'button');
     titulo.setAttribute('tabindex', '0');
     titulo.setAttribute('aria-expanded', indice === 0 ? 'true' : 'false');
@@ -764,8 +764,8 @@ function representarCuentaMenuLogotipo(menu = document.querySelector('.logotipo-
     espacio.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
     return;
   }
-  espacio.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escaparTexto(sesion.usuario.nombre || 'Usuario')})</a><button class="menu-cuenta-logotipo" type="button" role="menuitem" data-logout>Cerrar sesión</button>`;
-  espacio.querySelector('[data-logout]')?.addEventListener('click', async () => {
+  espacio.innerHTML = `<a href="perfil.html" role="menuitem">Mi perfil (${escaparTexto(sesion.usuario.nombre || 'Usuario')})</a><button class="menu-cuenta-logotipo" type="button" role="menuitem" data-cerrar-sesion>Cerrar sesión</button>`;
+  espacio.querySelector('[data-cerrar-sesion]')?.addEventListener('click', async () => {
     await cerrarSesionSigtur();
     window.location.reload();
   });
@@ -803,10 +803,10 @@ async function configurarClimaInicio() {
   const componente = document.querySelector('.clima-widget');
   if (!componente) return;
 
-  const elementoTemporal = componente.querySelector('[data-clima-temp]');
+  const elementoTemporal = componente.querySelector('[data-clima-temperatura]');
   const elementoDescripcion = componente.querySelector('[data-clima-descripcion]');
-  const elementoSensacion = componente.querySelector('[data-clima-feels]');
-  const elementoViento = componente.querySelector('[data-clima-wind]');
+  const elementoSensacion = componente.querySelector('[data-clima-sensacion]');
+  const elementoViento = componente.querySelector('[data-clima-viento]');
   const elementoIcono = componente.querySelector('[data-clima-icono]');
 
   // tabla de códigos WMO → descripción + emoji. la API devuelve un número, nosotros lo traducimos
@@ -1124,12 +1124,12 @@ function configurarPaginaAutenticacion() {
   const paginaAutenticacion = document.querySelector('.cuenta-redisenada');
   if (!paginaAutenticacion) return;
 
-  const pestanas = document.querySelectorAll('[data-cuenta-tab]');
+  const pestanas = document.querySelectorAll('[data-cuenta-pestana]');
   const paneles = document.querySelectorAll('[data-cuenta-panel]');
   const estado = document.getElementById('cuenta-estado');
   const formularioInicioSesion = document.getElementById('acceso-formulario');
   const formularioRegistro = document.getElementById('registro-formulario');
-  const formularioRecuperacion = document.getElementById('recovery-formulario');
+  const formularioRecuperacion = document.getElementById('recuperacion-formulario');
   const formularioRestablecerContrasena = document.getElementById('contrasena-reset-formulario');
 
   const establecerEstado = (mensaje, tipo = 'ok') => {
@@ -1143,8 +1143,8 @@ function configurarPaginaAutenticacion() {
     const botonEnviar = formulario?.querySelector('.cuenta-enviar');
     if (botonEnviar) {
       botonEnviar.disabled = ocupado;
-      botonEnviar.dataset.busy = ocupado ? 'true' : 'false';
-      botonEnviar.textContent = ocupado && mensajeCarga ? mensajeCarga : botonEnviar.dataset.defaultLabel || botonEnviar.textContent;
+      botonEnviar.dataset.ocupado = ocupado ? 'true' : 'false';
+      botonEnviar.textContent = ocupado && mensajeCarga ? mensajeCarga : botonEnviar.dataset.etiquetaPredeterminada || botonEnviar.textContent;
     }
     if (ocupado && mensajeCarga) {
       establecerEstado(mensajeCarga, 'loading');
@@ -1155,21 +1155,21 @@ function configurarPaginaAutenticacion() {
     formularioRecuperacion?.toggleAttribute('hidden', true);
     formularioRestablecerContrasena?.toggleAttribute('hidden', true);
     formularioRestablecerContrasena?.classList.remove('activo');
-    formularioInicioSesion?.toggleAttribute('hidden', nombre !== 'login');
-    formularioRegistro?.toggleAttribute('hidden', nombre !== 'register');
-    pestanas.forEach(tab => tab.removeAttribute('hidden'));
-    pestanas.forEach(tab => {
-      const activo = tab.dataset.cuentaTab === nombre;
-      tab.classList.toggle('activo', activo);
-      tab.setAttribute('aria-selected', String(activo));
-      tab.tabIndex = activo ? 0 : -1;
+    formularioInicioSesion?.toggleAttribute('hidden', nombre !== 'acceso');
+    formularioRegistro?.toggleAttribute('hidden', nombre !== 'registro');
+    pestanas.forEach(pestana => pestana.removeAttribute('hidden'));
+    pestanas.forEach(pestana => {
+      const activo = pestana.dataset.cuentaPestana === nombre;
+      pestana.classList.toggle('activo', activo);
+      pestana.setAttribute('aria-selected', String(activo));
+      pestana.tabIndex = activo ? 0 : -1;
     });
     paneles.forEach(panelActual => panelActual.classList.toggle('activo', panelActual.dataset.cuentaPanel === nombre));
     establecerEstado('');
   };
 
   document.querySelectorAll('.cuenta-enviar').forEach(botonAccion => {
-    botonAccion.dataset.defaultLabel = botonAccion.textContent.trim();
+    botonAccion.dataset.etiquetaPredeterminada = botonAccion.textContent.trim();
   });
 
   document.querySelectorAll('[data-contrasena-alternar]').forEach(boton => {
@@ -1190,13 +1190,13 @@ function configurarPaginaAutenticacion() {
     establecerEstado(`Ya iniciaste sesión como ${sesionExistente.usuario.nombre}. Podés cerrar sesión desde el menú del logo.`, 'ok');
   }
 
-  pestanas.forEach(tab => {
-    tab.addEventListener('click', () => activarPestana(tab.dataset.cuentaTab));
+  pestanas.forEach(pestana => {
+    pestana.addEventListener('click', () => activarPestana(pestana.dataset.cuentaPestana));
   });
-      pestanas.forEach((tab, indice) => tab.addEventListener('keydown', evento => {
+      pestanas.forEach((pestana, indice) => pestana.addEventListener('keydown', evento => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
         const destino = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestanas.length - 1 : (indice + (evento.key === 'ArrowRight' ? 1 : pestanas.length - 1)) % pestanas.length;
-        evento.preventDefault(); pestanas[destino].focus(); activarPestana(pestanas[destino].dataset.cuentaTab);
+        evento.preventDefault(); pestanas[destino].focus(); activarPestana(pestanas[destino].dataset.cuentaPestana);
       }));
 
   formularioRegistro?.addEventListener('submit', async (evento) => {
@@ -1234,7 +1234,7 @@ function configurarPaginaAutenticacion() {
       if (resultado.pending) {
         establecerEstado(resultado.message || 'Cuenta creada. Revisá tu correo para confirmar la cuenta.', 'ok');
         formularioRegistro.reset();
-        activarPestana('login');
+        activarPestana('acceso');
         return;
       }
       guardarSesionSigtur(resultado, true);
@@ -1357,8 +1357,8 @@ function configurarPaginaAutenticacion() {
       formularioRestablecerContrasena.reset();
       formularioRestablecerContrasena.hidden = true;
       formularioRestablecerContrasena.classList.remove('activo');
-      pestanas.forEach(tab => tab.removeAttribute('hidden'));
-      activarPestana('login');
+      pestanas.forEach(pestana => pestana.removeAttribute('hidden'));
+      activarPestana('acceso');
       establecerEstado('Contraseña actualizada. Ya puedes iniciar sesión.', 'ok');
     } catch (fallo) {
       establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo cambiar la contraseña. Solicitá un enlace nuevo.'), 'error');
@@ -1367,7 +1367,7 @@ function configurarPaginaAutenticacion() {
     }
   });
 
-  document.getElementById('recovery-cancel')?.addEventListener('click', () => {
+  document.getElementById('recuperacion-cancelar')?.addEventListener('click', () => {
     formularioRecuperacion?.toggleAttribute('hidden', true);
     formularioInicioSesion?.toggleAttribute('hidden', false);
     formularioRecuperacion?.classList.remove('activo');
@@ -1383,7 +1383,7 @@ function mostrarFormularioRestablecerContrasena() {
     panelActual.hidden = true;
     panelActual.classList.remove('activo');
   });
-  document.querySelectorAll('[data-cuenta-tab]').forEach(tab => tab.hidden = true);
+  document.querySelectorAll('[data-cuenta-pestana]').forEach(pestana => pestana.hidden = true);
   restablecer.hidden = false;
   restablecer.classList.add('activo');
 }
@@ -1437,7 +1437,7 @@ async function configurarPaginaPerfil() {
     return;
   }
 
-  document.querySelector('[data-perfil-logout]')?.addEventListener('click', cerrarSesionDesdeInterfaz);
+  document.querySelector('[data-perfil-cerrar-sesion]')?.addEventListener('click', cerrarSesionDesdeInterfaz);
 }
 
 function representarIdentidadPerfil(usuario, iniciales) {
@@ -1464,7 +1464,7 @@ function configurarEditorPerfil(usuarioInicial) {
   formulario.sitio_web.value = usuarioInicial.sitio_web || '';
   dibujarVistaPrevia();
   disparador.addEventListener('click', () => { editor.hidden = false; editor.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-  editor.querySelector('[data-perfil-editar-cancel]').addEventListener('click', () => {
+  editor.querySelector('[data-perfil-cancelar-edicion]').addEventListener('click', () => {
     formulario.nombre.value = usuarioInicial.nombre || '';
     formulario.ubicacion.value = usuarioInicial.ubicacion || '';
     formulario.biografia.value = usuarioInicial.biografia || '';
@@ -1513,15 +1513,15 @@ async function configurarMensajeria() {
   const botonGrabar = document.getElementById('mensaje-directo-grabar');
   const estadoGrabacion = document.getElementById('mensaje-directo-grabando-estado');
   const vistaPreviaAudio = document.getElementById('mensaje-directo-audio-vista-previa');
-  const reproduccionAudio = document.getElementById('mensaje-directo-audio-playback');
-  const botonDescartarAudio = document.getElementById('mensaje-directo-audio-discard');
+  const reproduccionAudio = document.getElementById('mensaje-directo-audio-reproduccion');
+  const botonDescartarAudio = document.getElementById('mensaje-directo-audio-descartar');
   const botonEnviarAudio = document.getElementById('mensaje-directo-audio-enviar');
   const botonAdjunto = document.getElementById('mensaje-directo-adjuntar');
   const entradaAdjunto = document.getElementById('mensaje-directo-adjunto-entrada');
   const adjuntoEstado = document.getElementById('mensaje-directo-adjunto-estado');
   const vistaPreviaAdjunto = document.getElementById('mensaje-directo-adjunto-vista-previa');
   const etiquetaContactoActivo = document.getElementById('mensaje-directo-activo-contacto');
-  const botonLimpiarArchivos = document.getElementById('mensaje-directo-cleanup-files');
+  const botonLimpiarArchivos = document.getElementById('mensaje-directo-limpiar-archivos');
   const botonEnviarTexto = formulario?.querySelector('.mensaje-directo-enviar-texto');
   if (!selectorContactos || !hilo || !formulario) return;
 
@@ -2127,8 +2127,8 @@ function configurarBotonesFavoritos() {
     // y terminaba guardando todas las tarjetas como si fueran Plaza Artigas.
     const tarjeta = boton.closest('.alojamiento-tarjeta, .lugar-tarjeta') || boton.parentElement;
     const titulo = tarjeta.querySelector('.alojamiento-nombre, h3, h4')?.textContent.trim() || boton.getAttribute('aria-label')?.replace(/^Guardar\s*/i, '').trim() || tarjeta.querySelector('img')?.alt?.trim() || 'Lugar turístico';
-    const identificadorEntidad = boton.dataset.entityId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    boton.dataset.entityId = identificadorEntidad;
+    const identificadorEntidad = boton.dataset.entidadId || titulo.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    boton.dataset.entidadId = identificadorEntidad;
     boton.setAttribute('aria-pressed', 'false');
     const sincronizar = async () => {
       try { const estado = await solicitarApiSigtur(`/api/likes/estado?entidad_tipo=place&entidad_id=${encodeURIComponent(identificadorEntidad)}`); boton.setAttribute('aria-pressed', String(Boolean(estado.saved))); boton.classList.toggle('me-gusta', Boolean(estado.saved)); }
@@ -2309,15 +2309,15 @@ async function representarReservasPerfil(usuarioIdentificador) {
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   lista.innerHTML = entradas.length
     ? entradas.map(reserva => reserva.type === 'event'
-      ? `<article class="reserva-tarjeta"><div><small>EVENTO</small><strong>${escaparTexto(reserva.displayName || 'Evento')}</strong><p>${reserva.quantity} ${Number(reserva.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escaparTexto(reserva.schedule)} · ${new Date(reserva.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reserva.event_ref)}">Ver evento</a><button type="button" data-cancel-reserva="${reserva.id}" data-reserva-tipo="eventos">Cancelar</button></article>`
-      : `<article class="reserva-tarjeta"><div><small>VISITA / LUGAR</small><strong>${escaparTexto(reserva.displayName || 'Experiencia turística')}</strong><p>${escaparTexto(reserva.date)} · ${reserva.people} ${Number(reserva.people) === 1 ? 'persona' : 'personas'} · ${escaparTexto(reserva.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancel-reserva="${reserva.id}" data-reserva-tipo="planes">Cancelar</button></article>`).join('')
+      ? `<article class="reserva-tarjeta"><div><small>EVENTO</small><strong>${escaparTexto(reserva.displayName || 'Evento')}</strong><p>${reserva.quantity} ${Number(reserva.quantity) === 1 ? 'lugar reservado' : 'lugares reservados'} · ${escaparTexto(reserva.schedule)} · ${new Date(reserva.created_at).toLocaleDateString('es-UY')}</p></div><a href="eventos.html#${encodeURIComponent(reserva.event_ref)}">Ver evento</a><button type="button" data-cancelar-reserva="${reserva.id}" data-reserva-tipo="eventos">Cancelar</button></article>`
+      : `<article class="reserva-tarjeta"><div><small>VISITA / LUGAR</small><strong>${escaparTexto(reserva.displayName || 'Experiencia turística')}</strong><p>${escaparTexto(reserva.date)} · ${reserva.people} ${Number(reserva.people) === 1 ? 'persona' : 'personas'} · ${escaparTexto(reserva.schedule)}</p></div><a href="turismo.html">Ver turismo</a><button type="button" data-cancelar-reserva="${reserva.id}" data-reserva-tipo="planes">Cancelar</button></article>`).join('')
     : '<p class="perfil-vacio">Todavía no tenés reservas ni visitas planificadas.</p>';
   lista.setAttribute('aria-busy', 'false');
   lista.onclick = async evento => {
-    const cancelar = evento.target.closest('[data-cancel-reserva]');
+    const cancelar = evento.target.closest('[data-cancelar-reserva]');
     if (!cancelar || !window.confirm('¿Cancelar esta reserva o planificación?')) return;
     cancelar.disabled = true;
-    try { await solicitarApiSigtur(`/api/reservas/${cancelar.dataset.reservaTipo}/${encodeURIComponent(cancelar.dataset.cancelReserva)}`, { method: 'DELETE' }); await representarReservasPerfil(usuarioIdentificador); }
+    try { await solicitarApiSigtur(`/api/reservas/${cancelar.dataset.reservaTipo}/${encodeURIComponent(cancelar.dataset.cancelarReserva)}`, { method: 'DELETE' }); await representarReservasPerfil(usuarioIdentificador); }
     catch (fallo) { cancelar.disabled = false; window.alert(fallo.message || 'No se pudo cancelar.'); }
   };
 }
@@ -2327,7 +2327,7 @@ function configurarAccesoRapidoEventosAdministracion() {
   const servidor = document.querySelector('.destacados-encabezado');
   if (!servidor || servidor.querySelector('[data-administracion-crear-evento]')) return;
   const enlace = document.createElement('a');
-  enlace.href = 'admin.html#admin-event-form';
+  enlace.href = 'admin.html#administracion-evento-formulario';
   enlace.className = 'administracion-crear-evento';
   enlace.dataset.administracionCrearEvento = 'true';
   enlace.textContent = '+ Crear evento';
@@ -2368,16 +2368,16 @@ async function configurarInteraccionesEventos() {
       const fila = document.createElement('article');
       fila.className = 'entrada-fila entrada-fila-remoto';
       fila.dataset.categoriaEvento = categoria;
-      fila.dataset.eventId = `event-${evento.id}`;
+      fila.dataset.eventoId = `event-${evento.id}`;
       const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
       const multimediaEvento = analizarMultimediaEvento(evento.image_url);
       const imagenEvento = multimediaEvento.tipo === 'imagen' ? multimediaEvento.url : '';
       const enlaceFichaEvento = obtenerEnlaceWebEvento(evento.link) || (multimediaEvento.tipo === 'enlace' ? multimediaEvento.url : '');
-      fila.dataset.eventColor = colorEvento;
-      fila.dataset.eventImage = imagenEvento;
-      fila.dataset.eventMediaType = multimediaEvento.tipo;
-      fila.dataset.eventMediaUrl = multimediaEvento.url;
-      fila.dataset.eventLink = enlaceFichaEvento;
+      fila.dataset.colorEvento = colorEvento;
+      fila.dataset.imagenEvento = imagenEvento;
+      fila.dataset.tipoMultimediaEvento = multimediaEvento.tipo;
+      fila.dataset.urlMultimediaEvento = multimediaEvento.url;
+      fila.dataset.enlaceEvento = enlaceFichaEvento;
       fila.style.setProperty('--color-evento', colorEvento);
       const horaEvento = evento.event_time ? String(evento.event_time).slice(0, 5) : 'Horario a confirmar';
       const precioEvento = Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis';
@@ -2398,7 +2398,7 @@ async function configurarInteraccionesEventos() {
     listaEntradas.dispatchEvent(new Event('eventosactualizados'));
   } catch (fallo) {
     const estado = document.createElement('p');
-    estado.className = 'formulario-help evento-api-estado';
+    estado.className = 'formulario-ayuda evento-api-estado';
     estado.textContent = fallo.message || 'No se pudieron cargar los eventos publicados.';
     listaEntradas.insertAdjacentElement('beforebegin', estado);
   }
@@ -2434,7 +2434,7 @@ async function configurarInteraccionesEventos() {
     const hora = fila.querySelector('.entrada-horario')?.textContent.trim() || 'Horario a confirmar';
     const precio = fila.querySelector('.entrada-precio')?.textContent.trim() || 'Consultar';
     const descripcion = fila.querySelector('.entrada-subtitulo')?.textContent.trim() || 'Una propuesta para disfrutar Salto.';
-    return { title: titulo, id: fila.dataset.eventId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.eventImage || '', mediaType: fila.dataset.eventMediaType || (fila.dataset.eventImage ? 'imagen' : 'ninguno'), mediaUrl: fila.dataset.eventMediaUrl || '', link: obtenerEnlaceWebEvento(fila.dataset.eventLink), color: /^#[0-9a-f]{6}$/i.test(fila.dataset.eventColor || '') ? fila.dataset.eventColor : '#087f72' };
+    return { title: titulo, id: fila.dataset.eventoId || `event-${crearIdentificadorUrl(`${titulo}-${fecha}-${ubicacion}`)}`, date: fecha, location: ubicacion, category: categoria, time: hora, price: precio, description: descripcion, image: fila.dataset.imagenEvento || '', mediaType: fila.dataset.tipoMultimediaEvento || (fila.dataset.imagenEvento ? 'imagen' : 'ninguno'), mediaUrl: fila.dataset.urlMultimediaEvento || '', link: obtenerEnlaceWebEvento(fila.dataset.enlaceEvento), color: /^#[0-9a-f]{6}$/i.test(fila.dataset.colorEvento || '') ? fila.dataset.colorEvento : '#087f72' };
   };
   const dialogoDetalle = document.createElement('dialog');
   dialogoDetalle.className = 'evento-detalle-dialogo';
@@ -2448,10 +2448,10 @@ async function configurarInteraccionesEventos() {
     const enlaceInformacion = evento.link
       ? `<a href="${escaparHtml(evento.link)}" target="_blank" rel="noopener noreferrer">Ver información oficial</a>`
       : '';
-    dialogoDetalle.innerHTML = `<article class="evento-detalle-tarjeta"><div class="evento-detalle-portada evento-detalle-${crearIdentificadorUrl(evento.category)}" style="--acento-evento:${evento.color}">${medioEnFicha}<button class="evento-detalle-cerrar" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="evento-detalle-rotulos"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="evento-detalle-antetitulo">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="evento-detalle-contenido"><div class="evento-detalle-datos"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="evento-detalle-acciones"><button type="button" data-detalle-reserve>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a>${enlaceInformacion}</div></div></article>`;
+    dialogoDetalle.innerHTML = `<article class="evento-detalle-tarjeta"><div class="evento-detalle-portada evento-detalle-${crearIdentificadorUrl(evento.category)}" style="--acento-evento:${evento.color}">${medioEnFicha}<button class="evento-detalle-cerrar" type="button" aria-label="Cerrar detalle">\u00d7</button><div class="evento-detalle-rotulos"><span>${escaparHtml(evento.category)}</span><span>${escaparHtml(evento.date)}</span></div><div><p class="evento-detalle-antetitulo">Agenda SIGTUR \u00b7 Salto</p><h2>${escaparHtml(evento.title)}</h2><p>${escaparHtml(evento.description)}</p></div></div><div class="evento-detalle-contenido"><div class="evento-detalle-datos"><div><small>${iconoEvento('time')}Horario</small><strong>${escaparHtml(evento.time)}</strong></div><div><small>${iconoEvento('price')}Precio</small><strong>${escaparHtml(evento.price)}</strong></div><div><small>${iconoEvento('location')}D\u00f3nde</small><strong>${escaparHtml(evento.location)}</strong></div></div><p>Guard\u00e1 el evento, reserv\u00e1 tu lugar y compart\u00ed tu experiencia con la comunidad.</p><div class="evento-detalle-acciones"><button type="button" data-detalle-reserva>Reservar lugar</button><a href="mapa.html?focus=${encodeURIComponent(evento.id)}">Ver en mapa</a>${enlaceInformacion}</div></div></article>`;
     dialogoDetalle.showModal();
     dialogoDetalle.querySelector('.evento-detalle-cerrar').addEventListener('click', () => dialogoDetalle.close());
-    dialogoDetalle.querySelector('[data-detalle-reserve]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-evento-reserva]')?.click(); });
+    dialogoDetalle.querySelector('[data-detalle-reserva]').addEventListener('click', () => { dialogoDetalle.close(); const tique = [...filas].find(fila => obtenerDatosEvento(fila).id === evento.id); tique?.querySelector('[data-evento-reserva]')?.click(); });
   };
   dialogoDetalle.addEventListener('click', clicEvento => { if (clicEvento.target === dialogoDetalle) dialogoDetalle.close(); });
   const nombreAutor = (comentario) => {
@@ -2584,7 +2584,7 @@ async function configurarInteraccionesEventos() {
     panelActual.id = idPanelInteraccion;
     panelActual.setAttribute('aria-labelledby', `${idPanelInteraccion}-titulo`);
     panelActual.hidden = true;
-    panelActual.innerHTML = `<div class="encabezado-panel-evento"><div class="titulo-panel-evento"><span class="evento-panel-contexto" data-panel-contexto>Foro del evento</span><strong id="${idPanelInteraccion}-titulo">${escaparHtml(evento.title)}</strong></div><button type="button" class="evento-panel-cerrar" data-evento-cerrar aria-label="Cerrar panel">×</button></div><div class="evento-comentarios-vista"><div class="evento-comentario-aviso">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comentario-filtro" role="group" aria-label="Ordenar comentarios"><button type="button" data-comentario-orden="newest" aria-pressed="true">Recientes</button><button type="button" data-comentario-orden="oldest" aria-pressed="false">Antiguos</button></div><p class="evento-panel-estado" data-evento-panel-estado></p><div class="evento-comentario-lista" data-evento-comentario-lista></div><form data-evento-comentario-formulario data-comentario-multimedia-formulario><textarea name="contenido" rows="2" maxlength="2000" aria-label="Escribí un comentario" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="evento-panel-enviar" type="submit">Publicar</button></form></div><div class="evento-reserva-vista" hidden><p class="evento-panel-estado" data-reserva-estado></p><div class="reserva-widget"><p class="reserva-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reserva-quantity><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reserva-horarios"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="evento-panel-enviar" type="button" data-reserve-confirm>Confirmar reserva</button></div>`;
+    panelActual.innerHTML = `<div class="encabezado-panel-evento"><div class="titulo-panel-evento"><span class="evento-panel-contexto" data-panel-contexto>Foro del evento</span><strong id="${idPanelInteraccion}-titulo">${escaparHtml(evento.title)}</strong></div><button type="button" class="evento-panel-cerrar" data-evento-cerrar aria-label="Cerrar panel">×</button></div><div class="evento-comentarios-vista"><div class="evento-comentario-aviso">Compartí experiencias útiles y respetá a la comunidad SIGTUR.</div><div class="comentario-filtro" role="group" aria-label="Ordenar comentarios"><button type="button" data-comentario-orden="newest" aria-pressed="true">Recientes</button><button type="button" data-comentario-orden="oldest" aria-pressed="false">Antiguos</button></div><p class="evento-panel-estado" data-evento-panel-estado></p><div class="evento-comentario-lista" data-evento-comentario-lista></div><form data-evento-comentario-formulario data-comentario-multimedia-formulario><textarea name="contenido" rows="2" maxlength="2000" aria-label="Escribí un comentario" placeholder="Sumá un comentario o adjuntá una imagen..."></textarea><button class="evento-panel-enviar" type="submit">Publicar</button></form></div><div class="evento-reserva-vista" hidden><p class="evento-panel-estado" data-reserva-estado></p><div class="reserva-widget"><p class="reserva-widget-intro">Elegí la modalidad que mejor se adapte a tu día.</p><label>Cantidad de lugares<select data-reserva-cantidad><option value="1">1 lugar</option><option value="2">2 lugares</option><option value="3">3 lugares</option><option value="4">4 lugares</option></select></label><fieldset><legend>Horario de llegada</legend><div class="reserva-horarios"><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Temprano · 18:00" checked><span>Temprano<small>18:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Central · 20:00"><span>Central<small>20:00</small></span></label><label><input type="radio" name="slot-${escaparHtml(evento.id)}" value="Flexible · a coordinar"><span>Flexible<small>A coordinar</small></span></label></div></fieldset></div><button class="evento-panel-enviar" type="button" data-reserva-confirmar>Confirmar reserva</button></div>`;
     fila._panelInteraccion = panelActual;
     const contenedorPaneles = fila.closest('.evento-carrusel-marco')?.querySelector('.evento-interaccion-paneles');
     if (contenedorPaneles) contenedorPaneles.append(panelActual);
@@ -2656,13 +2656,13 @@ async function configurarInteraccionesEventos() {
         cerrarPanel();
         return;
       }
-      const reservarBoton = clicEvento.target.closest('[data-reserve-confirm]');
+      const reservarBoton = clicEvento.target.closest('[data-reserva-confirmar]');
       if (!reservarBoton) return;
       const estado = panelActual.querySelector('[data-reserva-estado]');
       try {
         if (!obtenerSesionSigtur()?.token) { mostrarInicioSesion(); return; }
         reservarBoton.disabled = true;
-        const cantidad = Number(panelActual.querySelector('[data-reserva-quantity]').value);
+        const cantidad = Number(panelActual.querySelector('[data-reserva-cantidad]').value);
         const horario = panelActual.querySelector(`input[name="slot-${CSS.escape(evento.id)}"]:checked`)?.value || 'Flexible · a coordinar';
         await solicitarApiSigtur('/api/reservas/eventos', { method: 'POST', body: JSON.stringify({ event_ref: evento.id, event_title: evento.title, quantity: cantidad, schedule: horario }) });
         estado.textContent = `Reserva registrada: ${cantidad} ${cantidad === 1 ? 'lugar' : 'lugares'} · ${horario}.`;
@@ -2899,8 +2899,8 @@ async function configurarPaginaAdministracion() {
   const vistaPreviaImagenEvento = document.getElementById('administracion-evento-imagen-vista-previa');
   const imagenVistaPreviaEvento = vistaPreviaImagenEvento?.querySelector('img');
   const elementoMapaEvento = document.getElementById('administracion-evento-mapa');
-  const latitudEvento = document.getElementById('administracion-evento-latitude');
-  const longitudEvento = document.getElementById('administracion-evento-longitude');
+  const latitudEvento = document.getElementById('administracion-evento-latitud');
+  const longitudEvento = document.getElementById('administracion-evento-longitud');
   const simbolosCategoriaEvento = {
     cultura: '🎭', musica: '♫', deportes: '⚽', feria: '▦',
     gastronomia: '♨', religiosos: '✦', infantiles: '★'
@@ -2968,7 +2968,7 @@ async function configurarPaginaAdministracion() {
   entradaImagenEvento?.addEventListener('input', actualizarVistaPreviaImagenEvento);
   entradaImagenEvento?.addEventListener('change', actualizarVistaPreviaImagenEvento);
   cargarAdministracionEventos();
-  document.querySelectorAll('[data-administracion-pagina="events"]').forEach(boton => boton.addEventListener('click', () => { paginaEventos = Math.max(1, paginaEventos + Number(boton.dataset.direction)); cargarAdministracionEventos(); }));
+  document.querySelectorAll('[data-administracion-pagina="eventos"]').forEach(boton => boton.addEventListener('click', () => { paginaEventos = Math.max(1, paginaEventos + Number(boton.dataset.direccion)); cargarAdministracionEventos(); }));
   document.getElementById('administracion-eventos-busqueda')?.addEventListener('input', () => { paginaEventos = 1; clearTimeout(window.adminEventsSearchTimer); window.adminEventsSearchTimer = setTimeout(cargarAdministracionEventos, 250); });
   let establecerPuntoEventoAdministracion = null;
   let limpiarMarcadorEventoAdministracion = () => {};
@@ -3018,16 +3018,16 @@ async function configurarPaginaAdministracion() {
   };
   const representarUsuarios = (usuarios) => {
     if (!usuariosLista) return;
-    usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-ban-usuario="${usuario.id}" data-banned="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
+    usuariosLista.innerHTML = usuarios.map(usuario => `<li><span>${escaparTexto(usuario.nombre || 'Usuario')} · ${escaparTexto(usuario.correo)}</span><button type="button" data-suspender-usuario="${usuario.id}" data-suspendido="${Boolean(usuario.banned)}">${usuario.banned ? 'Desbanear' : 'Banear 24 h'}</button></li>`).join('') || '<li>No hay usuarios.</li>';
   };
-  const paginas = { users: 1, comments: 1, support: 1 };
+  const paginas = { usuarios: 1, comentarios: 1, soporte: 1 };
   const cargarUsuarios = async () => {
     if (usuariosLista) { usuariosLista.setAttribute('aria-busy', 'true'); usuariosLista.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando usuarios…</li>'; }
     try {
-      const consulta = new URLSearchParams({ page: paginas.users, pageSize: 10, q: document.getElementById('administracion-usuarios-busqueda')?.value || '' });
+      const consulta = new URLSearchParams({ page: paginas.usuarios, pageSize: 10, q: document.getElementById('administracion-usuarios-busqueda')?.value || '' });
       const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/usuarios?${consulta}`));
       representarUsuarios(resultado.data || []);
-      const etiqueta = document.getElementById('administracion-usuarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.users} · ${resultado.total} usuarios`;
+      const etiqueta = document.getElementById('administracion-usuarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.usuarios} · ${resultado.total} usuarios`;
     } catch (fallo) {
       if (usuariosLista) usuariosLista.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los usuarios.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
@@ -3036,10 +3036,10 @@ async function configurarPaginaAdministracion() {
   const cargarComentarios = async () => {
     if (listaComentarios) { listaComentarios.setAttribute('aria-busy', 'true'); listaComentarios.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando comentarios…</li>'; }
     try {
-      const consulta = new URLSearchParams({ page: paginas.comments, pageSize: 10, q: document.getElementById('administracion-comentarios-busqueda')?.value || '' });
+      const consulta = new URLSearchParams({ page: paginas.comentarios, pageSize: 10, q: document.getElementById('administracion-comentarios-busqueda')?.value || '' });
       const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/comentarios?${consulta}`));
-      if (listaComentarios) listaComentarios.innerHTML = resultado.data.map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(String(comentario.contenido || '').slice(0, 120))}</span><span><button type="button" data-pin-comentario="${comentario.id}" data-fijado="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-eliminar-comentario="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="interfaz-lista-estado">No hay comentarios.</li>';
-      const etiqueta = document.getElementById('administracion-comentarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comments} · ${resultado.total} comentarios`;
+      if (listaComentarios) listaComentarios.innerHTML = resultado.data.map(comentario => `<li><span>${comentario.fijado ? 'Fijado \u00b7 ' : ''}${escaparTexto(String(comentario.contenido || '').slice(0, 120))}</span><span><button type="button" data-fijar-comentario="${comentario.id}" data-fijado="${Boolean(comentario.fijado)}">${comentario.fijado ? 'Desfijar' : 'Fijar'}</button><button type="button" data-eliminar-comentario="${comentario.id}">Borrar</button></span></li>`).join('') || '<li class="interfaz-lista-estado">No hay comentarios.</li>';
+      const etiqueta = document.getElementById('administracion-comentarios-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.comentarios} · ${resultado.total} comentarios`;
     } catch (fallo) {
       if (listaComentarios) listaComentarios.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar los comentarios.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
@@ -3049,7 +3049,7 @@ async function configurarPaginaAdministracion() {
     const lista = document.getElementById('administracion-soporte-lista');
     if (lista) { lista.setAttribute('aria-busy', 'true'); lista.innerHTML = '<li class="interfaz-lista-estado estado-cargando" role="status">Cargando consultas?</li>'; }
     try {
-      const consulta = new URLSearchParams({ page: paginas.support, pageSize: 10, status: document.getElementById('administracion-soporte-estado')?.value || '', type: document.getElementById('administracion-soporte-tipo')?.value || '' });
+      const consulta = new URLSearchParams({ page: paginas.soporte, pageSize: 10, status: document.getElementById('administracion-soporte-estado')?.value || '', type: document.getElementById('administracion-soporte-tipo')?.value || '' });
       const resultado = normalizarResultadoPaginado(await solicitarApiSigtur(`/api/admin/soporte?${consulta}`));
       if (lista) lista.innerHTML = resultado.data.map(tique => {
         const verificacion = tique.ticket_type === 'business_verification', detalles = tique.details || {};
@@ -3065,21 +3065,21 @@ async function configurarPaginaAdministracion() {
         const marcadoDetalles = verificacion ? `<details class="administracion-verificacion-datos"><summary>Ver datos de verificación</summary><dl>${filas.map(([etiqueta, valor]) => `<div><dt>${escaparTexto(etiqueta)}</dt><dd>${escaparTexto(valor)}</dd></div>`).join('')}</dl></details>` : '';
         return `<li class="administracion-soporte-entrada ${verificacion ? 'estado-verificacion' : ''}"><div class="administracion-soporte-entrada-contenido"><span><strong>${verificacion ? 'Verificación de cuenta' : escaparTexto(tique.topic)}</strong> · ${escaparTexto(tique.name)} (${escaparTexto(tique.email)})</span><p>${escaparTexto(tique.message.slice(0, 500))}</p>${marcadoDetalles}<small>${escaparTexto(tique.created_at ? new Date(tique.created_at).toLocaleString('es-UY') : '')}</small></div><select data-entrada-estado="${escaparTexto(tique.id)}" aria-label="Estado del ticket"><option value="open" ${tique.status === 'open' ? 'selected' : ''}>Abierta</option><option value="in_progress" ${tique.status === 'in_progress' ? 'selected' : ''}>En curso</option><option value="resolved" ${tique.status === 'resolved' ? 'selected' : ''}>Resuelta</option></select></li>`;
       }).join('') || '<li class="interfaz-lista-estado">No hay consultas.</li>';
-      const etiqueta = document.getElementById('administracion-soporte-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.support} · ${resultado.total} consultas`;
+      const etiqueta = document.getElementById('administracion-soporte-pagina'); if (etiqueta) etiqueta.textContent = `Página ${paginas.soporte} · ${resultado.total} consultas`;
     } catch (fallo) {
       if (lista) lista.innerHTML = `<li class="interfaz-lista-estado estado-error" role="alert">${escaparTexto(fallo.message || 'No se pudieron cargar las consultas.')}</li>`;
       mostrarEstadoRecurso(fallo.message); throw fallo;
     } finally { lista?.setAttribute('aria-busy', 'false'); }
   };
   try { await Promise.all([cargarUsuarios(), cargarComentarios(), cargarSoporte()]); } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
-  document.querySelectorAll('[data-administracion-pagina]').forEach(boton => boton.addEventListener('click', async () => { const clave = boton.dataset.administracionPagina; paginas[clave] = Math.max(1, paginas[clave] + Number(boton.dataset.direction)); try { await ({ users: cargarUsuarios, comments: cargarComentarios, support: cargarSoporte })[clave](); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } }));
+  document.querySelectorAll('[data-administracion-pagina]').forEach(boton => boton.addEventListener('click', async () => { const clave = boton.dataset.administracionPagina; paginas[clave] = Math.max(1, paginas[clave] + Number(boton.dataset.direccion)); try { await ({ usuarios: cargarUsuarios, comentarios: cargarComentarios, soporte: cargarSoporte })[clave](); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } }));
   [['admin-users-search','users',cargarUsuarios],['admin-comments-search','comments',cargarComentarios]].forEach(([identificador,clave,cargador]) => document.getElementById(identificador)?.addEventListener('input', () => { paginas[clave] = 1; clearTimeout(window.adminSearchTimer); window.adminSearchTimer = setTimeout(() => cargador().catch(fallo => mostrarEstadoRecurso(fallo.message)), 250); }));
-  document.getElementById('administracion-soporte-estado')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
-  document.getElementById('administracion-soporte-tipo')?.addEventListener('change', () => { paginas.support = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('administracion-soporte-estado')?.addEventListener('change', () => { paginas.soporte = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
+  document.getElementById('administracion-soporte-tipo')?.addEventListener('change', () => { paginas.soporte = 1; cargarSoporte().catch(fallo => mostrarEstadoRecurso(fallo.message)); });
   document.getElementById('administracion-soporte-lista')?.addEventListener('change', async evento => { const seleccionar = evento.target.closest('[data-entrada-estado]'); if (!seleccionar) return; try { await solicitarApiSigtur(`/api/admin/soporte/${seleccionar.dataset.entradaEstado}`, { method: 'PATCH', body: JSON.stringify({ status: seleccionar.value }) }); await cargarSoporte(); } catch (fallo) { mostrarEstadoRecurso(fallo.message); } });
   const restablecerEditorEvento = () => {
     formularioEvento?.reset();
-    if (formularioEvento) delete formularioEvento.dataset.editingId;
+    if (formularioEvento) delete formularioEvento.dataset.identificadorEdicion;
     if (tituloFormularioEvento) tituloFormularioEvento.textContent = 'Crear evento';
     if (enviarEvento) enviarEvento.textContent = 'Publicar evento';
     if (cancelarEvento) cancelarEvento.hidden = true;
@@ -3111,7 +3111,7 @@ async function configurarPaginaAdministracion() {
     const categoria = (Array.isArray(registroEvento.categories) ? registroEvento.categories[0] : '') || 'cultura';
     const claveCategoria = String(categoria).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     formularioEvento.elements.namedItem('category').value = claveCategoria;
-    formularioEvento.dataset.editingId = registroEvento.id;
+    formularioEvento.dataset.identificadorEdicion = registroEvento.id;
     if (registroEvento.latitude != null && registroEvento.longitude != null) {
       const latitud = Number(registroEvento.latitude), longitud = Number(registroEvento.longitude);
       if (Number.isFinite(latitud) && Number.isFinite(longitud)) establecerPuntoEventoAdministracion?.(latitud, longitud);
@@ -3127,7 +3127,7 @@ async function configurarPaginaAdministracion() {
   formularioEvento?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     const datos = new FormData(formularioEvento);
-    const identificadorEnEdicion = formularioEvento.dataset.editingId;
+    const identificadorEnEdicion = formularioEvento.dataset.identificadorEdicion;
     const metodo = identificadorEnEdicion ? 'PATCH' : 'POST';
     const urlMultimedia = String(datos.get('image_url') || '').trim();
     const multimediaEvento = analizarMultimediaEvento(urlMultimedia);
@@ -3143,7 +3143,7 @@ async function configurarPaginaAdministracion() {
     } catch (fallo) {
       mostrarEstadoRecurso(fallo.message);
     } finally {
-      if (enviarEvento) { enviarEvento.disabled = false; enviarEvento.textContent = formularioEvento.dataset.editingId ? 'Guardar cambios' : 'Publicar evento'; }
+      if (enviarEvento) { enviarEvento.disabled = false; enviarEvento.textContent = formularioEvento.dataset.identificadorEdicion ? 'Guardar cambios' : 'Publicar evento'; }
     }
   });
   listaEventos?.addEventListener('click', async (evento) => {
@@ -3159,7 +3159,7 @@ async function configurarPaginaAdministracion() {
     boton.disabled = true;
     try {
       await solicitarApiSigtur(`/api/admin/eventos/${encodeURIComponent(boton.dataset.eliminarEvento)}`, { method: 'DELETE' });
-      if (formularioEvento?.dataset.editingId === boton.dataset.eliminarEvento) restablecerEditorEvento();
+      if (formularioEvento?.dataset.identificadorEdicion === boton.dataset.eliminarEvento) restablecerEditorEvento();
       mostrarEstadoRecurso('Evento eliminado.');
       await cargarAdministracionEventos();
     } catch (fallo) {
@@ -3168,22 +3168,22 @@ async function configurarPaginaAdministracion() {
     }
   });
   usuariosLista?.addEventListener('click', async (evento) => {
-    const boton = evento.target.closest('[data-ban-usuario]');
+    const boton = evento.target.closest('[data-suspender-usuario]');
     if (!boton) return;
     try {
-      const duracion = boton.dataset.banned === 'true' ? 'none' : '24h';
-      await solicitarApiSigtur(`/api/admin/usuarios/${boton.dataset.banUsuario}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration: duracion }) });
-      boton.dataset.banned = duracion === 'none' ? 'false' : 'true';
+      const duracion = boton.dataset.suspendido === 'true' ? 'none' : '24h';
+      await solicitarApiSigtur(`/api/admin/usuarios/${boton.dataset.suspenderUsuario}/baneo`, { method: 'PATCH', body: JSON.stringify({ duration: duracion }) });
+      boton.dataset.suspendido = duracion === 'none' ? 'false' : 'true';
       boton.textContent = duracion === 'none' ? 'Banear 24 h' : 'Desbanear';
       mostrarEstadoRecurso(duracion === 'none' ? 'Usuario desbaneado.' : 'Usuario baneado por 24 horas.');
     } catch (fallo) { mostrarEstadoRecurso(fallo.message); }
   });
   listaComentarios?.addEventListener('click', async evento => {
-    const botonMarcador = evento.target.closest('[data-pin-comentario]');
+    const botonMarcador = evento.target.closest('[data-fijar-comentario]');
     if (botonMarcador) {
       try {
         const fijado = botonMarcador.dataset.fijado !== 'true';
-        await solicitarApiSigtur(`/api/admin/comentarios/${botonMarcador.dataset.pinComentario}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fijado }) });
+        await solicitarApiSigtur(`/api/admin/comentarios/${botonMarcador.dataset.fijarComentario}/fijado`, { method: 'PATCH', body: JSON.stringify({ fijado: fijado }) });
         botonMarcador.dataset.fijado = String(fijado);
         botonMarcador.textContent = fijado ? 'Desfijar' : 'Fijar';
         const texto = botonMarcador.closest('li')?.querySelector('span');

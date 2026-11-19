@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login y Registro - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
-  <link rel="stylesheet" href="../css/support-events.css?v=20261118-contraste" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
+  <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 <body class="cuenta-redisenada">
 <main class="cuenta-escenario">
@@ -56,19 +56,19 @@
 
     <!--
       Tabs para alternar entre Ingresar / Registrarse. role="tablist"
-      y los data-cuenta-tab son ganchos para que main.js sepa qué panel
-      mostrar cuando clickean cada botón (buscar 'data-cuenta-tab' en
+      y los data-cuenta-pestana son ganchos para que main.js sepa qué panel
+      mostrar cuando clickean cada botón (buscar 'data-cuenta-pestana' en
       main.js para ver el switcheo). Esto es un patrón de tabs manual
       hecho con atributos data-*, no usa el <input type=radio> hack
       ni nada de CSS puro, depende 100% de JS para funcionar
     -->
     <div class="cuenta-pestanas" role="tablist" aria-label="Opciones de cuenta">
-      <button class="cuenta-pestana activo" type="button" role="tab" aria-selected="true" aria-controls="acceso-formulario" id="acceso-tab" data-cuenta-tab="login">Ingresar</button>
-      <button class="cuenta-pestana" type="button" role="tab" aria-selected="false" aria-controls="registro-formulario" id="registro-tab" data-cuenta-tab="register">Registrarse</button>
+      <button class="cuenta-pestana activo" type="button" role="tab" aria-selected="true" aria-controls="acceso-formulario" id="acceso-pestana" data-cuenta-pestana="acceso">Ingresar</button>
+      <button class="cuenta-pestana" type="button" role="tab" aria-selected="false" aria-controls="registro-formulario" id="registro-pestana" data-cuenta-pestana="registro">Registrarse</button>
     </div>
 
 
-    <form class="cuenta-formulario activo" id="acceso-formulario" data-cuenta-panel="login" role="tabpanel" aria-labelledby="acceso-tab" action="#" novalidate>
+    <form class="cuenta-formulario activo" id="acceso-formulario" data-cuenta-panel="acceso" role="tabpanel" aria-labelledby="acceso-pestana" action="#" novalidate>
       <div class="cuenta-campo">
         <label for="acceso-usuario">Correo</label>
         <input id="acceso-usuario" name="user" type="email" autocomplete="username" placeholder="correo@ejemplo.com" required />
@@ -77,7 +77,7 @@
         <label for="acceso-contrasena">Contraseña</label>
         <div class="cuenta-contenedor-contrasena">
           <input id="acceso-contrasena" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required />
-          <button class="cuenta-alternar-contrasena" type="button" data-contrasena-alternar="login-password" aria-label="Mostrar contraseña">Mostrar</button>
+          <button class="cuenta-alternar-contrasena" type="button" data-contrasena-alternar="acceso-contrasena" aria-label="Mostrar contraseña">Mostrar</button>
         </div>
       </div>
       <button class="cuenta-boton-enlace" type="button" data-cuenta-mensaje="recuperar">Olvidaste la contraseña?</button>
@@ -85,7 +85,7 @@
     </form>
 
 
-    <form class="cuenta-formulario" id="registro-formulario" data-cuenta-panel="register" role="tabpanel" aria-labelledby="registro-tab" action="#" novalidate>
+    <form class="cuenta-formulario" id="registro-formulario" data-cuenta-panel="registro" role="tabpanel" aria-labelledby="registro-pestana" action="#" novalidate>
       <div class="cuenta-campo">
         <label for="registro-nombre">Nombre</label>
         <input id="registro-nombre" name="name" type="text" autocomplete="name" placeholder="Tu nombre" required />
@@ -98,19 +98,19 @@
         <label for="registro-contrasena">Contraseña</label>
         <div class="cuenta-contenedor-contrasena">
           <input id="registro-contrasena" name="password" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required />
-          <button class="cuenta-alternar-contrasena" type="button" data-contrasena-alternar="register-password" aria-label="Mostrar contraseña">Mostrar</button>
+          <button class="cuenta-alternar-contrasena" type="button" data-contrasena-alternar="registro-contrasena" aria-label="Mostrar contraseña">Mostrar</button>
         </div>
       </div>
       <button class="cuenta-enviar" type="submit">Registrar Cuenta</button>
     </form>
 
-    <form class="cuenta-formulario" id="recovery-formulario" data-cuenta-panel="recovery" action="#" hidden novalidate>
+    <form class="cuenta-formulario" id="recuperacion-formulario" data-cuenta-panel="recuperacion" action="#" hidden novalidate>
       <div class="cuenta-campo">
-        <label for="recovery-correo">Correo</label>
-        <input id="recovery-correo" name="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com" required />
+        <label for="recuperacion-correo">Correo</label>
+        <input id="recuperacion-correo" name="email" type="email" autocomplete="email" placeholder="correo@ejemplo.com" required />
       </div>
       <button class="cuenta-enviar" type="submit">Enviar enlace</button>
-      <button class="cuenta-boton-enlace" id="recovery-cancel" type="button">Volver a ingresar</button>
+      <button class="cuenta-boton-enlace" id="recuperacion-cancelar" type="button">Volver a ingresar</button>
     </form>
 
     <form class="cuenta-formulario" id="contrasena-reset-formulario" action="#" hidden novalidate>
@@ -154,6 +154,6 @@
 
 
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261118-map-return"></script>
+<script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>

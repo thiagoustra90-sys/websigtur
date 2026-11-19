@@ -41,10 +41,10 @@ body.perfil-pagina {
 .perfil-pagina .estadisticas-fila { order: 3; margin: 0 clamp(22px, 6vw, 72px); border-top: 0; border-bottom: 1px solid #eaecf0; }
 .perfil-pagina .estadistica { padding: 16px 8px; }
 .perfil-pagina .estadistica span { color: #101828; font-size: 1.05rem; }
-.perfil-pagina .perfil-tabs { order: 4; display: flex; justify-content: center; gap: clamp(26px, 8vw, 90px); border-bottom: 1px solid #eaecf0; }
-.perfil-pagina .perfil-tabs a { position: relative; display: inline-flex; align-items: center; min-height: 54px; color: #667085; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
-.perfil-pagina .perfil-tabs a:first-child { color: #101828; }
-.perfil-pagina .perfil-tabs a:first-child::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #101828; content: ''; }
+.perfil-pagina .perfil-pestanas { order: 4; display: flex; justify-content: center; gap: clamp(26px, 8vw, 90px); border-bottom: 1px solid #eaecf0; }
+.perfil-pagina .perfil-pestanas a { position: relative; display: inline-flex; align-items: center; min-height: 54px; color: #667085; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+.perfil-pagina .perfil-pestanas a:first-child { color: #101828; }
+.perfil-pagina .perfil-pestanas a:first-child::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #101828; content: ''; }
 .perfil-pagina .perfil-contenido { order: 5; padding: 30px clamp(18px, 4vw, 42px); }
 .perfil-pagina .perfil-reservas { order: 6; padding: 10px clamp(18px, 4vw, 42px) 30px; }
 .perfil-pagina .perfil-mensajes { order: 7; margin: 0; padding: 28px clamp(18px, 4vw, 42px); border-top: 1px solid #eaecf0; }
@@ -99,8 +99,8 @@ body.perfil-pagina {
 .perfil-pagina .mensaje-directo-hilo-encabezado small { color: #667085; font-size: .62rem; font-weight: 800; letter-spacing: .08em; }
 .perfil-pagina .mensaje-directo-hilo-encabezado strong { overflow: hidden; color: #101828; text-overflow: ellipsis; white-space: nowrap; }
 .perfil-pagina .mensaje-directo-hilo-encabezado > span { margin-left: auto; color: #087f72; font-size: .68rem; font-weight: 700; white-space: nowrap; }
-.perfil-pagina #mensaje-directo-cleanup-files { padding: 6px 8px; border: 1px solid #e4e7ec; border-radius: 8px; background: #fff; color: #667085; cursor: pointer; font: inherit; font-size: .66rem; }
-.perfil-pagina #mensaje-directo-cleanup-files:hover { border-color: #fda29b; color: #b42318; }
+.perfil-pagina #mensaje-directo-limpiar-archivos { padding: 6px 8px; border: 1px solid #e4e7ec; border-radius: 8px; background: #fff; color: #667085; cursor: pointer; font: inherit; font-size: .66rem; }
+.perfil-pagina #mensaje-directo-limpiar-archivos:hover { border-color: #fda29b; color: #b42318; }
 .perfil-pagina .mensaje-directo-hilo-lista { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; padding: 20px 4px; }
 .perfil-pagina .mensaje-directo-vacio { align-self: center; margin: auto; padding: 18px; color: #667085; font-size: .82rem; text-align: center; }
 .perfil-pagina .mensaje-directo-burbuja { width: fit-content; max-width: min(78%, 480px); margin: 0; padding: 10px 13px; border: 1px solid #eaecf0; border-radius: 16px 16px 16px 4px; background: #f2f4f7; color: #344054; line-height: 1.45; overflow-wrap: anywhere; }
@@ -140,13 +140,13 @@ body.tema-oscuro.perfil-pagina { background: linear-gradient(145deg, #071a26, #1
 body.tema-oscuro.perfil-pagina .perfil-wrapper { border-color: #2c4d5c; background: #102a43; color: #f4f7fb; }
 body.tema-oscuro.perfil-pagina .perfil-encabezado,
 body.tema-oscuro.perfil-pagina .estadisticas-fila,
-body.tema-oscuro.perfil-pagina .perfil-tabs,
+body.tema-oscuro.perfil-pagina .perfil-pestanas,
 body.tema-oscuro.perfil-pagina .perfil-mensajes { border-color: #2c4d5c; }
 body.tema-oscuro.perfil-pagina .usuario-informacion h1,
 body.tema-oscuro.perfil-pagina .perfil-seccion-encabezado h2,
 body.tema-oscuro.perfil-pagina .estadistica span,
-body.tema-oscuro.perfil-pagina .perfil-tabs a:first-child { color: #f4f7fb; }
-body.tema-oscuro.perfil-pagina .perfil-tabs a:first-child::after { background: #8de0d4; }
+body.tema-oscuro.perfil-pagina .perfil-pestanas a:first-child { color: #f4f7fb; }
+body.tema-oscuro.perfil-pagina .perfil-pestanas a:first-child::after { background: #8de0d4; }
 body.tema-oscuro.perfil-pagina .perfil-tarjeta { border-color: #2c4d5c; background: #102a38; }
 body.tema-oscuro.perfil-pagina .perfil-tarjeta h3,
 body.tema-oscuro.perfil-pagina .mensaje-directo-hilo-encabezado strong { color: #f4f7fb; }
@@ -167,7 +167,7 @@ body.tema-oscuro.perfil-pagina .mensaje-directo-formulario { border-color: #2c4d
 body.tema-oscuro.perfil-pagina .mensaje-directo-burbuja:not(.saliente) { border-color: #2c4d5c; background: #172d3c; color: #e6eef3; }
 body.tema-oscuro.perfil-pagina .mensaje-directo-formulario .mensaje-directo-grabar-boton { border-color: #385e6d; background: #142b38; color: #8de0d4; }
 body.tema-oscuro.perfil-pagina .mensaje-directo-audio-vista-previa { border-color: #2c4d5c; background: #102a38; }
-body.tema-oscuro.perfil-pagina #mensaje-directo-cleanup-files { border-color: #385365; background: #142738; color: #c9d8df; }
+body.tema-oscuro.perfil-pagina #mensaje-directo-limpiar-archivos { border-color: #385365; background: #142738; color: #c9d8df; }
 
 /* Agenda: contraste estable aunque el tema global aplique texto claro. */
 .perfil-pagina {
@@ -236,8 +236,8 @@ body.tema-oscuro.perfil-pagina { --color-fondo-reserva: #f5fbfa; --color-texto-r
 @media (max-width: 500px) {
   .perfil-pagina .cuadricula-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .perfil-pagina .perfil-tarjeta > div { padding: 10px; }
-  .perfil-pagina .perfil-tabs { gap: 20px; }
-  .perfil-pagina .perfil-tabs a { font-size: .62rem; }
+  .perfil-pagina .perfil-pestanas { gap: 20px; }
+  .perfil-pagina .perfil-pestanas a { font-size: .62rem; }
   .perfil-pagina .mensaje-directo-hilo { min-height: 440px; padding: 12px; }
   .perfil-pagina .mensaje-directo-hilo-encabezado { align-items: flex-start; flex-wrap: wrap; }
   .perfil-pagina .mensaje-directo-hilo-encabezado > span { margin-left: 0; }

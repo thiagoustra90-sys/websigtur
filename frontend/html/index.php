@@ -18,11 +18,11 @@
   <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
 
   <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
 
 </head>
 <body class="pagina-inicio">
-  <!-- la clase page-home la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->
+  <!-- la clase pagina-inicio la usa main.js para saber en qué página estamos y prender solo lo que corresponde -->
 
 <!--
      NAVBAR — fuera del hero para que siempre quede arriba
@@ -50,7 +50,7 @@
   </nav>
 </nav>
 <!-- ojo: el menú circular del logo (click para desplegar Login/Admin/Soporte/tema) NO está acá,
-     lo inyecta buildLogoMenu() en main.js apenas carga la página. si buscan el HTML del menú
+     lo inyecta crearMenuLogotipo() en main.js apenas carga la página. si buscan el HTML del menú
      y no lo encuentran en ninguna página, es por eso, está armado 100% por JS -->
 
 
@@ -59,7 +59,7 @@
 -->
 <header class="portada">
 
-  <div class="portada-fondo"></div> <!-- el fondo (imagen/gradiente) va por CSS, ver .hero-bg en styles.css -->
+  <div class="portada-fondo"></div> <!-- el fondo (imagen/gradiente) va por CSS, ver .portada-fondo en styles.css -->
 
   <div class="portada-contenido">
     <div class="descripcion-portada">
@@ -84,12 +84,12 @@
       <div class="clima-orb" data-clima-icono aria-hidden="true">--</div>
       <div class="clima-principal">
         <span class="clima-antetitulo">Salto, Uruguay</span>
-        <strong data-clima-temp>--&deg;</strong>
+        <strong data-clima-temperatura>--&deg;</strong>
         <span data-clima-descripcion>Actualizando clima</span>
       </div>
       <div class="clima-metadatos">
-        <span>Sensacion <b data-clima-feels>--&deg;</b></span>
-        <span>Viento <b data-clima-wind>-- km/h</b></span>
+        <span>Sensacion <b data-clima-sensacion>--&deg;</b></span>
+        <span>Viento <b data-clima-viento>-- km/h</b></span>
       </div>
     </aside>
 
@@ -174,10 +174,10 @@
 
     <!--
       derecha: carousel de imágenes. OJO, este carousel es DISTINTO
-      al de eventos.php (.feat-track/.feat-slide con loop infinito
+      al de eventos.php (.destacado-pista/.destacado-diapositiva con loop infinito
       por clones): este de acá es más simple, usa .carousel-track y
       simplemente hace translateX + modulo, sin clones. Ver goTo()
-      dentro del bloque "if (body.classList.contains('page-home'))"
+      dentro del bloque "if (body.classList.contains('pagina-inicio'))"
       en main.js.
     -->
     <div class="carrusel">
@@ -222,14 +222,14 @@
       <a href="turismo.php" class="seccion-ver-mas" style="margin-top:8px;">VER MÁS</a>
     </div>
 
-    <!-- Property Cards: por ahora son 3 hardcodeadas, no viene de ningún JSON ni backend -->
+    <!-- Tarjetas de alojamiento: por ahora son 3 hardcodeadas, no viene de ningún JSON ni backend -->
     <div class="tarjetas-cuadricula">
 
       <!-- Card 1 -->
       <div class="alojamiento-tarjeta">
         <div class="alojamiento-multimedia">
           <img class="alojamiento-imagen" src="../imagenes/index/951-.jpeg" alt="Dayman, Salto" loading="lazy" decoding="async" />
-          <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .prop-heart al final del DOMContentLoaded) -->
+          <!-- corazoncito de favoritos, el toggle lo maneja main.js (busca .alojamiento-corazon al final del DOMContentLoaded) -->
           <button class="alojamiento-corazon" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -335,7 +335,7 @@
      páginas o se desincroniza. Ya nos pasó una vez, ojo.
 
      Estructura: columnas de links (con acordeón en mobile, ver
-     setupFooterAccordions() en main.js) + tarjeta de "Suporte"
+     configurarAcordeonesPie() en main.js) + tarjeta de "Soporte"
      (agregada en el sync con Figma del 11/07) + fila de redes
      (iconos exactos sacados de Figma, sin texto) + barra legal.
  -->
@@ -347,7 +347,7 @@
         <ul>
           <li><a href="eventos.php">Eventos Destacados</a></li>
           <li><a href="eventos.php">Todos los Eventos</a></li>
-          <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+          <li><a href="eventos.php#anteriores-pestanas">Eventos Posteriores</a></li>
         </ul>
       </div>
 
@@ -364,10 +364,10 @@
       <div class="pie-pagina-columna">
         <h4 class="pie-pagina-columna-titulo">LUGARES</h4>
         <ul>
-          <li><a href="#plaza-artigas">Plaza Artigas</a></li>
-          <li><a href="#plaza-33">Plaza Treinta y Tres</a></li>
-          <li><a href="#parque-solari">Parque Solari</a></li>
-          <li><a href="#costanera-norte">Costanera Norte</a></li>
+          <li><a href="lugares.php#plaza-artigas">Plaza Artigas</a></li>
+          <li><a href="lugares.php#plaza-33">Plaza Treinta y Tres</a></li>
+          <li><a href="lugares.php#parque-solari">Parque Solari</a></li>
+          <li><a href="lugares.php#costanera-norte">Costanera Norte</a></li>
         </ul>
       </div>
 
@@ -381,10 +381,10 @@
     </div>
 
     <!--
-      Tarjeta de "Suporte" — la agregamos para calzar con el diseño
+      Tarjeta de "Soporte" — la agregamos para calzar con el diseño
       de Figma. El botón "Ir a soporte" ya lleva a soporte.php real
       (no es un link muerto). Los colores cambian solo con el toggle
-      de tema del sitio: ver body.theme-dark .footer-suporte-* en
+      de tema del sitio: ver body.tema-oscuro .footer-suporte-* en
       styles.css (naranja en claro, teal en oscuro).
     -->
     <aside class="pie-pagina-soporte-tarjeta">
@@ -405,7 +405,7 @@
     A propósito NO tienen texto al lado, solo el ícono + aria-label
     para accesibilidad. El tamaño de cada uno está pixel-perfect
     con lo que mandó diseño (23.16px, 27.51x23.16px, etc, ver
-    .social-icon en styles.css).
+    .red-social-icono en styles.css).
   -->
   <div class="pie-pagina-redes-sociales">
     <a class="red-social-icono icono-instagram" href="#" aria-label="Instagram">
@@ -447,6 +447,6 @@
 
 <!-- todo el comportamiento interactivo del sitio vive en un solo archivo, main.js -->
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261119-gastronomia-ficha"></script>
+<script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>

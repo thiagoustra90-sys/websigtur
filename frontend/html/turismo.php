@@ -31,15 +31,15 @@
   <!-- la hoja de estilos principal. TODO el sitio comparte esta, no hay un turismo.css aparte.
        las clases especificas de esta página (alojamientos-section, restaurantes-section, etc)
        están todas mezcladas ahi adentro con las de index y lugares. buscar con Ctrl+F es tu amigo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
   <link rel="stylesheet" href="../css/turismo-ui.css?v=20261118-curiosidad" />
 </head>
 
 <!--
-  la clase "page-turismo" en el body es la que probablemente usa styles.css para
+  la clase "pagina-turismo" en el body es la que probablemente usa styles.css para
   aplicar estilos especificos SOLO de esta página (tipo diferenciar el hero de turismo
   del hero de eventos). Convención: page-<nombrepágina>. Fijate en las otras html,
-  seguro tienen la misma onda (page-eventos, page-lugares, etc)
+  seguro tienen la misma onda (pagina-eventos, pagina-lugares, etc)
 -->
 <body class="pagina-turismo">
 
@@ -153,7 +153,7 @@
           <img class="alojamiento-imagen" src="../imagenes/lugares/363100652.jpg" alt="Dayman, Salto" onerror="this.onerror=null;this.src='../imagenes/turismo/turismo.svg';" loading="lazy" decoding="async" />
           <!-- el botoncito de corazon para "guardar/favorito". Por ahora es solo
                visual, no tiene onclick ni nada -- fijate en main.js si hay algun
-               listener que le agrega el "like" con JS (buscar .prop-heart) -->
+               listener que le agrega el "like" con JS (buscar .alojamiento-corazon) -->
           <button class="alojamiento-corazon" aria-label="Guardar">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -314,7 +314,7 @@
     <aside class="turismo-propietario-aviso">
       <strong>¿Conocés un dato que debemos corregir?</strong>
       <span>Si sos propietario/a de uno de estos comercios o querés sugerir un lugar, escribinos y lo revisamos.</span>
-      <a href="soporte.php#support-form">Enviar sugerencia</a>
+      <a href="soporte.php#soporte-formulario">Enviar sugerencia</a>
     </aside>
 
   </div>
@@ -344,7 +344,7 @@
                (eventos.php), no hay anchors distintos ni filtros. son
                practicamente el mismo link con texto diferente. revisar
                si esto era intencional o quedó a medio hacer -->
-          <li><a href="eventos.php#anteriores-tabs">Eventos Posteriores</a></li>
+          <li><a href="eventos.php#anteriores-pestanas">Eventos Posteriores</a></li>
         </ul>
       </div>
 
@@ -388,8 +388,8 @@
       uso semántico de nuevo, bien ahi). manda directo a soporte.php
     -->
     <aside class="pie-pagina-soporte-tarjeta">
-      <p class="pie-pagina-soporte-antetitulo">Suporte</p>
-      <!-- "Suporte" en vez de "Soporte" -- un error que me da mucha pereza corregir-->
+      <p class="pie-pagina-soporte-antetitulo">Soporte</p>
+      <!-- "Soporte" en vez de "Soporte" -- un error que me da mucha pereza corregir-->
       <p class="pie-pagina-soporte-mensaje">
         <span class="pie-pagina-soporte-titular">¿Tienes alguna sugerencia?</span>
         <span class="pie-pagina-soporte-cuerpo">Si tienes una sugerencia sobre algún error o problema, hacé click en el botón.</span>
@@ -452,10 +452,10 @@
   el script principal, se carga al final del body (buena práctica, asi el
   HTML ya está todo pintado en pantalla antes de que corra JS, y no bloquea
   el renderizado). Ver main.js para toda la lógica de: menú responsive,
-  favoritos (corazones), tabs, formularios, etc. No vimos nada de eso
+  favoritos (corazones), pestanas y formularios, etc. No vimos nada de eso
   definido inline en esta página asi que seguro está todo centralizado ahi.
 -->
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>

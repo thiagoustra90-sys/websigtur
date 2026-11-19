@@ -151,7 +151,7 @@ body.pagina-inicio .boton-cristal,
 body.pagina-inicio .boton-leer-mas,
 body.pagina-lugares .boton-ver-mapa,
 body.pagina-lugares .ver-detalles-boton:hover,
-body.pagina-eventos .categoria-tab.activo,
+body.pagina-eventos .categoria-pestana.activo,
 body.pagina-eventos .ver-mas-boton {
   background: var(--color-principal);
   border-color: var(--color-principal);
@@ -1136,7 +1136,7 @@ img { display: block; max-width: 100%; }
    Arranca el @scope de la página de Eventos. Ojo: esta sección
    define SU PROPIO "Reset & Base" y su propio set de variables
    :root más abajo (revisen la línea siguiente), literalmente
-   repitiendo lo mismo que ya se declaró arriba para page-home.
+   repitiendo lo mismo que ya se declaró arriba para pagina-inicio.
    No rompe nada (CSS banca variables :root redeclaradas, la
    última en cascada gana), pero es codigo duplicado que se
    podría haber puesto una sola vez afuera de los @scope, ya que
@@ -1457,7 +1457,7 @@ img { display: block; max-width: 100%; }
 .busqueda-pastilla input::placeholder { color: rgba(0,0,0,0.35); }
 
 /* categoria de filtrado */
-.categoria-tabs {
+.categoria-pestanas {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -1465,7 +1465,7 @@ img { display: block; max-width: 100%; }
   margin-top: 24px;
 }
 
-.categoria-tab {
+.categoria-pestana {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1483,13 +1483,13 @@ img { display: block; max-width: 100%; }
   transition: background 0.2s, color 0.2s, opacity 0.2s;
 }
 
-.categoria-tab.activo {
+.categoria-pestana.activo {
   background: rgba(22, 179, 163, 1);
   color: #fff;
   opacity: 0.58;
 }
 
-.categoria-tab:hover { opacity: 1; }
+.categoria-pestana:hover { opacity: 1; }
 
 /* ============================================================
    EVENTOS LISTADOS TICKET
@@ -2717,7 +2717,7 @@ body.pagina-inicio .boton-cristal,
 body.pagina-inicio .boton-leer-mas,
 body.pagina-lugares .boton-ver-mapa,
 body.pagina-lugares .ver-detalles-boton:hover,
-body.pagina-eventos .categoria-tab.activo,
+body.pagina-eventos .categoria-pestana.activo,
 body.pagina-eventos .ver-mas-boton {
   background: var(--color-principal);
   border-color: var(--color-principal);
@@ -2794,9 +2794,9 @@ body.pagina-inicio .comida-tarjeta-boton { color: #fff; background: rgba(16, 42,
    1) el menú circular que sale de tocar el logo (Login / Admin /
       Soporte / cambio de tema) — como vimos antes, el HTML de
       este menú NO existe en ningún archivo .html, lo arma
-      buildLogoMenu() en main.js e inyecta acá los estilos que
+      crearMenuLogotipo() en main.js e inyecta acá los estilos que
       ya están preparados para recibirlo
-   2) el toggle de tema claro/oscuro (buscar "theme-dark" en este
+   2) el toggle de tema claro/oscuro (buscar "tema-oscuro" en este
       archivo para ver TODOS los overrides de color que dispara
       con solo cambiar una clase en el <body>)
    3) los estilos base de las páginas "utilitarias" (.utilidad-pagina,
@@ -3007,7 +3007,7 @@ body.tema-oscuro .alojamiento-precio span,
 body.tema-oscuro .alojamiento-dates,
 body.tema-oscuro .restaurante-descripcion,
 body.tema-oscuro .utilidad-pagina p,
-body.tema-oscuro .formulario-help,
+body.tema-oscuro .formulario-ayuda,
 body.tema-oscuro .ajustes-elemento span {
   color: var(--texto-atenuado-oscuro);
 }
@@ -3251,7 +3251,7 @@ body.tema-oscuro.pagina-soporte .navegacion-busqueda input {
   box-shadow: 0 0 0 3px rgba(22, 179, 163, 0.16);
 }
 
-.formulario-help {
+.formulario-ayuda {
   margin-top: 10px;
   color: var(--color-atenuado);
   font-size: 13px;
@@ -3522,7 +3522,7 @@ body.tema-oscuro .formulario-fila label {
 }
 
 body.tema-oscuro .utilidad-pagina p,
-body.tema-oscuro .formulario-help,
+body.tema-oscuro .formulario-ayuda,
 body.tema-oscuro .ajustes-elemento span {
   color: var(--texto-atenuado-oscuro);
 }
@@ -3539,7 +3539,7 @@ body.tema-oscuro .red-social-acceso {
 
 /* ------------------------------------------------------------
    Todo el look de login.html vive acá: la grilla de fotos de
-   fondo, la tarjeta central, los tabs de Ingresar/Registrarse,
+   fondo, la tarjeta central, las pestanas de Ingresar/Registrarse,
    los inputs, los botones sociales. El comentario original dice
    "fix arreglado" (redundante, "fix" ya implica arreglo, pero
    bueno, se entiende la urgencia con la que se escribió je).
@@ -4163,7 +4163,7 @@ body.tema-oscuro .entrada-titulo,
 body.tema-oscuro .entrada-ubicacion,
 body.tema-oscuro .entrada-ubicacion svg,
 body.tema-oscuro .ver-mas-enlace,
-body.tema-oscuro .categoria-tab,
+body.tema-oscuro .categoria-pestana,
 body.tema-oscuro .titulo-seccion h2,
 body.tema-oscuro .historia-interior h2,
 body.tema-oscuro .historia-interior p,
@@ -4188,7 +4188,7 @@ body.tema-oscuro .entrada-separador {
   background: rgba(255, 255, 255, 0.18);
 }
 
-body.tema-oscuro .categoria-tab {
+body.tema-oscuro .categoria-pestana {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.14);
 }
@@ -4421,7 +4421,7 @@ body.tema-oscuro.pagina-eventos .busqueda-pastilla input::placeholder {
 }
 
 body.tema-oscuro.pagina-eventos .navegacion-enlaces a,
-body.tema-oscuro.pagina-eventos .categoria-tab {
+body.tema-oscuro.pagina-eventos .categoria-pestana {
   color: #f8fbfd;
   background: rgba(255, 255, 255, 0.10);
   border-color: rgba(255, 255, 255, 0.18);
@@ -4429,8 +4429,8 @@ body.tema-oscuro.pagina-eventos .categoria-tab {
 
 body.tema-oscuro.pagina-eventos .navegacion-enlaces a.activo,
 body.tema-oscuro.pagina-eventos .navegacion-enlaces a:hover,
-body.tema-oscuro.pagina-eventos .categoria-tab.activo,
-body.tema-oscuro.pagina-eventos .categoria-tab:hover {
+body.tema-oscuro.pagina-eventos .categoria-pestana.activo,
+body.tema-oscuro.pagina-eventos .categoria-pestana:hover {
   background: var(--color-principal);
   color: #fff;
   opacity: 1;
@@ -4968,7 +4968,7 @@ body.pagina-cuenta .navegacion-enlaces a,
 .ver-detalles-boton,
 .boton-ver-mapa,
 .ver-mas-boton,
-.categoria-tab,
+.categoria-pestana,
 .cuenta-pestana,
 .cuenta-red-social,
 .cuenta-enviar,
@@ -4996,7 +4996,7 @@ body.pagina-cuenta .navegacion-enlaces a,
 .ver-detalles-boton:hover,
 .boton-ver-mapa:hover,
 .ver-mas-boton:hover,
-.categoria-tab:hover,
+.categoria-pestana:hover,
 .cuenta-red-social:hover,
 .cuenta-enviar:hover,
 .cristal-accion:hover {
@@ -5441,7 +5441,7 @@ body.pagina-turismo .restaurante-informacion {
   backdrop-filter: none;
 }
 
-/* Cards oscuras: event-card / feat-card */
+/* Cards oscuras: evento-tarjeta / destacado-tarjeta */
 body.pagina-eventos .evento-tarjeta,
 body.pagina-eventos .destacado-tarjeta {
   border-radius:   var(--redondeo-cristal-general);
@@ -5554,7 +5554,7 @@ body.tema-oscuro .restaurante-informacion {
    mas chicos en pantallas de celular.
    */
 
-/* ---------- INDEX (page-home) ---------- */
+/* ---------- INDEX (pagina-inicio) ---------- */
 @media (max-width: 900px) {
   body.pagina-inicio .barra-navegacion {
     flex-wrap: wrap;
@@ -6543,17 +6543,17 @@ body.cuenta-redisenada .cuenta-fila-cuadricula {
    Los últimos 3 bloques del archivo (líneas ~6271 en adelante)
    son todos ajustes de FOOTER hechos el mismo día (11/07/2026)
    para calzar pixel-perfect con un diseño de Figma actualizado:
-   la tarjeta de "Suporte", el layout general de columnas, y los
+   la tarjeta de "Soporte", el layout general de columnas, y los
    iconos sociales. Si tocan el footer, es MUY probable que la
    regla que gana esté en uno de estos 3 bloques finales, no en
    el ".pie-pagina" original de más arriba en cada @scope — de nuevo,
    por la regla de "el que está más abajo en el archivo gana".
 ------------------------------------------------------------ */
 /* ============================================================
-   FOOTER — tarjeta de Suporte (sync con Figma, 11/07/2026)
+   FOOTER — tarjeta de Soporte (sync con Figma, 11/07/2026)
    agrega la tarjeta naranja "¿Tienes alguna sugerencia?" al
    lado de las columnas de links, sin tocar el acordeon mobile
-   que ya vive en .pie-pagina-columna / setupFooterAccordions()
+   que ya vive en .pie-pagina-columna / configurarAcordeonesPie()
    ============================================================ */
 .pie-pagina-superior-fila {
   max-width: 1400px;
@@ -6718,7 +6718,7 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
   flex-wrap: wrap;
 }
 
-.red-social-circle {
+.red-social-circulo {
   width: 72px;
   height: 72px;
   flex-shrink: 0;
@@ -6730,11 +6730,11 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
   transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
-.red-social-circle svg {
+.red-social-circulo svg {
   display: block;
 }
 
-.red-social-circle:hover {
+.red-social-circulo:hover {
   border-color: rgba(255, 255, 255, 0.55);
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
@@ -6753,12 +6753,12 @@ body.tema-oscuro .pie-pagina-soporte-boton:hover {
     padding: 24px 0 40px !important;
   }
 
-  .red-social-circle {
+  .red-social-circulo {
     width: 56px;
     height: 56px;
   }
 
-  .red-social-circle svg {
+  .red-social-circulo svg {
     width: 70%;
     height: 70%;
   }
@@ -7058,7 +7058,7 @@ body.tema-oscuro .mapa-texto p,
 body.tema-oscuro .entrada-subtitulo,
 body.tema-oscuro .entrada-hora,
 body.tema-oscuro .utilidad-pagina p,
-body.tema-oscuro .formulario-help,
+body.tema-oscuro .formulario-ayuda,
 body.tema-oscuro .ajustes-elemento span {
   color: #c7d5dc;
 }
@@ -7923,7 +7923,7 @@ body.pagina-lugares .ver-detalles-boton,
 
 body.pagina-inicio .boton-cristal,
 body.pagina-inicio .boton-leer-mas,
-body.pagina-eventos .categoria-tab.activo,
+body.pagina-eventos .categoria-pestana.activo,
 body.pagina-eventos .ver-mas-boton,
 body.pagina-eventos .evento-panel-enviar,
 body.pagina-lugares .boton-ver-mapa,
@@ -8618,7 +8618,7 @@ body.pagina-lugares [id] { scroll-margin-top: 110px; }
   body.pagina-inicio .carrusel-diapositiva { min-height: 240px; }
   body.pagina-inicio .carrusel-diapositiva img { height: 240px; object-fit: cover; }
 
-  body.pagina-eventos .categoria-tabs {
+  body.pagina-eventos .categoria-pestanas {
     display: flex;
     flex-wrap: nowrap;
     gap: 8px;
@@ -8634,7 +8634,7 @@ body.pagina-lugares [id] { scroll-margin-top: 110px; }
   body.pagina-eventos .busqueda-pastilla { padding: 10px 14px; }
   body.pagina-eventos .busqueda-pastilla input { min-width: 0; width: 100%; font-size: 16px; }
 
-  body.pagina-eventos .categoria-tabs .categoria-tab {
+  body.pagina-eventos .categoria-pestanas .categoria-pestana {
     flex: 0 0 auto;
     min-height: 42px;
     scroll-snap-align: start;
@@ -9182,10 +9182,10 @@ body.perfil-pagina {
 .perfil-pagina .estadisticas-fila { margin: 0 clamp(22px, 6vw, 72px); border-top: 0; border-bottom: 1px solid #eaecf0; }
 .perfil-pagina .estadistica { padding: 18px 8px; }
 .perfil-pagina .estadistica span { color: #101828; font-size: 1.1rem; }
-.perfil-pagina .perfil-tabs { display: flex; justify-content: center; gap: clamp(24px, 8vw, 90px); border-bottom: 1px solid #eaecf0; }
-.perfil-pagina .perfil-tabs a { position: relative; display: inline-flex; align-items: center; min-height: 54px; color: #667085; font-size: .76rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
-.perfil-pagina .perfil-tabs a:first-child { color: #101828; }
-.perfil-pagina .perfil-tabs a:first-child::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #101828; content: ''; }
+.perfil-pagina .perfil-pestanas { display: flex; justify-content: center; gap: clamp(24px, 8vw, 90px); border-bottom: 1px solid #eaecf0; }
+.perfil-pagina .perfil-pestanas a { position: relative; display: inline-flex; align-items: center; min-height: 54px; color: #667085; font-size: .76rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+.perfil-pagina .perfil-pestanas a:first-child { color: #101828; }
+.perfil-pagina .perfil-pestanas a:first-child::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #101828; content: ''; }
 .perfil-pagina .perfil-contenido,
 .perfil-pagina .perfil-reservas { padding: 30px clamp(18px, 4vw, 42px); }
 .perfil-pagina .perfil-seccion-encabezado { margin-bottom: 18px; }
@@ -9207,8 +9207,8 @@ body.perfil-pagina {
 .perfil-pagina #mensaje-directo-contacto-lista button::before { display: none; }
 .perfil-pagina .mensaje-directo-hilo { grid-template-rows: auto minmax(240px, 1fr) auto auto; }
 .perfil-pagina .mensaje-directo-hilo-encabezado > span { margin-left: auto; }
-.perfil-pagina #mensaje-directo-cleanup-files { border: 0; background: transparent; color: #667085; cursor: pointer; font: inherit; font-size: .7rem; text-align: right; }
-.perfil-pagina #mensaje-directo-cleanup-files:hover { color: #b42318; }
+.perfil-pagina #mensaje-directo-limpiar-archivos { border: 0; background: transparent; color: #667085; cursor: pointer; font: inherit; font-size: .7rem; text-align: right; }
+.perfil-pagina #mensaje-directo-limpiar-archivos:hover { color: #b42318; }
 .perfil-pagina .mensaje-directo-redaccion-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; align-items: center; }
 .perfil-pagina .mensaje-directo-formulario { display: grid; }
 .perfil-pagina .mensaje-directo-formulario .mensaje-directo-enviar-texto { min-width: 90px; }
@@ -9217,15 +9217,15 @@ body.tema-oscuro.perfil-pagina { background: linear-gradient(145deg, #071a26, #1
 body.tema-oscuro .perfil-pagina .perfil-wrapper { border-color: #2c4d5c; }
 body.tema-oscuro .perfil-pagina .perfil-encabezado,
 body.tema-oscuro .perfil-pagina .estadisticas-fila,
-body.tema-oscuro .perfil-pagina .perfil-tabs,
+body.tema-oscuro .perfil-pagina .perfil-pestanas,
 body.tema-oscuro .perfil-pagina .perfil-mensajes { border-color: #2c4d5c; }
 body.tema-oscuro .perfil-pagina .usuario-informacion h1,
 body.tema-oscuro .perfil-pagina .perfil-seccion-encabezado h2,
 body.tema-oscuro .perfil-pagina .estadistica span { color: #f4fafb; }
 body.tema-oscuro .perfil-pagina .perfil-tarjeta { border-color: #2c4d5c; background: #102a38; }
 body.tema-oscuro .perfil-pagina .perfil-tarjeta h3 { color: #f4fafb; }
-body.tema-oscuro .perfil-pagina .perfil-tabs a:first-child { color: #f4fafb; }
-body.tema-oscuro .perfil-pagina .perfil-tabs a:first-child::after { background: #8de0d4; }
+body.tema-oscuro .perfil-pagina .perfil-pestanas a:first-child { color: #f4fafb; }
+body.tema-oscuro .perfil-pagina .perfil-pestanas a:first-child::after { background: #8de0d4; }
 @media (max-width: 700px) {
   body.perfil-pagina { padding: 10px 8px; }
   .perfil-pagina .perfil-encabezado { align-items: flex-start; gap: 20px; padding: 26px 18px; }
@@ -9238,8 +9238,8 @@ body.tema-oscuro .perfil-pagina .perfil-tabs a:first-child::after { background: 
   .perfil-pagina .cuadricula-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .perfil-pagina .perfil-tarjeta > div { padding: 10px; }
   .perfil-pagina .perfil-encabezado { gap: 14px; }
-  .perfil-pagina .perfil-tabs { gap: 22px; }
-  .perfil-pagina .perfil-tabs a { font-size: .66rem; }
+  .perfil-pagina .perfil-pestanas { gap: 22px; }
+  .perfil-pagina .perfil-pestanas a { font-size: .66rem; }
   .perfil-pagina .mensaje-directo-hilo-encabezado { align-items: flex-start; flex-wrap: wrap; }
   .perfil-pagina .mensaje-directo-hilo-encabezado > span { margin-left: 0; }
   .perfil-pagina .mensaje-directo-redaccion-fila { grid-template-columns: minmax(0, 1fr); }
@@ -9260,7 +9260,7 @@ body.tema-oscuro :focus-visible {
 }
 body.tema-oscuro .entrada-subtitulo,
 body.tema-oscuro .entrada-hora,
-body.tema-oscuro .formulario-help,
+body.tema-oscuro .formulario-ayuda,
 body.tema-oscuro .ajustes-elemento span,
 body.tema-oscuro .mensaje-directo-contacto small,
 body.tema-oscuro .mensaje-directo-hilo-encabezado small {

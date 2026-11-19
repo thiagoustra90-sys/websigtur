@@ -64,8 +64,8 @@
   };
 
   function mejorarFormulario(formulario) {
-    if (formulario.dataset.mediaReady) return;
-    formulario.dataset.mediaReady = 'true';
+    if (formulario.dataset.multimediaLista) return;
+    formulario.dataset.multimediaLista = 'true';
     formulario._commentMediaFiles = [];
 
     const selector = document.createElement('div');

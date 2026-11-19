@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi perfil - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
-  <link rel="stylesheet" href="../css/profile.css?v=20261118-reservas" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
+  <link rel="stylesheet" href="../css/profile.css?v=20261119-nombres-espanol" />
 </head>
 <body class="perfil-pagina">
   <main class="perfil-wrapper">
@@ -30,11 +30,11 @@
         <div class="perfil-formulario-cuadricula"><label>Nombre<input name="nombre" maxlength="100" required></label><label>Ubicación<input name="ubicacion" maxlength="100" placeholder="Salto, Uruguay"></label></div>
         <label>Biografía<textarea name="biografia" rows="3" maxlength="300" placeholder="Contanos algo sobre vos..."></textarea></label>
         <label>Sitio web<input name="sitio_web" type="url" maxlength="500" placeholder="https://ejemplo.com"></label>
-        <div class="perfil-editor-acciones"><button type="button" data-perfil-editar-cancel>Cancelar</button><button type="submit">Guardar cambios</button></div><p class="perfil-editor-estado" data-perfil-editor-estado></p>
+        <div class="perfil-editor-acciones"><button type="button" data-perfil-cancelar-edicion>Cancelar</button><button type="submit">Guardar cambios</button></div><p class="perfil-editor-estado" data-perfil-editor-estado></p>
       </form>
     </section>
 
-    <nav class="perfil-tabs" aria-label="Secciones de tu perfil">
+    <nav class="perfil-pestanas" aria-label="Secciones de tu perfil">
       <a href="#contenido-titulo">Guardados</a>
       <a href="#reservas-titulo">Mi agenda</a>
       <a href="#mensajes-titulo">Mensajes</a>
@@ -57,7 +57,7 @@
           <header class="mensaje-directo-hilo-encabezado">
             <div><small>MENSAJES PRIVADOS</small><strong id="mensaje-directo-activo-contacto">Seleccioná una conversación</strong></div>
             <span>🔒 Privado · se entrega al reconectar</span>
-            <button id="mensaje-directo-cleanup-files" type="button">Eliminar archivos sin uso de más de 30 días</button>
+            <button id="mensaje-directo-limpiar-archivos" type="button">Eliminar archivos sin uso de más de 30 días</button>
           </header>
           <div id="mensaje-directo-hilo-lista" class="mensaje-directo-hilo-lista"><p class="mensaje-directo-vacio">Seleccioná una conversación para comenzar.</p></div>
           <form id="mensaje-directo-formulario" class="mensaje-directo-formulario">
@@ -70,9 +70,9 @@
               <span id="mensaje-directo-grabando-estado" class="mensaje-directo-grabando-estado" aria-live="polite">El audio dura hasta 2 minutos.</span>
             </div>
             <section id="mensaje-directo-audio-vista-previa" class="mensaje-directo-audio-vista-previa" hidden aria-label="Vista previa del audio">
-              <audio id="mensaje-directo-audio-playback" controls preload="metadata"></audio>
+              <audio id="mensaje-directo-audio-reproduccion" controls preload="metadata"></audio>
               <div class="mensaje-directo-audio-vista-previa-acciones">
-                <button id="mensaje-directo-audio-discard" type="button">Descartar</button>
+                <button id="mensaje-directo-audio-descartar" type="button">Descartar</button>
                 <button id="mensaje-directo-audio-enviar" type="button" disabled>Enviar audio</button>
               </div>
             </section>
@@ -108,11 +108,11 @@
     </section>
 
     <footer class="perfil-pie-pagina">
-      <button type="button" data-perfil-logout>🔒 Cerrar sesión</button>
+      <button type="button" data-perfil-cerrar-sesion>🔒 Cerrar sesión</button>
       <a href="login.php">🔑 Cambiar de cuenta</a>
     </footer>
   </main>
   <script src="../js/api-config.js"></script>
-  <script src="../js/main.js?v=20261118-profile-social"></script>
+  <script src="../js/main.js?v=20261119-nombres-espanol"></script>
 </body>
 </html>
