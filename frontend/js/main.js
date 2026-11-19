@@ -2209,15 +2209,43 @@ function configurarInformacionGastronomica() {
     'Cultura del mate': 'El mate es una infusión de yerba mate que se toma con bombilla. Más que una bebida, es una costumbre cotidiana para conversar y recorrer la ciudad.'
   };
   const dialogo = document.createElement('dialog');
-  dialogo.className = 'food-info-dialog'; document.body.appendChild(dialogo);
+  dialogo.className = 'food-info-dialog';
+  dialogo.id = 'ficha-gastronomia';
+  dialogo.setAttribute('aria-labelledby', 'ficha-gastronomia-titulo');
+  document.body.appendChild(dialogo);
+  let tarjetaActiva = null;
   tarjetas.forEach(tarjeta => {
-    tarjeta.tabIndex = 0; tarjeta.setAttribute('role', 'button');
+    tarjeta.tabIndex = 0;
+    tarjeta.setAttribute('role', 'button');
+    tarjeta.setAttribute('aria-haspopup', 'dialog');
+    tarjeta.setAttribute('aria-controls', dialogo.id);
+    tarjeta.setAttribute('aria-expanded', 'false');
     const titulo = tarjeta.querySelector('.food-card-btn')?.textContent.trim() || 'Gastronomía local';
-    const abrir = () => { dialogo.innerHTML = `<article><button type="button" aria-label="Cerrar">×</button><p>Sabores de Salto</p><h2>${escaparTexto(titulo)}</h2><div>${escaparTexto(descripciones[titulo] || 'Una propuesta gastronómica para descubrir durante tu visita a Salto.')}</div></article>`; dialogo.showModal(); dialogo.querySelector('button').addEventListener('click', () => dialogo.close()); };
+    const abrir = () => {
+      tarjetaActiva = tarjeta;
+      const imagen = tarjeta.querySelector('.food-card-img');
+      const urlImagen = imagen?.getAttribute('src') || '';
+      const textoAlternativo = imagen?.getAttribute('alt') || titulo;
+      const descripcion = descripciones[titulo] || 'Una propuesta gastronómica para descubrir durante tu visita a Salto.';
+      const imagenFicha = urlImagen
+        ? `<img class="ficha-gastronomia-imagen" src="${escaparTexto(urlImagen)}" alt="${escaparTexto(textoAlternativo)}" decoding="async">`
+        : '';
+      dialogo.innerHTML = `<article class="ficha-gastronomia">${imagenFicha}<div class="ficha-gastronomia-contenido"><p>Sabores de Salto</p><h2 id="ficha-gastronomia-titulo">${escaparTexto(titulo)}</h2><div class="ficha-gastronomia-descripcion">${escaparTexto(descripcion)}</div></div><button class="ficha-gastronomia-cerrar" type="button" aria-label="Cerrar ficha">×</button></article>`;
+      dialogo.querySelector('.ficha-gastronomia-cerrar').addEventListener('click', () => dialogo.close());
+      dialogo.querySelector('.ficha-gastronomia-imagen')?.addEventListener('error', errorImagen => errorImagen.currentTarget.remove(), { once: true });
+      tarjeta.setAttribute('aria-expanded', 'true');
+      dialogo.showModal();
+    };
     tarjeta.addEventListener('click', abrir);
     tarjeta.addEventListener('keydown', evento => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir(); } });
   });
   dialogo.addEventListener('click', evento => { if (evento.target === dialogo) dialogo.close(); });
+  dialogo.addEventListener('close', () => {
+    if (!tarjetaActiva) return;
+    tarjetaActiva.setAttribute('aria-expanded', 'false');
+    tarjetaActiva.focus({ preventScroll: true });
+    tarjetaActiva = null;
+  });
 }
 
 async function completarLugaresGuardados(lugaresGuardados = [], usuarioIdentificador) {

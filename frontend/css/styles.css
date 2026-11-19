@@ -9674,6 +9674,13 @@ body.page-home .food-info-dialog button {
   font: 1.45rem/1 sans-serif !important;
 }
 body.page-home .food-info-dialog button:hover { border-color: #70dfce !important; background: #087f72 !important; color: #fff !important; }
+body.page-home .food-info-dialog article.ficha-gastronomia { display: grid; padding: 0; overflow: hidden; }
+body.page-home .ficha-gastronomia-imagen { display: block; width: 100%; max-height: 270px; aspect-ratio: 16 / 9; object-fit: cover; background: #173744; }
+body.page-home .ficha-gastronomia-contenido { padding: clamp(22px, 5vw, 32px); }
+body.page-home .ficha-gastronomia-contenido > p { margin-right: 48px; }
+body.page-home .ficha-gastronomia-contenido > h2 { margin-right: 48px; }
+body.page-home .ficha-gastronomia-descripcion { max-width: 54ch; }
+body.page-home .food-info-dialog .ficha-gastronomia-cerrar { top: 14px !important; right: 14px !important; }
 @media (max-width: 760px) { body.page-home .food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 540px) {
   body.page-home .food-grid { grid-template-columns: 1fr; }

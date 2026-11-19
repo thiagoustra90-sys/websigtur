@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="../css/font.css" /> <!-- fuentes locales (Montserrat, Inter, etc) declaradas con @font-face -->
 
   <!-- Estilos principales del sitio entero. TODO: este archivo es gigante, en algún momento habría que separarlo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261118-gastronomia8" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-gastronomia-ficha" />
 
 </head>
 <body class="page-home">
@@ -447,6 +447,6 @@
 
 <!-- todo el comportamiento interactivo del sitio vive en un solo archivo, main.js -->
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/main.js?v=20261119-gastronomia-ficha"></script>
 </body>
 </html>
