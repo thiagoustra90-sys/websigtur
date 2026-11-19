@@ -9587,12 +9587,14 @@ body.tema-oscuro .administracion-verificacion-datos dd { color: #edf5f8; }
 body.pagina-lugares {
   --color-texto-lugar: #17332f;
   --color-detalle-lugar: #38544f;
+  --color-icono-lugar: #087f72;
   --color-borde-lugar: rgba(16, 42, 67, .14);
   --color-fondo-etiqueta-lugar: rgba(8, 127, 114, .08);
 }
 body.tema-oscuro.pagina-lugares {
   --color-texto-lugar: #f1f7f8;
   --color-detalle-lugar: #d3e2e7;
+  --color-icono-lugar: #82d7c7;
   --color-borde-lugar: rgba(211, 234, 238, .16);
   --color-fondo-etiqueta-lugar: rgba(7, 28, 39, .38);
 }
@@ -9614,7 +9616,17 @@ body.pagina-lugares .lugar-informacion h3 { margin: 0 0 10px; color: var(--color
 body.pagina-lugares .lugar-descripcion { max-width: 70ch; margin: 0 0 14px; color: var(--color-detalle-lugar) !important; font-size: .92rem; line-height: 1.7; }
 body.pagina-lugares .lugar-etiquetas { gap: 10px 18px; margin-bottom: 12px; }
 body.pagina-lugares .lugar-etiqueta { color: var(--color-detalle-lugar) !important; }
-body.pagina-lugares .lugar-etiqueta svg { color: #087f72; }
+body.pagina-lugares .lugar-etiqueta svg,
+body.pagina-lugares .lugar-accion-enlace svg,
+body.pagina-lugares .boton-ver-mapa svg {
+  color: var(--color-icono-lugar);
+  stroke: currentColor;
+}
+body.tema-oscuro.pagina-lugares .lugar-etiqueta svg,
+body.tema-oscuro.pagina-lugares .lugar-accion-enlace svg,
+body.tema-oscuro.pagina-lugares .boton-ver-mapa svg {
+  color: var(--color-icono-lugar);
+}
 body.pagina-lugares .lugar-insignias { gap: 8px; }
 body.pagina-lugares .lugar-insignia { border: 1px solid var(--color-borde-lugar); border-radius: 999px; }
 body.pagina-lugares .lugar-acciones { align-content: center; gap: 10px; padding-left: clamp(18px, 2vw, 28px); border-color: var(--color-borde-lugar); }

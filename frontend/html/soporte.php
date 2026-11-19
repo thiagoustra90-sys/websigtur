@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soporte - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-contraste-claro" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261119-nombres-espanol" />
 </head>
 

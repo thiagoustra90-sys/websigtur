@@ -31,7 +31,7 @@
   <!-- la hoja de estilos principal. TODO el sitio comparte esta, no hay un turismo.css aparte.
        las clases especificas de esta página (alojamientos-section, restaurantes-section, etc)
        están todas mezcladas ahi adentro con las de index y lugares. buscar con Ctrl+F es tu amigo -->
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-contraste-claro" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-iconos-oscuro" />
   <link rel="stylesheet" href="../css/turismo-ui.css?v=20261118-curiosidad" />
 </head>
 
