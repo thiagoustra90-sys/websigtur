@@ -81,7 +81,7 @@
     </p>
 
 
-    <div class="utility-grid admin-grid">
+    <div class="utility-grid admin-grid" hidden>
 
       <!--
 

@@ -156,7 +156,7 @@
         <div class="contact-list">
           <a href="mailto:itssalto@gmail.com"><strong>Email</strong><span>itssalto@gmail.com</span></a>
           <a href="https://www.google.com/maps/search/?api=1&amp;query=Salto+Uruguay" target="_blank" rel="noopener"><strong>Ubicación</strong><span>Salto, Uruguay</span></a>
-          <a href="admin.php"><strong>Admin</strong><span>Configuración interna</span></a>
+          <a href="admin.php" data-enlace-administracion hidden><strong>Admin</strong><span>Configuración interna</span></a>
 
         </div>
       </section>
@@ -181,7 +181,7 @@
         <h2>Atajos utiles</h2>
         <div class="pill-list">
           <span>Login y registro <a href="login.php">Abrir</a></span>
-          <span>Configuración admin <a href="admin.php">Abrir</a></span>
+          <span data-enlace-administracion hidden>Configuración admin <a href="admin.php">Abrir</a></span>
           <span>Pagina principal <a href="index.php">Abrir</a></span>
           <span>Contacto estimado <strong>24 h</strong></span>
         </div>

@@ -631,7 +631,7 @@ function crearMenuLogo(temaInicial) {
   menu.innerHTML = `
     <a href="index.html" role="menuitem">Inicio</a>
     <span data-menu-account></span>
-    <a href="admin.html" role="menuitem">Configuración admin</a>
+    <a href="admin.html" role="menuitem" data-enlace-administracion hidden>Panel de administración</a>
     <a href="soporte.html" role="menuitem">Soporte</a>
     <button class="theme-switch" type="button" role="menuitem" aria-pressed="${temaInicial === 'dark'}">
       <span class="theme-orbit" aria-hidden="true">
@@ -679,6 +679,7 @@ function crearMenuLogo(temaInicial) {
 function representarCuentaMenuLogo(menu = document.querySelector('.logo-menu')) {
   const espacio = menu?.querySelector('[data-menu-account]');
   if (!espacio) return;
+  menu.querySelector('[data-enlace-administracion]')?.setAttribute('hidden', '');
   const sesion = obtenerSesionSigtur();
   if (!sesion?.usuario) {
     espacio.innerHTML = '<a href="login.html" role="menuitem">Login / Registro</a>';
@@ -693,6 +694,26 @@ function representarCuentaMenuLogo(menu = document.querySelector('.logo-menu')) 
 
 function actualizarCuentaMenuLogo() {
   representarCuentaMenuLogo();
+  document.querySelectorAll('[data-enlace-administracion]').forEach(enlace => { enlace.hidden = true; });
+  validarAccesoMenuAdministracion();
+}
+
+async function validarAccesoMenuAdministracion() {
+  const enlaces = [...document.querySelectorAll('[data-enlace-administracion]')];
+  const sesion = obtenerSesionSigtur();
+  if (!enlaces.length || !sesion?.token) return;
+  try {
+    await solicitarApiSigtur('/api/auth/es-admin');
+    if (obtenerSesionSigtur()?.token !== sesion.token) return;
+    const extension = window.location.pathname.toLowerCase().endsWith('.php') ? 'php' : 'html';
+    enlaces.forEach(enlace => {
+      const enlaceInterno = enlace.matches('a') ? enlace : enlace.querySelector('a');
+      if (enlaceInterno) enlaceInterno.href = `admin.${extension}`;
+      enlace.hidden = false;
+    });
+  } catch {
+    enlaces.forEach(enlace => { enlace.hidden = true; });
+  }
 }
 
 // gonza: esta función es async porque hace un fetch a una API externa (open-meteo).
@@ -1295,7 +1316,8 @@ async function configurarPaginaPerfil() {
 
   const sesion = obtenerSesionSigtur();
   if (!sesion?.token) {
-    window.location.replace('login.html');
+    const extension = window.location.pathname.toLowerCase().endsWith('.php') ? 'php' : 'html';
+    window.location.replace(`login.${extension}`);
     return;
   }
 
@@ -2573,8 +2595,7 @@ async function configurarInteraccionesEventos() {
 // portapapeles como JSON. El "log de actividad" (la función log() de acá
 // abajo) es un mini historial en pantalla, se recorta solo a 4 entradas
 // (ver el while de abajo) para no crecer infinito.
-// Como vimos en el HTML, esta página no tiene ningún control de acceso:
-// esta función corre para CUALQUIERA que abra admin.html, logueado o no.
+// El panel solo aparece despues de validar el rol de administrador.
 // ============================================================================
 async function configurarPaginaAdministracion() {
   const formulario = document.getElementById('admin-settings-form');
@@ -2582,7 +2603,8 @@ async function configurarPaginaAdministracion() {
 
   const sesion = obtenerSesionSigtur();
   if (!sesion?.token) {
-    window.location.replace('login.html');
+    const extension = window.location.pathname.toLowerCase().endsWith('.php') ? 'php' : 'html';
+    window.location.replace(`login.${extension}`);
     return;
   }
 
@@ -2593,13 +2615,19 @@ async function configurarPaginaAdministracion() {
     console.error('No se pudo validar el acceso de administrador:', fallo);
     if (fallo.status === 401) {
       limpiarSesionSigtur();
-      window.location.replace('login.html');
+      const extension = window.location.pathname.toLowerCase().endsWith('.php') ? 'php' : 'html';
+      window.location.replace(`login.${extension}`);
     } else {
-      const mensaje = document.createElement('p');
-      mensaje.className = 'auth-status';
-      mensaje.setAttribute('role', 'status');
-      mensaje.textContent = fallo.status === 403 ? 'Esta cuenta no tiene permisos de administrador.' : 'No se pudo validar el acceso. Intentá nuevamente.';
-      formulario.closest('.utility-grid')?.before(mensaje);
+      if (fallo.status === 403) {
+        const extension = window.location.pathname.toLowerCase().endsWith('.php') ? 'php' : 'html';
+        window.location.replace(`index.${extension}`);
+      } else {
+        const mensaje = document.createElement('p');
+        mensaje.className = 'auth-status';
+        mensaje.setAttribute('role', 'status');
+        mensaje.textContent = 'No se pudo validar el acceso. Intentá nuevamente.';
+        formulario.closest('.utility-grid')?.before(mensaje);
+      }
     }
     return;
   }

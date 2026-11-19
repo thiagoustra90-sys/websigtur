@@ -6,6 +6,7 @@
   <title>Login y Registro - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
   <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/support-events.css?v=20261118-contraste" />
 </head>
 <body class="auth-remake">
 <main class="auth-stage">

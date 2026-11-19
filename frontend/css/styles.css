@@ -2857,6 +2857,8 @@ body.page-soporte {
   pointer-events: auto;
 }
 
+[data-enlace-administracion][hidden] { display: none !important; }
+
 .logo-menu a,
 .theme-switch {
   width: 100%;
