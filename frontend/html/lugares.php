@@ -10,7 +10,7 @@
   <title>Lugares ” SIGTUR Salto</title>
 
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-nombres-espanol" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-lugares-contraste-claro" />
 </head>
 
 <!-- pagina-lugares, siguiendo la misma convención que vimos en turismo -->
@@ -459,7 +459,17 @@
   <div class="pie-pagina-divider2"></div>
 
   <div class="pie-pagina-inferior">
-    <span class="pie-pagina-texto">Copyright &copy; 2026 Sigtur &ndash; Uruguay</span>
+    <p class="pie-pagina-licencia">
+      <a href="https://websigtur.onrender.com">SIGTUR</a>
+      &copy; 2026 por <span>Turismart</span>. Est? bajo la licencia
+      <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC-ND 4.0</a>
+      <span class="pie-pagina-licencia-iconos" aria-hidden="true">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" width="18" height="18" loading="lazy" decoding="async">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" width="18" height="18" loading="lazy" decoding="async">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" width="18" height="18" loading="lazy" decoding="async">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nd.svg" alt="" width="18" height="18" loading="lazy" decoding="async">
+      </span>
+    </p>
     <div class="pie-pagina-legal">
       <a href="#">Términos y Condiciones</a>
       <a href="#">Políticas de Privacidad</a>

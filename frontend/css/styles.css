@@ -9585,6 +9585,12 @@ body.tema-oscuro .administracion-verificacion-datos dd { color: #edf5f8; }
 
 /* Las fichas de lugares mantienen una sola superficie y contraste legible. */
 body.pagina-lugares {
+  --color-texto-lugar: #17332f;
+  --color-detalle-lugar: #38544f;
+  --color-borde-lugar: rgba(16, 42, 67, .14);
+  --color-fondo-etiqueta-lugar: rgba(8, 127, 114, .08);
+}
+body.tema-oscuro.pagina-lugares {
   --color-texto-lugar: #f1f7f8;
   --color-detalle-lugar: #d3e2e7;
   --color-borde-lugar: rgba(211, 234, 238, .16);
@@ -9607,16 +9613,18 @@ body.tema-oscuro.pagina-lugares .lugar-informacion {
 body.pagina-lugares .lugar-informacion h3 { margin: 0 0 10px; color: var(--color-texto-lugar) !important; font-size: clamp(1.45rem, 2.2vw, 1.9rem); line-height: 1.2; }
 body.pagina-lugares .lugar-descripcion { max-width: 70ch; margin: 0 0 14px; color: var(--color-detalle-lugar) !important; font-size: .92rem; line-height: 1.7; }
 body.pagina-lugares .lugar-etiquetas { gap: 10px 18px; margin-bottom: 12px; }
-body.pagina-lugares .lugar-etiqueta { color: #e1edf0 !important; }
-body.pagina-lugares .lugar-etiqueta svg { color: #85ddd1; }
+body.pagina-lugares .lugar-etiqueta { color: var(--color-detalle-lugar) !important; }
+body.pagina-lugares .lugar-etiqueta svg { color: #087f72; }
 body.pagina-lugares .lugar-insignias { gap: 8px; }
 body.pagina-lugares .lugar-insignia { border: 1px solid var(--color-borde-lugar); border-radius: 999px; }
 body.pagina-lugares .lugar-acciones { align-content: center; gap: 10px; padding-left: clamp(18px, 2vw, 28px); border-color: var(--color-borde-lugar); }
 body.pagina-lugares .lugar-acciones .lugar-accion-enlace,
 body.pagina-lugares .lugar-acciones .ver-detalles-boton { min-height: 44px; transition: transform .18s ease, background .18s ease, border-color .18s ease; }
 body.pagina-lugares .lugar-acciones :is(.lugar-accion-enlace, .ver-detalles-boton):hover { transform: translateY(-1px); }
-body.pagina-lugares .lugar-acciones .ver-detalles-boton { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border: 1px solid #168f83; border-radius: 999px; background: rgba(10, 132, 121, .2); color: #b8f1e8; font-weight: 800; text-align: center; text-decoration: none; }
-body.pagina-lugares .lugar-acciones .ver-detalles-boton:hover { border-color: #32c4b2; background: rgba(10, 132, 121, .35); }
+body.pagina-lugares .lugar-acciones .ver-detalles-boton { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border: 1px solid #168f83; border-radius: 999px; background: #e7f5f2; color: #075f56; font-weight: 800; text-align: center; text-decoration: none; }
+body.pagina-lugares .lugar-acciones .ver-detalles-boton:hover { border-color: #087f72; background: #d6eee8; color: #064c45; }
+body.tema-oscuro.pagina-lugares .lugar-acciones .ver-detalles-boton { border-color: #168f83; background: rgba(10, 132, 121, .2); color: #b8f1e8; }
+body.tema-oscuro.pagina-lugares .lugar-acciones .ver-detalles-boton:hover { border-color: #32c4b2; background: rgba(10, 132, 121, .35); color: #eafffb; }
 body.pagina-lugares .lugar-acciones :is(.lugar-accion-enlace, .ver-detalles-boton):focus-visible { outline: 3px solid rgba(112, 223, 206, .5); outline-offset: 3px; }
 @media (max-width: 760px) {
   body.pagina-lugares .lugar-tarjeta { gap: 16px; padding: 16px; }
@@ -9745,4 +9753,48 @@ body.pagina-inicio .comida-informacion-dialogo .ficha-gastronomia-cerrar { top: 
   body.pagina-inicio .comida-cuadricula { grid-template-columns: 1fr; }
   body.pagina-inicio .comida-tarjeta { aspect-ratio: 1.35 / 1; }
   body.pagina-inicio dialog.comida-informacion-dialogo[open] { max-height: calc(100dvh - 24px) !important; border-radius: 18px !important; }
+}
+
+/* Atribución Creative Commons visible en el pie común del sitio. */
+.pie-pagina-licencia {
+  display: flex;
+  flex: 1 1 460px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-width: 0;
+  margin: 0;
+  color: #c3d1d3;
+  font: 400 .76rem/1.55 'Montserrat-Regular', 'Montserrat', sans-serif;
+}
+
+.pie-pagina-licencia a {
+  color: #f0f7f6;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pie-pagina-licencia a:hover,
+.pie-pagina-licencia a:focus-visible {
+  color: #82e3d5;
+}
+
+.pie-pagina-licencia-iconos {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+}
+
+.pie-pagina-licencia-iconos img {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 760px) {
+  .pie-pagina-licencia { flex-basis: 100%; font-size: .72rem; }
+  .pie-pagina-licencia-iconos img { width: 17px; height: 17px; }
 }
