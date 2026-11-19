@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi perfil - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261118-profile-social" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
   <link rel="stylesheet" href="../css/profile.css?v=20261118-reservas" />
 </head>
 <body class="profile-page">

@@ -10,7 +10,7 @@
   <title>Lugares ” SIGTUR Salto</title>
 
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
 </head>
 
 <!-- page-lugares, siguiendo la misma convención que vimos en turismo -->

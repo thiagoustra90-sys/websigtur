@@ -8292,7 +8292,6 @@ body.theme-dark.page-admin .nav-search,
 body.theme-dark.page-soporte .nav-search,
 body.theme-dark.page-account .nav-search,
 body.theme-dark .search-filter-bar .search-pill {
-body.theme-dark .search-filter-bar .search-pill {
   border-color: rgba(174, 220, 211, .24); background: rgba(16, 42, 52, .94);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .05);
 }

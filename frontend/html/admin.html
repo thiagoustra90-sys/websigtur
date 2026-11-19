@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuración Admin - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261119-event-media-ficha" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-css-parse-fix" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261118-admin-contrast" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
