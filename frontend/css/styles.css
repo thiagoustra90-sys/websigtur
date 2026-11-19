@@ -9571,7 +9571,7 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
 }
 
 /* Home: reserva espacio para el navbar y alinea el clima junto a las acciones. */
-@media (min-width: 701px) {
+@media (min-width: 541px) {
   body.page-home .hero {
     min-height: max(820px, 100svh);
     height: auto;
@@ -9580,9 +9580,11 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
   }
   body.page-home .hero-content {
     display: block;
-    padding: clamp(190px, 24vh, 230px) clamp(28px, 6vw, 84px) 52px;
+    padding: clamp(200px, 25vh, 240px) clamp(20px, 5vw, 64px) 52px;
   }
   body.page-home .hero-copy { display: flex; width: min(760px, calc(100% - min(390px, 34vw) - 48px)); flex-direction: column; align-items: flex-start; }
+  body.page-home .hero-title { font-size: clamp(40px, 7.4vw, 100px); }
+  body.page-home .hero-wave { width: min(100%, 520px); }
   body.page-home .hero-title,
   body.page-home .hero-wave,
   body.page-home .hero-buttons,
@@ -9591,19 +9593,19 @@ body.page-lugares .lugar-actions :is(.lugar-action-link, .ver-detalles-btn):focu
     position: absolute;
     z-index: 3;
     top: clamp(390px, 54vh, 480px);
-    right: clamp(20px, 5vw, 76px);
+    right: clamp(14px, 2vw, 28px);
     width: min(390px, 34vw);
     margin: 0;
   }
 }
-@media (max-width: 700px) {
+@media (max-width: 540px) {
   body.page-home .hero {
     height: auto;
     min-height: 820px;
     align-items: flex-start;
     padding-top: 0;
   }
-  body.page-home .hero-content { display: block; padding: 160px 20px 38px; }
+  body.page-home .hero-content { display: block; padding: 200px 20px 38px; }
   body.page-home .hero-copy { display: flex; flex-direction: column; align-items: flex-start; }
   body.page-home .weather-widget { margin: 20px 0 14px; }
 }
