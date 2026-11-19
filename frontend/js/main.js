@@ -851,6 +851,7 @@ async function procesarRetornoOAuth(establecerEstado) {
   };
   if (sesion.expiresAt && sesion.expiresAt < 1000000000) sesion.expiresAt += Math.floor(Date.now() / 1000);
   guardarSesionSigtur(sesion);
+  const destinoAutenticado = obtenerDestinoDespuesAutenticacion();
   const esRecuperacion = parametros.get('type') === 'recovery';
   window.history.replaceState({}, document.title, window.location.pathname);
   establecerEstado(esRecuperacion ? 'Validando el enlace de recuperación...' : 'Validando la sesión de Google...', 'loading');
@@ -864,10 +865,22 @@ async function procesarRetornoOAuth(establecerEstado) {
       return;
     }
     establecerEstado(`Bienvenido, ${resultado.usuario.nombre}.`, 'ok');
-    window.location.replace('index.html');
+    window.location.replace(destinoAutenticado);
   } catch (fallo) {
     if (fallo.status === 401 || fallo.message === 'No se pudo validar el perfil.') limpiarSesionSigtur();
     establecerEstado(esRecuperacion ? 'El enlace venció o ya fue utilizado. Solicitá uno nuevo.' : 'No pudimos validar la sesión de Google. Intentá nuevamente.', 'error');
+  }
+}
+
+function obtenerDestinoDespuesAutenticacion() {
+  const destinoSolicitado = new URLSearchParams(window.location.search).get('returnTo');
+  if (!destinoSolicitado) return 'index.html';
+  try {
+    const destino = new URL(destinoSolicitado, window.location.origin);
+    if (destino.origin !== window.location.origin || /\/login\.(?:html|php)$/i.test(destino.pathname)) return 'index.html';
+    return `${destino.pathname}${destino.search}${destino.hash}`;
+  } catch {
+    return 'index.html';
   }
 }
 
@@ -1127,7 +1140,7 @@ function configurarPaginaAutenticacion() {
       guardarSesionSigtur(resultado, true);
       establecerEstado(`Cuenta creada. Sesión iniciada como ${resultado.usuario.nombre}.`, 'ok');
       formularioRegistro.reset();
-      window.location.href = 'index.html';
+      window.location.href = obtenerDestinoDespuesAutenticacion();
     } catch (fallo) {
       establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo crear la cuenta. Intentá nuevamente.'), 'error');
     } finally {
@@ -1169,7 +1182,7 @@ function configurarPaginaAutenticacion() {
       guardarSesionSigtur(resultado, true);
       establecerEstado(`Bienvenido de nuevo, ${resultado.usuario.nombre}.`, 'ok');
       formularioInicioSesion.reset();
-      window.location.href = 'index.html';
+      window.location.href = obtenerDestinoDespuesAutenticacion();
     } catch (fallo) {
       establecerEstado(limpiarMensajeAutenticacion(fallo.message, 'No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.'), 'error');
     } finally {

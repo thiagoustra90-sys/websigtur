@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../css/font.css" />
   <link rel="stylesheet" href="../css/styles.css?v=20261113-visual-system" />
   <link rel="stylesheet" href="../css/comment-media.css" />
+  <link rel="stylesheet" href="../css/support-events.css?v=20261118" />
 </head>
 <body class="page-eventos">
 

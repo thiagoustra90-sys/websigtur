@@ -119,6 +119,6 @@
 
 
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261118-auth-repair"></script>
+<script src="../js/main.js?v=20261118-map-return"></script>
 </body>
 </html>

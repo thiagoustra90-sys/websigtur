@@ -33,6 +33,7 @@
     .tool-btn,.chip,.action,.interaction-button{display:inline-flex;align-items:center;justify-content:center}
     .detail-close{width:44px;height:44px}
   </style>
+  <link rel="stylesheet" href="../css/mapa.css?v=20261118-map-comments">
 </head>
 <body>
   <main class="page">
@@ -147,12 +148,35 @@
     const placePinsKey=()=>`sigtur-place-pins:${session()?.usuario?.id||'guest'}`;
     function rememberPinnedPlace(item,active){try{const pins=JSON.parse(localStorage.getItem(placePinsKey())||'{}');if(active)pins[String(item.id)]={id:String(item.id),nombre:item.nombre,direccion:item.direccion,categorias:item.categorias,imagen:item.imagen,enlace:item.enlace,createdAt:new Date().toISOString()};else delete pins[String(item.id)];localStorage.setItem(placePinsKey(),JSON.stringify(pins))}catch{/* el guardado remoto sigue siendo la fuente principal */}}
     const interactionType=item=>item.tipo==='event'?'event':item.tipo==='company'?'company':'place';
+    const loginUrl=()=>{const url=new URL('login.php',window.location.href);url.searchParams.set('returnTo',`${location.pathname}${location.search}`);return url.href};
     async function refreshInteractionSession(){const current=storedSession();if(!current?.refreshToken)return null;try{const response=await fetch(`${API_BASE}/api/auth/refresh`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:current.refreshToken})});const renewed=await response.json().catch(()=>null);if(!response.ok||!renewed?.token||!renewed?.usuario?.id){if(response.status===401){localStorage.removeItem('sigtur-session');validatedSessionToken=null}return null}validatedSessionToken=renewed.token;localStorage.setItem('sigtur-session',JSON.stringify({...current,...renewed,profileValidated:true}));return renewed}catch{return null}}
     async function validateMapSession(){let current=storedSession();if(!current?.token)return;try{let response=await fetch(`${API_BASE}/api/auth/me`,{headers:{Authorization:`Bearer ${current.token}`}});if(response.status===401&&current.refreshToken){const renewed=await refreshInteractionSession();if(renewed){current=storedSession();response=await fetch(`${API_BASE}/api/auth/me`,{headers:{Authorization:`Bearer ${current.token}`}})}}const payload=await response.json().catch(()=>null);if(!response.ok||!payload?.usuario?.id||!payload.usuario.nombre||!payload.usuario.correo){if(response.status===401){localStorage.removeItem('sigtur-session');validatedSessionToken=null}return}validatedSessionToken=current.token;localStorage.setItem('sigtur-session',JSON.stringify({...current,usuario:payload.usuario,profileValidated:true}))}catch{/* Keep cached profile hidden until the server validates it. */}}
     window.addEventListener('storage',event=>{if(event.key!=='sigtur-session')return;validatedSessionToken=null;const refresh=()=>{const selected=items.find(item=>item.id===selectedId);if(selected)loadInteractions(selected)};if(!event.newValue){refresh();return}validateMapSession().finally(refresh)});
     async function interactionFetch(path,options={},retried=false){let current=storedSession();if(current?.expiresAt&&Number(current.expiresAt)<=Math.floor(Date.now()/1000)+30){const renewed=await refreshInteractionSession();if(renewed)current=storedSession()}const token=current?.token,headers={'Content-Type':'application/json',...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;let response;try{response=await fetch(`${API_BASE}${path}`,{...options,headers})}catch{throw new Error('No se pudo conectar al servidor. Intentá nuevamente.')}const payload=await response.json().catch(()=>null);if(response.status===401&&!retried&&current?.refreshToken){const renewed=await refreshInteractionSession();if(renewed)return interactionFetch(path,options,true)}if(!response.ok){if(response.status===401){localStorage.removeItem('sigtur-session');validatedSessionToken=null}throw Object.assign(new Error(payload?.error||'No se pudo completar la operacion.'),{status:response.status})}return payload}
     window.sigturInteractionFetch=interactionFetch;
     function interactionKey(item){return new URLSearchParams({entidad_tipo:interactionType(item),entidad_id:String(item.id)}).toString()}
+    async function loadInteractions(item){
+      const status=detail.querySelector('[data-interaction-status]');
+      if(!status)return;
+      status.textContent='Cargando actividad…';
+      try{
+        const [state,commentsResult]=await Promise.all([
+          interactionFetch(`/api/likes/estado?${interactionKey(item)}`),
+          interactionFetch(`/api/comentarios?${interactionKey(item)}`),
+        ]);
+        const comments=await Promise.all((commentsResult.data||[]).map(async comment=>{
+          try{return{...comment,likeState:await interactionFetch(`/api/comentarios/${comment.id}/likes`)}}
+          catch{return{...comment,likeState:{liked:false,likes:0}}}
+        }));
+        const likeButton=detail.querySelector('[data-like]'),saveButton=detail.querySelector('[data-save]'),loginNote=detail.querySelector('[data-login-required]');
+        if(loginNote)loginNote.hidden=Boolean(session()?.token);
+        if(likeButton){likeButton.classList.toggle('active',Boolean(state.liked));likeButton.setAttribute('aria-pressed',String(Boolean(state.liked)));likeButton.textContent=`${state.liked?'♥':'♡'} Me gusta (${state.likes})`}
+        if(saveButton){saveButton.classList.toggle('active',Boolean(state.saved));saveButton.setAttribute('aria-pressed',String(Boolean(state.saved)));saveButton.textContent=state.saved?'🔖 Guardado':'🔖 Guardar'}
+        detail._mapComments=comments;
+        renderMapComments(comments);
+        status.textContent='';
+      }catch(error){status.textContent=error.message||'No se pudo cargar la actividad.'}
+    }
     function commentAuthor(comment){return[comment.autor?.nombre,comment.autor?.apellido].filter(Boolean).join(' ')||'Explorador'}
     function commentAvatar(comment){const name=commentAuthor(comment),initials=name.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase()||'?';return`<span class="comment-avatar">${comment.autor?.avatar_url?`<img src="${esc(comment.autor.avatar_url)}" alt="" onerror="this.remove()" loading="lazy" decoding="async">`:''}<span>${esc(initials)}</span></span>`}
     function renderMapComments(comments) {
@@ -174,14 +198,14 @@
         const replies = sort(byParent.get(comment.id) || []);
         const content = comment.contenido ? `<p>${esc(comment.contenido)}</p>` : '';
         const media = window.sigturCommentMediaMarkup?.(comment.media_urls) || '';
-        const admin = session()?.usuario?.rol === 'admin';
-        return `<article class="comment-item ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${esc(comment.id)}" data-comment-user="${esc(comment.usuario_id)}"><div class="comment-meta"><span class="comment-author">${commentAvatar(comment)}<span><strong>${esc(commentAuthor(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="comment-actions"><button type="button" data-comment-like>♡ Me gusta</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button><button type="button" data-report>Reportar</button>${admin ? '<button type="button" data-admin-delete>Eliminar</button>' : ''}</div><div class="comment-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${esc(commentAuthor(comment))}..."></textarea><button class="interaction-button" type="button" data-submit-reply>Publicar</button></div>${replies.length ? `<div class="comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
+        const admin = session()?.usuario?.rol === 'admin', own = session()?.usuario?.id === comment.usuario_id, likes=comment.likeState||{liked:false,likes:0};
+        return `<article class="comment-item ${comment.fijado ? 'is-pinned' : ''}" data-comment-id="${esc(comment.id)}" data-comment-user="${esc(comment.usuario_id)}"><div class="comment-meta"><span class="comment-author">${commentAvatar(comment)}<span><strong>${esc(commentAuthor(comment))}</strong><small>${comment.autor?.rol === 'admin' ? 'Administrador' : 'Explorador'}${comment.fijado ? ' · 📌 Fijado' : ''}</small></span></span><time>${new Date(comment.created_at).toLocaleDateString('es-UY')}</time></div>${content}${media}<div class="comment-actions"><button type="button" data-comment-like aria-pressed="${likes.liked}">${likes.liked?'♥':'♡'} Me gusta (${likes.likes})</button><button type="button" data-comment-reply>↩ Responder</button><button type="button" data-comment-message>✉ Mensaje</button><button type="button" data-report>Reportar</button>${own?'<button type="button" data-edit-comment>Editar</button><button type="button" data-delete-own>Eliminar</button>':''}${admin&&!own?'<button type="button" data-admin-delete>Eliminar</button>':''}</div><div class="comment-reply-form" hidden><textarea rows="2" maxlength="2000" placeholder="Responder a ${esc(commentAuthor(comment))}..."></textarea><button class="interaction-button" type="button" data-submit-reply>Publicar</button></div>${replies.length ? `<div class="comment-replies"><span>${replies.length} ${replies.length === 1 ? 'respuesta' : 'respuestas'}</span>${replies.map(renderComment).join('')}</div>` : ''}</article>`;
       };
       const roots = sort(byParent.get('root') || []);
       list.innerHTML = roots.length ? roots.map(renderComment).join('') : '<p class="comment-status">Todavía no hay comentarios.</p>';
     }
     function renderInteractions() {
-      return `<section class="interaction-box" data-interactions><div class="interaction-actions"><button class="interaction-button" type="button" data-like>♥ Me gusta</button><button class="interaction-button" type="button" data-save>🔖 Guardar</button></div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="comment-status" data-interaction-status>Consultando actividad…</p><div class="comment-list" data-comment-list></div><form class="comment-form" data-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Compartí tu experiencia o adjuntá una imagen..."></textarea><button class="interaction-button" type="submit">Publicar</button></form></section>`
+      return `<section class="interaction-box" data-interactions><div class="interaction-actions"><button class="interaction-button" type="button" data-like>♥ Me gusta</button><button class="interaction-button" type="button" data-save>🔖 Guardar</button></div><div class="comment-filter" role="group" aria-label="Ordenar comentarios"><button type="button" data-comment-order="newest" aria-pressed="true">Recientes</button><button type="button" data-comment-order="oldest" aria-pressed="false">Antiguos</button></div><p class="comment-status" data-interaction-status>Consultando actividad…</p><div class="comment-list" data-comment-list></div><form class="comment-form" data-comment-form data-comment-media-form><textarea name="contenido" rows="2" maxlength="2000" placeholder="Compartí tu experiencia o adjuntá una imagen..."></textarea><button class="interaction-button" type="submit">Publicar</button></form><p class="comment-login-note" data-login-required hidden>Para comentar, <a href="${esc(loginUrl())}">inicia sesion</a>.</p></section>`
     }
     function select(id,move=false){const item=items.find(value=>value.id===id);if(!item)return;selectedId=item.id;const marker=markers.get(item.id);if(move)map.flyTo([item.lat,item.lng],16,{duration:.65});setMapStatus('');const mapUrl=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${item.lat},${item.lng}`)}`;detail.innerHTML=`${media(item,'detail-media')}<div class="detail-body"><button class="detail-close" type="button" aria-label="Cerrar ficha">×</button><h2>${esc(item.nombre)}</h2><div class="labels">${item.categorias.map(category=>`<button type="button" class="label tag-${tagKey(category)}" data-map-category="${esc(category)}" title="Filtrar por ${esc(category)}">${esc(category)}</button>`).join('')}</div><p class="detail-summary">${esc(item.resumen)}</p><p class="detail-more" hidden>${esc(item.descripcion)}</p>${item.direccion?`<p class="detail-summary">📍 ${esc(item.direccion)}</p>`:''}<div class="detail-actions"><button class="action primary" type="button" data-more>Mostrar más</button><a class="action" href="${mapUrl}" target="_blank" rel="noopener">Cómo llegar</a>${item.enlace?`<a class="action" href="${esc(item.enlace)}">Ver ficha</a>`:''}</div>${renderInteractions()}</div>`;detail.hidden=false;renderResults(filtered());if(marker)marker.setZIndexOffset(1000);loadInteractions(item)}
     function closeDetail(){selectedId=null;detail.hidden=true;renderResults(filtered())}
@@ -218,15 +242,19 @@
     search.addEventListener('input',debounce(()=>update(),250));
     chips.addEventListener('click',event=>{const button=event.target.closest('[data-category]');if(!button)return;activeCategory=button.dataset.category;update()});
     results.addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(button)select(button.dataset.id,true)});
-    detail.addEventListener('click',async event=>{if(event.target.closest('.detail-close'))closeDetail();if(event.target.closest('[data-more]')){const more=detail.querySelector('.detail-more'),button=event.target.closest('[data-more]');more.hidden=!more.hidden;button.textContent=more.hidden?'Mostrar más':'Mostrar menos'}const item=items.find(value=>value.id===selectedId);if(!item)return;const filterButton=event.target.closest('[data-map-comment-filter]');if(filterButton){detail.querySelectorAll('[data-map-comment-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button===filterButton)));detail.querySelector('[data-comment-list]').dataset.filter=filterButton.dataset.mapCommentFilter;await loadInteractions(item);return}if(event.target.closest('[data-admin-delete]')){const comment=event.target.closest('[data-comment-id]');if(!confirm('¿Eliminar este comentario?'))return;try{await interactionFetch(`/api/admin/comentarios/${comment.dataset.commentId}`,{method:'DELETE'});await loadInteractions(item)}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}return}if(event.target.closest('[data-like],[data-save]')){if(!session()?.token){window.location.href='login.php';return}const button=event.target.closest('[data-like],[data-save]'),saved=button.hasAttribute('data-save'),active=!button.classList.contains('active');try{await interactionFetch(`/api/${saved?'guardados':'likes'}`,{method:'POST',body:JSON.stringify({entidad_tipo:interactionType(item),entidad_id:String(item.id),activo:active})});if(saved)rememberPinnedPlace(item,active);await loadInteractions(item)}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}}if(event.target.closest('[data-report]')){if(!session()?.token){window.location.href='login.php';return}const comment=event.target.closest('[data-comment-id]'),motivo=prompt('Motivo del reporte:');if(!motivo)return;try{await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/reportar`,{method:'POST',body:JSON.stringify({motivo})});comment.querySelector('[data-report]').textContent='Reportado'}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}}});
+    detail.addEventListener('click',async event=>{if(event.target.closest('.detail-close'))closeDetail();if(event.target.closest('[data-more]')){const more=detail.querySelector('.detail-more'),button=event.target.closest('[data-more]');more.hidden=!more.hidden;button.textContent=more.hidden?'Mostrar más':'Mostrar menos'}const item=items.find(value=>value.id===selectedId);if(!item)return;if(event.target.closest('[data-admin-delete]')){const comment=event.target.closest('[data-comment-id]');if(!confirm('¿Eliminar este comentario?'))return;try{await interactionFetch(`/api/admin/comentarios/${comment.dataset.commentId}`,{method:'DELETE'});await loadInteractions(item)}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}return}if(event.target.closest('[data-like],[data-save]')){if(!session()?.token){window.location.href=loginUrl();return}const button=event.target.closest('[data-like],[data-save]'),saved=button.hasAttribute('data-save'),active=!button.classList.contains('active');try{await interactionFetch(`/api/${saved?'guardados':'likes'}`,{method:'POST',body:JSON.stringify({entidad_tipo:interactionType(item),entidad_id:String(item.id),activo:active})});if(saved)rememberPinnedPlace(item,active);await loadInteractions(item)}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}}if(event.target.closest('[data-report]')){if(!session()?.token){window.location.href=loginUrl();return}const comment=event.target.closest('[data-comment-id]'),motivo=prompt('Motivo del reporte:');if(!motivo)return;try{await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/reportar`,{method:'POST',body:JSON.stringify({motivo})});comment.querySelector('[data-report]').textContent='Reportado'}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message}}});
     detail.addEventListener('submit', async event => {
       if (!event.target.matches('[data-comment-form]')) return;
       event.preventDefault();
-      if (!session()?.token) { window.location.href = 'login.php'; return; }
+      if (!session()?.token) { window.location.href = loginUrl(); return; }
       const form = event.target;
       const item = items.find(value => value.id === selectedId);
+      if (!item) return;
+      const submit = form.querySelector('[type="submit"]');
       const contenido = new FormData(form).get('contenido');
       try {
+        if (submit) { submit.disabled = true; submit.textContent = 'Publicando…'; }
+        detail.querySelector('[data-interaction-status]').textContent = 'Publicando tu comentario…';
         const media_paths = await window.sigturPrepareCommentMedia(form);
         if (!String(contenido || '').trim() && !media_paths.length) throw Error('Escribí un comentario o adjuntá una imagen.');
         await interactionFetch('/api/comentarios', {
@@ -238,9 +266,67 @@
         await loadInteractions(item);
       } catch (error) {
         detail.querySelector('[data-interaction-status]').textContent = error.message;
+      } finally {
+        if (submit) { submit.disabled = false; submit.textContent = 'Publicar'; }
       }
     });
-    detail.addEventListener('click',async event=>{const item=items.find(value=>value.id===selectedId);if(!item)return;const category=event.target.closest('[data-map-category]');if(category){activeCategory=category.dataset.mapCategory;search.value='';closeDetail();update();return}const orderButton=event.target.closest('[data-comment-order]');if(orderButton){detail.querySelectorAll('[data-comment-order]').forEach(button=>button.setAttribute('aria-pressed',String(button===orderButton)));renderMapComments(detail._mapComments||[]);return}const comment=event.target.closest('[data-comment-id]');if(!comment)return;try{if(!session()?.token){window.location.href='login.php';return}if(event.target.closest('[data-comment-reply]')){comment.querySelector('.comment-reply-form').hidden=false;comment.querySelector('textarea')?.focus();return}if(event.target.closest('[data-submit-reply]')){const contenido=comment.querySelector('textarea')?.value||'';await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/respuestas`,{method:'POST',body:JSON.stringify({contenido})});await loadInteractions(item);return}if(event.target.closest('[data-comment-like]')){const button=event.target.closest('[data-comment-like]');const state=await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/likes`);await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/likes`,{method:'POST',body:JSON.stringify({activo:!state.liked})});button.textContent=state.liked?'♡ Me gusta':`♥ Me gusta (${state.likes+1})`;return}if(event.target.closest('[data-comment-message]')){const contenido=window.prompt('Mensaje para este usuario:');if(contenido?.trim())await interactionFetch('/api/mensajes',{method:'POST',body:JSON.stringify({destinatario_id:comment.dataset.commentUser,contenido})})}}catch(error){detail.querySelector('[data-interaction-status]').textContent=error.message||'No se pudo completar la acción.'}});
+    detail.addEventListener('click', async event => {
+      const item = items.find(value => value.id === selectedId);
+      if (!item) return;
+      const category = event.target.closest('[data-map-category]');
+      if (category) { activeCategory = category.dataset.mapCategory; search.value = ''; closeDetail(); update(); return; }
+      const orderButton = event.target.closest('[data-comment-order]');
+      if (orderButton) {
+        detail.querySelectorAll('[data-comment-order]').forEach(button => button.setAttribute('aria-pressed', String(button === orderButton)));
+        renderMapComments(detail._mapComments || []);
+        return;
+      }
+      const comment = event.target.closest('[data-comment-id]');
+      if (!comment) return;
+      if (event.target.closest('[data-report]')) return;
+      try {
+        if (!session()?.token) { window.location.href = loginUrl(); return; }
+        if (event.target.closest('[data-edit-comment]')) {
+          const current = (detail._mapComments || []).find(entry => entry.id === comment.dataset.commentId)?.contenido || '';
+          const contenido = window.prompt('Edita tu comentario:', current);
+          if (contenido === null || !contenido.trim()) return;
+          await interactionFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'PATCH', body: JSON.stringify({ contenido }) });
+          await loadInteractions(item);
+          return;
+        }
+        if (event.target.closest('[data-delete-own]')) {
+          if (!window.confirm('Eliminar tu comentario y sus respuestas?')) return;
+          await interactionFetch(`/api/comentarios/${comment.dataset.commentId}`, { method: 'DELETE' });
+          await loadInteractions(item);
+          return;
+        }
+        if (event.target.closest('[data-comment-reply]')) {
+          comment.querySelector('.comment-reply-form').hidden = false;
+          comment.querySelector('textarea')?.focus();
+          return;
+        }
+        if (event.target.closest('[data-submit-reply]')) {
+          const contenido = comment.querySelector('textarea')?.value || '';
+          if (!contenido.trim()) return;
+          await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/respuestas`, { method: 'POST', body: JSON.stringify({ contenido }) });
+          await loadInteractions(item);
+          return;
+        }
+        if (event.target.closest('[data-comment-like]')) {
+          const state = await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/likes`);
+          await interactionFetch(`/api/comentarios/${comment.dataset.commentId}/likes`, { method: 'POST', body: JSON.stringify({ activo: !state.liked }) });
+          await loadInteractions(item);
+          return;
+        }
+        if (event.target.closest('[data-comment-message]')) {
+          const contenido = window.prompt('Escribi tu mensaje:');
+          if (contenido?.trim()) await interactionFetch('/api/mensajes', { method: 'POST', body: JSON.stringify({ destinatario_id: comment.dataset.commentUser, contenido }) });
+        }
+      } catch (error) {
+        const status = detail.querySelector('[data-interaction-status]');
+        if (status) status.textContent = error.message || 'No se pudo completar la accion.';
+      }
+    });
     locateBtn.addEventListener('click',locateMe);
     clearBtn.addEventListener('click',clearAll);
     routeCalculate.addEventListener('click',calculateRoute);
