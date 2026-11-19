@@ -229,5 +229,10 @@
     origenRuta.addEventListener('change',()=>{if(origenRuta.value==='user'&&!posicionUsuario)ubicarme()});
     modoRuta.addEventListener('change',sincronizarOpcionesRuta);
     sincronizarOpcionesRuta();
+    const mostrarAyudaRuta=document.getElementById('mostrar-ayuda-ruta'),dialogoAyudaRuta=document.getElementById('dialogo-ayuda-ruta');
+    mostrarAyudaRuta.addEventListener('click',()=>dialogoAyudaRuta.showModal());
+    dialogoAyudaRuta.addEventListener('cancel',evento=>{evento.preventDefault();dialogoAyudaRuta.close()});
+    dialogoAyudaRuta.addEventListener('keydown',evento=>{if(evento.key==='Escape'){evento.preventDefault();dialogoAyudaRuta.close()}});
+    dialogoAyudaRuta.addEventListener('click',evento=>{if(evento.target===dialogoAyudaRuta)dialogoAyudaRuta.close()});
     load();
     validarSesionMapa().then(()=>{const seleccionado=elementos.find(elemento=>elemento.id===identificadorSeleccionado);if(seleccionado)cargarInteracciones(seleccionado)});

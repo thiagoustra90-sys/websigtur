@@ -153,3 +153,192 @@ body.tema-oscuro .comentario-respuesta-formulario textarea { border-color: var(-
     min-height: 44px !important;
   }
 }
+
+.mapa-ruta-ayuda {
+  position: absolute;
+  z-index: 950;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid rgba(8, 127, 114, .22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .94);
+  color: #17665c;
+  box-shadow: 0 5px 16px rgba(16, 42, 67, .16);
+  font-size: .76rem;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.mapa-ruta-ayuda span {
+  color: #087f72;
+  font-size: 1rem;
+}
+
+.mapa-ruta-ayuda:hover {
+  border-color: #087f72;
+  background: #fff;
+}
+
+.mapa-ruta-ayuda:focus-visible,
+.dialogo-ayuda-ruta button:focus-visible {
+  outline: 3px solid #f2ad35;
+  outline-offset: 3px;
+}
+
+.dialogo-ayuda-ruta {
+  width: min(620px, calc(100vw - 28px));
+  max-width: none;
+  max-height: min(82vh, 760px);
+  max-height: min(82dvh, 760px);
+  overflow: auto;
+  padding: clamp(18px, 4vw, 28px);
+  border: 1px solid var(--linea);
+  border-radius: 20px;
+  background: var(--papel);
+  color: var(--tinta);
+  box-shadow: 0 24px 80px rgba(9, 24, 31, .3);
+  overscroll-behavior: contain;
+}
+
+.dialogo-ayuda-ruta::backdrop {
+  background: rgba(9, 24, 31, .58);
+  backdrop-filter: blur(3px);
+}
+
+.dialogo-ayuda-ruta-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dialogo-ayuda-ruta-cabecera h2 {
+  margin: 0;
+  color: var(--tinta);
+  font-size: clamp(1.25rem, 3.6vw, 1.65rem);
+  line-height: 1.25;
+}
+
+.dialogo-ayuda-ruta-cabecera form {
+  flex: 0 0 auto;
+}
+
+.dialogo-ayuda-ruta-etiqueta {
+  margin: 0 0 4px;
+  color: var(--marca);
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.dialogo-ayuda-ruta-cerrar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  background: var(--papel);
+  color: var(--tinta);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialogo-ayuda-ruta-intro,
+.dialogo-ayuda-ruta-bloque p,
+.dialogo-ayuda-ruta-pie {
+  margin: 0;
+  color: var(--atenuado);
+  font-size: .88rem;
+  line-height: 1.6;
+}
+
+.dialogo-ayuda-ruta-intro + .dialogo-ayuda-ruta-bloque { margin-top: 14px; }
+.dialogo-ayuda-ruta-bloque + .dialogo-ayuda-ruta-bloque { margin-top: 10px; }
+
+.dialogo-ayuda-ruta-bloque {
+  padding: 12px 14px;
+  border: 1px solid var(--linea);
+  border-radius: 13px;
+  background: #f4fbf9;
+}
+
+.dialogo-ayuda-ruta-bloque h3 {
+  margin: 0 0 5px;
+  color: var(--tinta);
+  font-size: .9rem;
+}
+
+.dialogo-ayuda-ruta-formula {
+  display: block;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: #e8f4f1;
+  color: #15574f;
+  font: 700 .8rem/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.dialogo-ayuda-ruta-nota {
+  margin-top: 8px !important;
+  color: #17665c !important;
+  font-weight: 750;
+}
+
+.dialogo-ayuda-ruta-pie {
+  margin-top: 14px;
+  font-size: .78rem;
+}
+
+body.tema-oscuro .mapa-ruta-ayuda {
+  border-color: #365564;
+  background: rgba(16, 39, 53, .96);
+  color: #c9f3eb;
+}
+
+body.tema-oscuro .mapa-ruta-ayuda span,
+body.tema-oscuro .dialogo-ayuda-ruta-etiqueta,
+body.tema-oscuro .dialogo-ayuda-ruta-nota {
+  color: #8de0d4 !important;
+}
+
+body.tema-oscuro .dialogo-ayuda-ruta {
+  border-color: #365564;
+  background: #102735;
+}
+
+body.tema-oscuro .dialogo-ayuda-ruta-bloque {
+  border-color: #294858;
+  background: #142e3d;
+}
+
+body.tema-oscuro .dialogo-ayuda-ruta-formula {
+  background: #0c202a;
+  color: #b6eee5;
+}
+
+@media (max-width: 600px) {
+  .mapa-ruta-ayuda {
+    top: 10px;
+    right: 10px;
+    min-height: 44px;
+    padding: 6px 10px;
+  }
+
+  .dialogo-ayuda-ruta {
+    padding: 18px 14px;
+  }
+
+  .dialogo-ayuda-ruta-bloque {
+    padding: 11px 12px;
+  }
+}

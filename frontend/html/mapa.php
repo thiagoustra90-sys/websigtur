@@ -33,14 +33,94 @@
     .herramienta-boton,.ficha,.accion,.interaccion-boton{display:inline-flex;align-items:center;justify-content:center}
     .detalle-cerrar{width:44px;height:44px}
   </style>
-  <link rel="stylesheet" href="../css/mapa.css?v=20261118-map-comments">
+  <link rel="stylesheet" href="../css/mapa.css?v=20261119-guia-rutas">
 </head>
 <body>
   <main class="pagina">
     <header class="encabezado"><div><h1>Explorá Salto</h1><p>Elegí un punto para conocerlo sin perder su ubicación en el mapa.</p></div><div><button id="alternar-tema" class="tema-alternar" type="button" aria-pressed="false">Modo oscuro</button> <a class="volver" href="index.php">← Volver al inicio</a></div></header>
     <section class="explorador" aria-label="Mapa de lugares y patrimonio">
-      <aside class="barra-lateral"><div class="busqueda-contenedor"><input id="busqueda" class="busqueda" type="search" placeholder="Buscar lugares, patrimonio o categorías" aria-label="Buscar en el mapa"><div id="fichas" class="fichas" aria-label="Categorías"></div><div class="barra-herramientas"><button id="ubicar" class="herramienta-boton" type="button">📍 Usar mi ubicación</button><button id="limpiar-filtros" class="herramienta-boton" type="button" hidden>Limpiar filtros</button></div><section class="ruta-panel" aria-labelledby="ruta-titulo"><h2 id="ruta-titulo">Cómo llegar</h2><label for="ruta-origen">Desde</label><select id="ruta-origen"><option value="user">Mi ubicación</option></select><label for="ruta-destino">Hasta</label><select id="ruta-destino"><option value="">Elegí un punto</option></select><label for="ruta-modo">Medio de transporte</label><select id="ruta-modo"><option value="car">🚗 Auto</option><option value="bike">🚲 Bicicleta</option><option value="foot">🚶 A pie</option></select><div class="ruta-opciones"><label><input id="evitar-peajes" type="checkbox"> Evitar peajes</label><label><input id="evitar-autopistas" type="checkbox"> Evitar autopistas</label></div><div class="ruta-acciones"><button id="ruta-calcular" class="herramienta-boton" type="button">Calcular ruta</button><button id="ruta-limpiar" class="herramienta-boton" type="button">Limpiar</button></div><p id="ruta-resumen" class="ruta-resumen" aria-live="polite"></p><ol id="ruta-pasos" class="ruta-pasos" hidden></ol></section><section class="guia-enlaces" aria-labelledby="guia-titulo"><h2 id="guia-titulo">Guías SIGTUR</h2><a href="index.php#lugares">Lugares recomendados</a><a href="lugares.php#plaza-artigas">Guía: Plaza Artigas</a><a href="lugares.php#costanera-norte">Guía: Costanera Norte</a><a href="lugares.php#parque-solari">Guía: Parque Solari</a><a href="lugares.php#plaza-33">Guía: Plaza Treinta y Tres</a></section></div><div id="resultados" class="resultados" aria-live="polite"></div></aside>
-      <div class="mapa-zona"><div id="mapa" aria-label="Mapa interactivo de Salto"></div><div id="mapa-estado" class="mapa-estado" hidden></div><article id="detalle" class="detalle" hidden></article></div>
+      <aside class="barra-lateral">
+        <div class="busqueda-contenedor">
+          <input id="busqueda" class="busqueda" type="search" placeholder="Buscar lugares, patrimonio o categorías" aria-label="Buscar en el mapa">
+          <div id="fichas" class="fichas" aria-label="Categorías"></div>
+          <div class="barra-herramientas">
+            <button id="ubicar" class="herramienta-boton" type="button">📍 Usar mi ubicación</button>
+            <button id="limpiar-filtros" class="herramienta-boton" type="button" hidden>Limpiar filtros</button>
+          </div>
+          <section class="ruta-panel" aria-labelledby="ruta-titulo">
+            <h2 id="ruta-titulo">Cómo llegar</h2>
+            <label for="ruta-origen">Desde</label>
+            <select id="ruta-origen"><option value="user">Mi ubicación</option></select>
+            <label for="ruta-destino">Hasta</label>
+            <select id="ruta-destino"><option value="">Elegí un punto</option></select>
+            <label for="ruta-modo">Medio de transporte</label>
+            <select id="ruta-modo">
+              <option value="car">🚗 Auto</option>
+              <option value="bike">🚲 Bicicleta</option>
+              <option value="foot">🚶 A pie</option>
+            </select>
+            <div class="ruta-opciones">
+              <label><input id="evitar-peajes" type="checkbox"> Evitar peajes</label>
+              <label><input id="evitar-autopistas" type="checkbox"> Evitar autopistas</label>
+            </div>
+            <div class="ruta-acciones">
+              <button id="ruta-calcular" class="herramienta-boton" type="button">Calcular ruta</button>
+              <button id="ruta-limpiar" class="herramienta-boton" type="button">Limpiar</button>
+            </div>
+            <p id="ruta-resumen" class="ruta-resumen" aria-live="polite"></p>
+            <ol id="ruta-pasos" class="ruta-pasos" hidden></ol>
+          </section>
+          <section class="guia-enlaces" aria-labelledby="guia-titulo">
+            <h2 id="guia-titulo">Guías SIGTUR</h2>
+            <a href="index.php#lugares">Lugares recomendados</a>
+            <a href="lugares.php#plaza-artigas">Guía: Plaza Artigas</a>
+            <a href="lugares.php#costanera-norte">Guía: Costanera Norte</a>
+            <a href="lugares.php#parque-solari">Guía: Parque Solari</a>
+            <a href="lugares.php#plaza-33">Guía: Plaza Treinta y Tres</a>
+          </section>
+        </div>
+        <div id="resultados" class="resultados" aria-live="polite"></div>
+      </aside>
+      <div class="mapa-zona">
+        <div id="mapa" aria-label="Mapa interactivo de Salto"></div>
+        <button id="mostrar-ayuda-ruta" class="mapa-ruta-ayuda" type="button" aria-haspopup="dialog" aria-controls="dialogo-ayuda-ruta">
+          <span aria-hidden="true">ⓘ</span> ¿Cómo se calcula?
+        </button>
+        <div id="mapa-estado" class="mapa-estado" hidden></div>
+        <article id="detalle" class="detalle" hidden></article>
+        <dialog id="dialogo-ayuda-ruta" class="dialogo-ayuda-ruta" aria-labelledby="dialogo-ayuda-ruta-titulo">
+          <header class="dialogo-ayuda-ruta-cabecera">
+            <div>
+              <p class="dialogo-ayuda-ruta-etiqueta">CÓMO FUNCIONA</p>
+              <h2 id="dialogo-ayuda-ruta-titulo">¿Cómo se calcula una ruta?</h2>
+            </div>
+            <form method="dialog">
+              <button class="dialogo-ayuda-ruta-cerrar" type="submit" aria-label="Cerrar explicación">×</button>
+            </form>
+          </header>
+          <p class="dialogo-ayuda-ruta-intro">SIGTUR envía las coordenadas del origen y el destino a un motor de rutas. El motor busca un recorrido por calles; Leaflet dibuja la geometría que recibe.</p>
+          <section class="dialogo-ayuda-ruta-bloque">
+            <h3>1. Puntos de partida y llegada</h3>
+            <p>Se usan latitud y longitud. Si elegís “Mi ubicación”, el navegador solicita permiso para obtener la geolocalización del dispositivo.</p>
+          </section>
+          <section class="dialogo-ayuda-ruta-bloque">
+            <h3>2. Red de calles y transporte</h3>
+            <p>El servicio de ruteo busca un camino según el modo seleccionado. Auto sin restricciones y los modos bicicleta/a pie usan servicios compatibles con la API de OSRM. Si en auto elegís evitar peajes o autopistas, SIGTUR consulta Valhalla para aplicar esas preferencias.</p>
+          </section>
+          <section class="dialogo-ayuda-ruta-bloque">
+            <h3>3. Distancia en línea recta: Haversine</h3>
+            <p>Esta fórmula considera la curvatura de la Tierra. En SIGTUR se usa para ordenar los puntos por cercanía, no para calcular la distancia del recorrido por calles.</p>
+            <code class="dialogo-ayuda-ruta-formula">a = sin²(Δφ / 2) + cos(φ₁) · cos(φ₂) · sin²(Δλ / 2)<br>d = 2R · asin(√a), con R = 6.371 km</code>
+          </section>
+          <section class="dialogo-ayuda-ruta-bloque">
+            <h3>4. Distancia y duración del recorrido</h3>
+            <p>El motor suma los tramos de la red vial y devuelve distancia y duración según el transporte y sus datos de calles. En forma simplificada:</p>
+            <code class="dialogo-ayuda-ruta-formula">D<sub>ruta</sub> = Σ ℓᵢ &nbsp; · &nbsp; T<sub>ruta</sub> = Σ τᵢ</code>
+            <p class="dialogo-ayuda-ruta-nota">SIGTUR convierte metros a kilómetros y segundos a minutos; no estima el tiempo con una velocidad fija.</p>
+          </section>
+          <p class="dialogo-ayuda-ruta-pie">CARTO aporta el mapa de fondo por defecto; el servicio de ruteo calcula el trayecto y Leaflet lo representa.</p>
+        </dialog>
+      </div>
     </section>
   </main>
   <script src="../js/api-config.js"></script>
@@ -335,6 +415,11 @@
     function sincronizarOpcionesRuta(){const esAutomovil=modoRuta.value==='car';evitarPeajes.disabled=!esAutomovil;evitarAutopistas.disabled=!esAutomovil}
     modoRuta.addEventListener('change',sincronizarOpcionesRuta);
     sincronizarOpcionesRuta();
+    const mostrarAyudaRuta=document.getElementById('mostrar-ayuda-ruta'),dialogoAyudaRuta=document.getElementById('dialogo-ayuda-ruta');
+    mostrarAyudaRuta.addEventListener('click',()=>dialogoAyudaRuta.showModal());
+    dialogoAyudaRuta.addEventListener('cancel',evento=>{evento.preventDefault();dialogoAyudaRuta.close()});
+    dialogoAyudaRuta.addEventListener('keydown',evento=>{if(evento.key==='Escape'){evento.preventDefault();dialogoAyudaRuta.close()}});
+    dialogoAyudaRuta.addEventListener('click',evento=>{if(evento.target===dialogoAyudaRuta)dialogoAyudaRuta.close()});
     load();
     validarSesionMapa().then(()=>{const seleccionado=elementos.find(elemento=>elemento.id===identificadorSeleccionado);if(seleccionado)cargarInteracciones(seleccionado)});
   </script>
