@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuración Admin - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261113-visual-system" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-event-media-ficha" />
   <link rel="stylesheet" href="../css/support-events.css?v=20261118-admin-contrast" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
@@ -235,7 +235,7 @@
       </section>
 
       <section class="admin-panel">
-        <h2>Crear evento</h2>
+        <h2 id="admin-event-form-title">Crear evento</h2>
         <form id="admin-event-form" class="settings-list">
           <div class="form-row"><label for="admin-event-title">Título</label><input id="admin-event-title" name="title" required></div>
           <div class="form-row"><label for="admin-event-description">Descripción</label><textarea id="admin-event-description" name="description" placeholder="Opcional"></textarea></div>
@@ -244,12 +244,18 @@
           <div class="form-row"><label>Ubicación en el mapa</label><div id="admin-event-map" class="admin-event-map" aria-label="Selector de ubicación del evento"></div><p class="form-help">Hacé clic en el mapa para fijar el punto del evento.</p><div class="admin-event-coordinates"><label for="admin-event-latitude">Latitud<input id="admin-event-latitude" name="latitude" type="number" step="any" min="-90" max="90" required></label><label for="admin-event-longitude">Longitud<input id="admin-event-longitude" name="longitude" type="number" step="any" min="-180" max="180" required></label></div></div>
           <div class="form-row"><label for="admin-event-date-start">Desde</label><input id="admin-event-date-start" name="date_start" type="date" required></div>
           <div class="form-row"><label for="admin-event-date-end">Hasta</label><input id="admin-event-date-end" name="date_end" type="date"></div>
-          <div class="form-row"><label for="admin-event-categories">Categorías</label><input id="admin-event-categories" name="categories" placeholder="música, cultura"></div>
+          <div class="form-row"><label for="admin-event-time">Horario</label><input id="admin-event-time" name="event_time" type="time"><small class="form-help">Se muestra separado del precio en la agenda.</small></div>
+          <div class="form-row"><label for="admin-event-categories">Categoría principal</label><select id="admin-event-categories" name="category"><option value="cultura">Cultura</option><option value="musica">Música</option><option value="deportes">Deportes</option><option value="feria">Feria</option><option value="gastronomia">Gastronomía</option><option value="religiosos">Religiosos</option><option value="infantiles">Infantiles</option></select></div>
           <div class="form-row"><label for="admin-event-price">Precio (0 para gratuito)</label><input id="admin-event-price" name="price" type="number" min="0" step="1" value="0"></div>
           <div class="form-row"><label for="admin-event-color">Color del evento</label><input id="admin-event-color" name="color" type="color" value="#16b3a3" title="Elegí el color principal del evento"></div>
-          <div class="form-row"><label for="admin-event-image">Imagen de portada (URL)</label><input id="admin-event-image" name="image_url" type="url" placeholder="https://..."></div>
-          <button class="btn-primary" type="submit">Publicar evento</button>
+          <div class="form-row"><label for="admin-event-image">Imagen o video para la ficha</label><input id="admin-event-image" name="image_url" type="url" placeholder="URL directa de imagen, video o YouTube/Vimeo" autocomplete="url"><small class="form-help">Se muestra dentro de la ficha. Para un artículo o una web, usá el enlace oficial de abajo.</small><div id="admin-event-image-preview" class="admin-event-image-preview" hidden><img alt="Vista previa de portada" loading="lazy" decoding="async"><span>Vista previa</span></div></div>
+          <div class="form-row"><label for="admin-event-link">Enlace oficial o más información</label><input id="admin-event-link" name="link" type="url" placeholder="https://..." autocomplete="url"><small class="form-help">Se abre desde la ficha del evento; nunca reemplaza la ficha.</small></div>
+          <div class="admin-event-form-actions"><button class="btn-primary" id="admin-event-submit" type="submit">Publicar evento</button><button class="btn-secondary" id="admin-event-cancel" type="button" hidden>Cancelar edición</button></div>
         </form>
+        <h3>Eventos publicados</h3>
+        <label>Buscar eventos <input id="admin-events-search" type="search" placeholder="Título o lugar"></label>
+        <ul id="admin-events-list" class="admin-events-list" aria-live="polite"></ul>
+        <nav class="admin-pagination" aria-label="Páginas de eventos"><button type="button" data-admin-page="events" data-direction="-1">Anterior</button><span id="admin-events-page">Página 1</span><button type="button" data-admin-page="events" data-direction="1">Siguiente</button></nav>
       </section>
 
       <section class="admin-panel">
@@ -273,6 +279,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../js/api-config.js"></script>
-<script src="../js/main.js?v=20261118-admin-lists"></script>
+<script src="../js/main.js?v=20261119-event-media-ficha"></script>
 </body>
 </html>

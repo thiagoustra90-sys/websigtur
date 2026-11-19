@@ -1,8 +1,10 @@
 // Interactividad del sitio. La API y Supabase gestionan los datos persistentes.
 
 function obtenerEnlaceWebEvento(valor) {
+  const textoUrl = String(valor ?? '').trim();
+  if (!textoUrl) return '';
   try {
-    const enlace = new URL(String(valor || '').trim(), window.location.href);
+    const enlace = new URL(textoUrl, window.location.href);
     return ['http:', 'https:'].includes(enlace.protocol) ? enlace.href : '';
   } catch { return ''; }
 }
@@ -2860,8 +2862,9 @@ async function configurarPaginaAdministracion() {
       const fechaEvento = evento.date_start ? new Date(`${evento.date_start}T00:00:00`).toLocaleDateString('es-UY') : 'Fecha pendiente';
       const colorEvento = /^#[0-9a-f]{6}$/i.test(String(evento.color || '')) ? evento.color : '#16b3a3';
       const horaEvento = evento.event_time ? ` · ${String(evento.event_time).slice(0, 5)}` : '';
-      const imagen = evento.image_url
-        ? `<img src="${escaparTexto(evento.image_url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`
+      const multimedia = analizarMultimediaEvento(evento.image_url);
+      const imagen = multimedia.tipo === 'imagen'
+        ? `<img src="${escaparTexto(multimedia.url)}" alt="" loading="lazy"><span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`
         : `<span class="admin-event-fallback" aria-hidden="true">${simboloCategoriaEvento(evento.categories)}</span>`;
       return `<li class="admin-event-item" style="--admin-event-color:${colorEvento}"><div class="admin-event-thumb">${imagen}</div><div class="admin-event-summary"><strong>${escaparTexto(evento.title || 'Evento sin t\u00edtulo')}</strong><span>${simboloCategoriaEvento(evento.categories)} ${escaparTexto(categoria || 'Evento')} | ${fechaEvento}${horaEvento}</span><small>${escaparTexto(evento.location || 'Lugar sin especificar')} | ${Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis'}</small></div><div class="admin-event-actions"><button type="button" class="admin-event-edit" data-edit-event="${escaparTexto(evento.id)}" aria-label="Editar evento">Editar</button><button type="button" class="admin-event-delete" data-delete-event="${escaparTexto(evento.id)}" aria-label="Eliminar evento" title="Eliminar evento">Eliminar</button></div></li>`;
     }).join('') || '<li class="admin-event-empty ui-list-status">Todavía no hay eventos publicados.</li>';
@@ -2888,9 +2891,22 @@ async function configurarPaginaAdministracion() {
       eventImagePreviewImg.removeAttribute('src');
       return;
     }
+    const multimedia = analizarMultimediaEvento(urlImagen);
+    const textoPrevia = vistaPreviaImagenEvento.querySelector('span');
+    if (multimedia.tipo !== 'imagen') {
+      eventImagePreviewImg.hidden = true;
+      eventImagePreviewImg.removeAttribute('src');
+      vistaPreviaImagenEvento.hidden = false;
+      if (textoPrevia) textoPrevia.textContent = ['video', 'youtube', 'vimeo'].includes(multimedia.tipo)
+        ? 'Video: se verá dentro de la ficha'
+        : 'Es una página web: agregala en el enlace oficial';
+      return;
+    }
+    eventImagePreviewImg.hidden = false;
+    if (textoPrevia) textoPrevia.textContent = 'Vista previa de portada';
     eventImagePreviewImg.onload = () => { vistaPreviaImagenEvento.hidden = false; };
     eventImagePreviewImg.onerror = () => { vistaPreviaImagenEvento.hidden = true; };
-    eventImagePreviewImg.src = urlImagen;
+    eventImagePreviewImg.src = multimedia.url;
   };
   entradaImagenEvento?.addEventListener('input', actualizarVistaPreviaImagenEvento);
   entradaImagenEvento?.addEventListener('change', actualizarVistaPreviaImagenEvento);
@@ -3015,6 +3031,8 @@ async function configurarPaginaAdministracion() {
   };
   const iniciarEdicionEvento = (registroEvento) => {
     if (!formularioEvento || !registroEvento) return;
+    const multimediaExistente = analizarMultimediaEvento(registroEvento.image_url);
+    const enlaceExistente = obtenerEnlaceWebEvento(registroEvento.link) || (multimediaExistente.tipo === 'enlace' ? multimediaExistente.url : '');
     const campos = {
       title: registroEvento.title,
       description: registroEvento.description,
@@ -3026,7 +3044,8 @@ async function configurarPaginaAdministracion() {
       event_time: registroEvento.event_time,
       price: registroEvento.price ?? 0,
       color: registroEvento.color || '#16b3a3',
-      image_url: registroEvento.image_url,
+      image_url: multimediaExistente.tipo === 'enlace' ? '' : registroEvento.image_url,
+      link: enlaceExistente,
     };
     Object.entries(campos).forEach(([nombre, valor]) => {
       const entrada = formularioEvento.elements.namedItem(nombre);
@@ -3053,10 +3072,14 @@ async function configurarPaginaAdministracion() {
     const datos = new FormData(formularioEvento);
     const identificadorEnEdicion = formularioEvento.dataset.editingId;
     const metodo = identificadorEnEdicion ? 'PATCH' : 'POST';
+    const urlMultimedia = String(datos.get('image_url') || '').trim();
+    const multimediaEvento = analizarMultimediaEvento(urlMultimedia);
+    const urlInformacion = obtenerEnlaceWebEvento(datos.get('link')) || (multimediaEvento.tipo === 'enlace' ? multimediaEvento.url : '');
+    const urlImagenFicha = multimediaEvento.tipo === 'enlace' ? '' : urlMultimedia;
     const url = identificadorEnEdicion ? `/api/admin/eventos/${encodeURIComponent(identificadorEnEdicion)}` : '/api/admin/eventos';
     if (enviarEvento) { enviarEvento.disabled = true; enviarEvento.textContent = 'Guardando?'; }
     try {
-      await solicitarApiSigtur(url, { method: metodo, body: JSON.stringify({ title: datos.get('title'), description: datos.get('description'), date_start: datos.get('date_start'), date_end: datos.get('date_end'), event_time: datos.get('event_time'), location: datos.get('location'), latitude: datos.get('latitude'), longitude: datos.get('longitude'), price: datos.get('price'), color: datos.get('color'), image_url: datos.get('image_url'), categories: [datos.get('category')] }) });
+      await solicitarApiSigtur(url, { method: metodo, body: JSON.stringify({ title: datos.get('title'), description: datos.get('description'), date_start: datos.get('date_start'), date_end: datos.get('date_end'), event_time: datos.get('event_time'), location: datos.get('location'), latitude: datos.get('latitude'), longitude: datos.get('longitude'), price: datos.get('price'), color: datos.get('color'), image_url: urlImagenFicha, link: urlInformacion, categories: [datos.get('category')] }) });
       restablecerEditorEvento();
       mostrarEstadoRecurso(identificadorEnEdicion ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
       await cargarAdministracionEventos();

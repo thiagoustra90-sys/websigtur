@@ -11,9 +11,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eventos - SIGTUR Salto</title>
   <link rel="stylesheet" href="../css/font.css" />
-  <link rel="stylesheet" href="../css/styles.css?v=20261113-visual-system" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261119-event-media-ficha" />
   <link rel="stylesheet" href="../css/comment-media.css" />
-  <link rel="stylesheet" href="../css/support-events.css?v=20261118-card-layout" />
+  <link rel="stylesheet" href="../css/support-events.css?v=20261119-event-media-ficha" />
 </head>
 <body class="page-eventos">
 
@@ -675,7 +675,7 @@
 
 <script src="../js/api-config.js"></script>
 <script src="../js/comment-media.js"></script>
-<script src="../js/main.js?v=20261118-event-ficha"></script>
+<script src="../js/main.js?v=20261119-event-media-ficha"></script>
 
 </body>
 </html>
