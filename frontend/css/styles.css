@@ -8747,6 +8747,37 @@ body.tema-oscuro.pagina-soporte .navegacion-busqueda input::placeholder { color:
 }
 
 @media (max-width: 900px) {
+  body.pagina-inicio .barra-navegacion,
+  body.pagina-eventos .barra-navegacion,
+  body.pagina-turismo .barra-navegacion,
+  body.pagina-lugares .barra-navegacion,
+  body.pagina-administracion .barra-navegacion,
+  body.pagina-soporte .barra-navegacion,
+  body.pagina-cuenta .barra-navegacion {
+    z-index: 1200;
+  }
+
+  body.pagina-inicio .barra-navegacion {
+    overflow: visible;
+  }
+
+  body.pagina-administracion > header,
+  body.pagina-soporte > header,
+  body.pagina-cuenta > header {
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+  }
+
+  body.pagina-administracion .barra-navegacion,
+  body.pagina-soporte .barra-navegacion,
+  body.pagina-cuenta .barra-navegacion {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 900px) {
   body.pagina-inicio .clima-widget {
     margin-left: 0;
   }

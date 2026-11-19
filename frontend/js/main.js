@@ -452,6 +452,7 @@ function navegarBusqueda(valor, destino = obtenerDestinoBusqueda(valor)) {
 
 function configurarBusquedaNavegacion() {
   const entradaBusqueda = document.querySelector('.navegacion-busqueda input');
+  if (!entradaBusqueda) return;
   const consulta = new URLSearchParams(window.location.search).get('q')?.trim();
 
   const campoBusqueda = entradaBusqueda.closest('.navegacion-busqueda');
