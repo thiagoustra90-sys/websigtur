@@ -2353,8 +2353,18 @@ async function configurarInteraccionesEventos() {
       fila.style.setProperty('--event-color', colorEvento);
       const horaEvento = evento.event_time ? String(evento.event_time).slice(0, 5) : 'Horario a confirmar';
       const precioEvento = Number(evento.price) > 0 ? `$${escaparTexto(evento.price)}` : 'Gratis';
-      fila.innerHTML = `<div class="ticket-date"><span class="day">${Number.isNaN(fecha.getTime()) ? '--' : String(fecha.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(fecha.getTime()) ? '---' : nombresMeses[fecha.getMonth()]}</span></div><div class="ticket-divider"></div><div class="ticket-info"><div class="ticket-heading"><span class="ticket-image">${imagenEvento ? `<img class="ticket-thumbnail" src="${escaparTexto(imagenEvento)}" alt="" loading="lazy" decoding="async">` : ''}<span class="ticket-image-fallback">${iconoCategoria(evento.categories?.[0])}</span></span><span class="ticket-title">${escaparTexto(evento.title)}</span></div><span class="ticket-subtitle">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span><div class="ticket-location">${iconoEvento('location')}${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</div></div><span class="ticket-badge badge-green">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span><span class="ticket-schedule">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span><span class="ticket-time ticket-price">${iconoEvento('price')}<span>${precioEvento}</span></span><button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
-      fila.querySelector('.ticket-thumbnail')?.addEventListener('error', errorImagen => errorImagen.currentTarget.remove(), { once: true });
+      fila.innerHTML = `
+        <div class="ticket-date"><span class="day">${Number.isNaN(fecha.getTime()) ? '--' : String(fecha.getDate()).padStart(2, '0')}</span><span class="month">${Number.isNaN(fecha.getTime()) ? '---' : nombresMeses[fecha.getMonth()]}</span></div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-info">
+          <div class="ticket-heading"><span class="ticket-title">${escaparTexto(evento.title)}</span></div>
+          <span class="ticket-subtitle">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span>
+          <div class="ticket-location">${iconoEvento('location')}${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</div>
+        </div>
+        <span class="ticket-badge badge-green">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span>
+        <span class="ticket-schedule">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span>
+        <span class="ticket-time ticket-price">${iconoEvento('price')}<span>${precioEvento}</span></span>
+        <button class="ticket-heart" aria-label="Dar like" aria-pressed="false"><svg viewBox="0 0 79 79" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="heart-fill" d="M39.5 65 C20 50 8 40 8 26 A14 14 0 0 1 39.5 22 A14 14 0 0 1 71 26 C71 40 59 50 39.5 65Z" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="3"/></svg></button>`;
       listaTickets.prepend(fila);
     });
     listaTickets.dispatchEvent(new Event('eventosactualizados'));

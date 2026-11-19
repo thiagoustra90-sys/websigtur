@@ -389,10 +389,8 @@ body.page-eventos .ticket-price { grid-column: 1 / -1 !important; grid-row: 4 !i
 body.page-eventos .event-interaction-tools { grid-column: 1 / -1 !important; grid-row: 5 !important; }
 body.page-eventos .ticket-divider { display: none; }
 body.page-eventos .ticket-info { align-self: stretch; align-content: start; gap: 7px; }
-body.page-eventos .ticket-heading { align-items: center; gap: 11px; }
-body.page-eventos .ticket-image { width: 54px; height: 54px; flex-basis: 54px; border-radius: 12px; }
-body.page-eventos .ticket-image-fallback { display: grid; width: 100%; height: 100%; place-items: center; }
-body.page-eventos .ticket-image-fallback svg { display: block; width: 26px !important; height: 26px !important; max-width: 26px; max-height: 26px; }
+body.page-eventos .ticket-heading { display: block; min-width: 0; }
+body.page-eventos .ticket-heading .ticket-title { display: -webkit-box; width: 100%; min-width: 0; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 body.page-eventos .ticket-title { display: -webkit-box; overflow: hidden; font-size: 1.08rem; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 body.page-eventos .ticket-subtitle { -webkit-line-clamp: 2; line-height: 1.45; }
 body.page-eventos .ticket-badge { max-width: 100%; }

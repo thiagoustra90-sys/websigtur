@@ -9447,12 +9447,8 @@ body.page-eventos .event-card--culture { --event-card-accent: #8b69c6; }
 body.page-eventos .event-card-date { border-color: color-mix(in srgb, var(--event-card-accent) 46%, transparent); color: #fff; background: color-mix(in srgb, var(--event-card-accent) 24%, transparent); }
 body.page-eventos .ticket-row-remote::before { background: var(--event-color, #168575); }
 body.page-eventos .ticket-row-remote .ticket-badge { border: 1px solid color-mix(in srgb, var(--event-color) 34%, transparent); background: color-mix(in srgb, var(--event-color) 14%, white); color: color-mix(in srgb, var(--event-color) 72%, #102a2a); }
-body.page-eventos .ticket-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
-body.page-eventos .ticket-heading .ticket-title { min-width: 0; }
-body.page-eventos .ticket-image { position: relative; display: grid; width: 76px; height: 62px; flex: 0 0 76px; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb, var(--event-color) 35%, transparent); border-radius: 11px; background: linear-gradient(140deg, color-mix(in srgb, var(--event-color) 38%, #fff), color-mix(in srgb, var(--event-color) 10%, #fff)); color: color-mix(in srgb, var(--event-color) 76%, #102a2a); }
-body.page-eventos .ticket-thumbnail { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; }
-body.page-eventos .ticket-image-fallback { display: grid; width: 100%; height: 100%; place-items: center; }
-body.page-eventos .ticket-image-fallback svg { width: 26px; height: 26px; }
+body.page-eventos .ticket-heading { display: block; min-width: 0; }
+body.page-eventos .ticket-heading .ticket-title { display: -webkit-box; width: 100%; min-width: 0; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 body.page-eventos .ticket-row-remote .ticket-title { font-size: 1.02rem; }
 body.page-eventos .event-detail-hero { background: linear-gradient(135deg, var(--event-accent, #087f72), color-mix(in srgb, var(--event-accent, #087f72) 62%, #102a2a)); }
 body.page-eventos .event-detail-hero::after { z-index: 1; background: linear-gradient(90deg, rgba(3,19,22,.82), rgba(3,19,22,.28)); }
@@ -9460,8 +9456,6 @@ body.page-eventos .event-detail-hero > * { z-index: 2; }
 body.page-eventos .event-detail-hero .event-detail-image { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover; }
 body.theme-dark.page-eventos .ticket-row-remote .ticket-badge { background: color-mix(in srgb, var(--event-color) 22%, #102a3a); color: #f0faf8; }
 @media (max-width: 560px) {
-  body.page-eventos .ticket-heading { gap: 9px; }
-  body.page-eventos .ticket-image { width: 58px; height: 54px; flex-basis: 58px; border-radius: 9px; }
   body.page-eventos .ticket-row-remote .ticket-title { font-size: .92rem; }
 }
 
