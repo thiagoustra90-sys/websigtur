@@ -396,11 +396,22 @@ body.page-eventos .event-interaction-tools {
 }
 body.page-eventos .event-tool { width: 100%; min-height: 42px; justify-content: center; gap: 7px; padding: 8px 10px; }
 body.page-eventos .event-tool span { min-width: 0; }
+body.page-eventos .event-tool[data-event-detail] {
+  border-color: #087f72;
+  background: linear-gradient(135deg, #119b89, #087064);
+  color: #fff;
+  box-shadow: 0 5px 14px rgb(8 127 114 / 20%);
+  font-weight: 850;
+}
+body.page-eventos .event-tool[data-event-detail] svg { width: 16px; height: 16px; flex: 0 0 auto; }
+body.page-eventos .event-tool[data-event-detail]:hover { border-color: #055e55; background: linear-gradient(135deg, #0b8576, #055e55); box-shadow: 0 7px 18px rgb(8 127 114 / 28%); }
 body.page-eventos .event-interaction-panels { display: grid; gap: 12px; }
 body.page-eventos .event-interaction-panel { width: 100%; margin: 0; border-radius: 16px; }
 body.page-eventos .event-interaction-panel[hidden] { display: none !important; }
 body.theme-dark.page-eventos .event-carousel-control { border-color: #355762; background: #142f3a; color: #c1eee5; }
 body.theme-dark.page-eventos .event-carousel-control:hover:not(:disabled) { border-color: #18a99a; background: #173e45; }
+body.theme-dark.page-eventos .event-tool[data-event-detail] { border-color: #18a99a; background: linear-gradient(135deg, #18a99a, #087f72); color: #062322; }
+body.theme-dark.page-eventos .event-tool[data-event-detail]:hover { border-color: #5ce0ce; background: linear-gradient(135deg, #37c5b2, #119b89); }
 
 @media (max-width: 700px) {
   body.page-eventos .próximos-section,

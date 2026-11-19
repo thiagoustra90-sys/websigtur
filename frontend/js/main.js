@@ -2496,7 +2496,7 @@ async function configurarInteraccionesEventos() {
     }
     const controles = document.createElement('div');
     controles.className = 'event-interaction-tools';
-    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">Ver ficha</button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
+    controles.innerHTML = `<button class="event-tool" type="button" data-event-detail title="Ver ficha del evento">${iconoEvento('culture')}<span>Ver ficha</span></button><button class="event-tool" type="button" data-event-comments aria-expanded="false" title="Ver comentarios">${iconoEvento('comment')}<span>Comentarios</span></button><button class="event-tool" type="button" data-event-save aria-pressed="false" title="Guardar evento">${iconoEvento('save')}<span>Guardar</span></button><button class="event-tool" type="button" data-event-reservation aria-expanded="false" title="Reservar lugar">${iconoEvento('reserve')}<span>Reservar</span></button>`;
     fila.appendChild(controles);
 
     const panelActual = document.createElement('div');
