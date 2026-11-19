@@ -2808,6 +2808,7 @@ body.pagina-soporte {
 [data-enlace-administracion][hidden] { display: none !important; }
 
 .logotipo-menu a,
+.menu-cuenta-logotipo,
 .tema-interruptor {
   width: 100%;
   min-height: 42px;
@@ -2826,8 +2827,21 @@ body.pagina-soporte {
 }
 
 .logotipo-menu a:hover,
+.menu-cuenta-logotipo:hover,
 .tema-interruptor:hover {
   background: rgba(22, 179, 163, 0.12);
+}
+
+.menu-cuenta-logotipo {
+  appearance: none;
+  line-height: inherit;
+}
+
+.logotipo-menu a:focus-visible,
+.menu-cuenta-logotipo:focus-visible,
+.tema-interruptor:focus-visible {
+  outline: 2px solid var(--color-principal);
+  outline-offset: 2px;
 }
 
 .tema-orbita {
@@ -2897,6 +2911,7 @@ body.tema-oscuro .soporte-panel {
 }
 
 body.tema-oscuro .logotipo-menu a,
+body.tema-oscuro .menu-cuenta-logotipo,
 body.tema-oscuro .tema-interruptor,
 body.tema-oscuro .utilidad-pagina,
 body.tema-oscuro .utilidad-pagina h1,

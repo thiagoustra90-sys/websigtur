@@ -666,11 +666,6 @@ const estiloRevelar = document.createElement('style');
 estiloRevelar.textContent = '.revealed { opacity: 1 !important; transform: translateY(0) !important; } @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }';
 document.head.appendChild(estiloRevelar);
 
-// Restablecemos los estilos nativos del botón para que coincida con los enlaces del menú.
-const estiloCerrarSesion = document.createElement('style');
-estiloCerrarSesion.textContent = '.logo-menu-account { all: unset; display: block; width: 100%; box-sizing: border-box; cursor: pointer; font: inherit; color: inherit; }';
-document.head.appendChild(estiloCerrarSesion);
-
 // Crea el menú compartido de navegación, cuenta y tema junto al logotipo.
 function crearMenuLogotipo(temaInicial) {
   const logotipo = document.querySelector('.navegacion-logotipo');
