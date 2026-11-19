@@ -2359,7 +2359,7 @@ async function configurarInteraccionesEventos() {
         <div class="ticket-info">
           <div class="ticket-heading"><span class="ticket-title">${escaparTexto(evento.title)}</span></div>
           <span class="ticket-subtitle">${escaparTexto(evento.description || 'Una propuesta para disfrutar Salto.')}</span>
-          <div class="ticket-location">${iconoEvento('location')}${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</div>
+          <div class="ticket-location">${iconoEvento('location')}<span>${escaparTexto(evento.location || 'Ubicaci\u00f3n a confirmar')}</span></div>
         </div>
         <span class="ticket-badge badge-green">${iconoCategoria(evento.categories?.[0])}<span>${escaparTexto(evento.categories?.[0] || 'Cultura')}</span></span>
         <span class="ticket-schedule">${iconoEvento('time')}<span>${escaparTexto(horaEvento)}</span></span>
