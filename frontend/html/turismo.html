@@ -32,7 +32,7 @@
        las clases especificas de esta página (alojamientos-section, restaurantes-section, etc)
        están todas mezcladas ahi adentro con las de index y lugares. buscar con Ctrl+F es tu amigo -->
   <link rel="stylesheet" href="../css/styles.css" />
-  <link rel="stylesheet" href="../css/turismo-ui.css?v=20261118" />
+  <link rel="stylesheet" href="../css/turismo-ui.css?v=20261118-ficha" />
 </head>
 
 <!--
